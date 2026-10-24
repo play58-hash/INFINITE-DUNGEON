@@ -369,6 +369,7 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
         <label>메인 포지션</label>
         <div class="pos-grid" id="pos-grid"></div>
         <div class="opt-row" id="opt-row"></div>
+        <span class="hint">선호 스탯은 전투력에 1.5배로 반영되고, 나머지 스탯은 0.8배로 반영됩니다.</span>
       </div>
 
       <div class="field">
@@ -536,6 +537,9 @@ const POSITIONS = {
   supporter: { name: "서포터", A: "아군 버프",     B: "적군 디버프" },
   healer:    { name: "힐러",   A: "HP 회복",       B: "MP 회복" },
 };
+const PREF = { dealer: ["atk", "luk"], tanker: ["hp", "def"], supporter: ["mp", "luk"], healer: ["mp", "hp"] };
+const STAT_NAME = { hp: "HP", mp: "MP", atk: "ATK", def: "DEF", luk: "LUK" };
+const prefText = pos => PREF[pos].map(k => STAT_NAME[k]).join("·");
 const REGIONS = { europe: "유럽", asia: "아시아", america: "아메리카", oceania: "오세아니아", africa: "아프리카" };
 const COLORS = ["#7D42DB", "#3300FF", "#1E8A5A", "#C62A4A", "#D9822B", "#2B8AD9", "#444055", "#B0306E"];
 const GRADE_TEXT = {
@@ -711,7 +715,7 @@ function renderCreate() {
     h("button", {
       type: "button", class: "pos" + (draft.position === id ? " on" : ""),
       onclick: () => { draft.position = id; draft.option = null; renderCreate(); },
-    }, h("strong", {}, p.name), h("small", {}, `${p.A} / ${p.B}`))));
+    }, h("strong", {}, p.name), h("small", {}, `${p.A} / ${p.B}`), h("small", { style: "display:block;margin-top:2px" }, `선호 스탯 ${prefText(id)}`))));
   const row = $("#opt-row");
   row.replaceChildren();
   if (draft.position) {
@@ -1026,15 +1030,18 @@ function openStats() {
   const per = { hp: 10, mp: 5, atk: 1, def: 1, luk: 1 };
   const label = { hp: "HP", mp: "MP", atk: "ATK", def: "DEF", luk: "LUK" };
   const desc = {
-    hp: "1포인트 = HP +10. 0이 되면 복귀", mp: "1포인트 = MP +5. 역마다 1씩 소모",
-    atk: "전투력과 공략 속도", def: "받는 피해 감소", luk: "치명타 확률",
+    hp: "1포인트 = HP +10. 많을수록 덜 쉼", mp: "1포인트 = MP +5. 역마다 1씩 소모, 많을수록 덜 쉼",
+    atk: "전투력과 공략 속도", def: "전투력, 받는 피해 감소", luk: "전투력, 치명타 확률 +1%",
   };
+  const pref = new Set([...(PREF[c.main_position] || []), ...(PREF[c.sub_position] || [])]);
   const save = $("#st-save");
   function paint() {
     const used = Object.values(add).reduce((a, b) => a + b, 0);
-    $("#st-left").replaceChildren("남은 포인트 ", h("strong", {}, String(c.stat_points - used)));
+    $("#st-left").replaceChildren("남은 포인트 ", h("strong", {}, String(c.stat_points - used)),
+      h("span", { class: "hint", style: "display:block;margin-top:4px" }, `${POSITIONS[c.main_position].name}의 선호 스탯(${prefText(c.main_position)})은 전투력에 1.5배로 반영됩니다.`));
     $("#st-rows").replaceChildren(...Object.keys(add).map(k => h("div", { class: "alloc" },
-      h("div", {}, h("strong", {}, label[k]), h("small", { class: "hint" }, desc[k])),
+      h("div", {}, h("strong", {}, label[k]), pref.has(k) ? h("span", { class: "badge", style: "margin-left:6px;font-size:11px" }, "선호") : null,
+        h("small", { class: "hint" }, desc[k])),
       h("div", { class: "alloc-ctl" },
         h("button", { type: "button", class: "btn ghost small", disabled: add[k] === 0, "aria-label": `${label[k]} 빼기`,
           onclick: () => { add[k]--; paint(); } }, "−"),
@@ -1142,7 +1149,7 @@ function openHunter() {
   regionOptions($("#e-region"), p.region);
   $("#e-title-line").textContent = `${p.codename} · ${c.grade}급 Lv.${c.level}`;
   const pos = POSITIONS[c.main_position];
-  $("#e-position").textContent = `메인 포지션: ${pos.name} (${pos[c.main_option]}) · 변경 불가`;
+  $("#e-position").textContent = `메인 포지션: ${pos.name} (${pos[c.main_option]}) · 선호 ${prefText(c.main_position)} · 변경 불가`;
   $("#edit-error").textContent = "";
   const sbox = $("#e-stats");
   sbox.replaceChildren(
