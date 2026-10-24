@@ -255,6 +255,37 @@ table.list.rank tr.me td { background: color-mix(in srgb, var(--primary) 10%, tr
 .alloc-val { min-width: 72px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
 .plus { color: var(--ok); }
 
+/* ===== 아이템 ===== */
+:root { --tier1: #6B6680; --tier2: #1E8A5A; --tier3: #2463C9; --tier4: #8A3FD6; }
+:root[data-theme="dark"] { --tier1: #A49DC2; --tier2: #5FD39B; --tier3: #7FB2FF; --tier4: #C9A2FF; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) { --tier1: #A49DC2; --tier2: #5FD39B; --tier3: #7FB2FF; --tier4: #C9A2FF; }
+}
+.tier1 { color: var(--tier1); } .tier2 { color: var(--tier2); } .tier3 { color: var(--tier3); } .tier4 { color: var(--tier4); }
+.inv-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 4px 0 20px; }
+.slot { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; min-height: 108px; }
+.slot strong { line-height: 1.3; }
+.item-group { margin: 0 0 18px; }
+.item-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px dashed var(--border); }
+.item-main { min-width: 0; }
+.item-desc { font-size: 12px; margin-top: 2px; }
+.item-actions { display: flex; gap: 6px; flex: none; flex-wrap: wrap; justify-content: flex-end; }
+.ev-item { color: var(--ok); }
+.ev-drop { color: var(--accent-text); }
+.sup-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 6px 0; }
+.qty-input { width: 72px; min-height: 36px; padding: 4px 8px; }
+.enh-arrow { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; text-align: center; margin: 8px 0 14px; }
+.enh-arrow > div { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px; }
+.result-ok { color: var(--ok); font-weight: 700; }
+.result-fail { color: var(--danger); font-weight: 700; }
+@media (max-width: 720px) {
+  .slots { grid-template-columns: 1fr; }
+  .slot { min-height: 0; }
+  .item-row { flex-direction: column; align-items: stretch; }
+  .item-actions { justify-content: flex-start; }
+}
+
 /* ===== 팝업 ===== */
 dialog {
   border: 1px solid var(--border); border-radius: 16px; padding: 0; width: min(520px, calc(100% - 32px));
@@ -521,6 +552,13 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
   <div class="dlg-foot"><button class="btn" type="button" id="st-save">분배하기</button></div>
 </dialog>
 
+<!-- ===== 강화 팝업 ===== -->
+<dialog id="dlg-enh">
+  <form method="dialog" class="dlg-head"><h3>장비 강화</h3><button class="x" aria-label="닫기">×</button></form>
+  <div class="dlg-body" id="enh-body"></div>
+  <div class="dlg-foot"><button class="btn" type="button" id="enh-go">강화하기</button></div>
+</dialog>
+
 <!-- ===== 안내 팝업 ===== -->
 <dialog id="dlg-info">
   <form method="dialog" class="dlg-head"><h3 id="info-title"></h3><button class="x" aria-label="닫기">×</button></form>
@@ -564,6 +602,27 @@ const MENUS = [
   { id: "friends",   name: "친구",       ico: "☺" },
 ];
 const needFor = lv => Math.round(100 * Math.pow(lv, 1.5));
+const SLOT_NAME = { weapon: "무기", armor: "방어구", accessory: "장신구" };
+const TIER_NAME = { 1: "일반", 2: "고급", 3: "희귀", 4: "전설" };
+const STAT_ORDER = ["hp", "mp", "atk", "def", "luk"];
+function fmtStats(st) {
+  return STAT_ORDER.filter(k => st && st[k]).map(k => `${k.toUpperCase()} +${st[k]}`).join(", ") || "-";
+}
+function fmtEffect(e) {
+  const out = [];
+  if (e.hp_pct && e.mp_pct && e.hp_pct === e.mp_pct) out.push(`HP·MP ${e.hp_pct}% 회복`);
+  else { if (e.hp_pct) out.push(`HP ${e.hp_pct}% 회복`); if (e.mp_pct) out.push(`MP ${e.mp_pct}% 회복`); }
+  if (e.rest_half) out.push("다음 휴식 시간 절반");
+  return out.join(", ");
+}
+const gearName = g => `${g.name}${g.enhance ? ` +${g.enhance}` : ""}`;
+function josa(word, withB, withoutB) {   // 받침에 맞는 조사
+  const c = word.charCodeAt(word.length - 1);
+  if (c < 0xAC00 || c > 0xD7A3) return word + withoutB;
+  return word + ((c - 0xAC00) % 28 ? withB : withoutB);
+}
+const soonBox = (title, desc) => h("div", { class: "soon" },
+  h("p", { style: "margin:0 0 4px;font-weight:700" }, title), h("p", { style: "margin:0" }, desc));
 const GRADE_ORDER = "FEDCBAS";
 const GRADE_LEVEL = { E: 10, D: 20, C: 30, B: 40, A: 50, S: 60 };   // 이 레벨에 닿으면 승급
 function nextPromotion(grade) {
@@ -572,10 +631,17 @@ function nextPromotion(grade) {
 }
 
 /* ===== 상태 ===== */
-const state = { user: null, profile: null, character: null, settings: null, avatarUrl: null };
+const state = { user: null, profile: null, character: null, settings: null, avatarUrl: null, stats: null };
 
 /* ===== 작은 도우미 ===== */
 const $ = s => document.querySelector(s);
+// 비어 있는 선택 요소(null·false)는 화면에 "null"로 찍히지 않게 건너뛴다
+{
+  const fill = Element.prototype.replaceChildren;
+  Element.prototype.replaceChildren = function (...kids) {
+    return fill.apply(this, kids.flat().filter(k => k != null && k !== false));
+  };
+}
 function h(tag, attrs = {}, ...kids) {
   const el = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
@@ -811,8 +877,12 @@ function renderHunter() {
     h("div", { style: "padding-top:8px;border-top:1px dashed var(--border)" },
       h("div", { class: "kv", style: "border:0;padding:0" }, h("span", {}, "가능성"), h("span", {}, `${Number(c.potential_level).toLocaleString()} / ${need.toLocaleString()}`)),
       h("div", { class: "bar" }, h("i", { style: `width:${pct}%` }))),
-    h("div", { class: "stats" }, ...[["HP", c.hp], ["MP", c.mp], ["ATK", c.atk], ["DEF", c.def], ["LUK", c.luk]]
-      .map(([k, v]) => h("div", { class: "stat" }, h("b", {}, String(v)), h("small", {}, k)))),
+    h("div", { class: "stats" }, ...STAT_ORDER.map(k => {
+      const total = state.stats?.[k] ?? c[k], bonus = total - c[k];
+      return h("div", { class: "stat", title: bonus ? `기본 ${c[k]} + 장비 ${bonus}` : null },
+        h("b", {}, String(total)), h("small", {}, k.toUpperCase()),
+        bonus ? h("small", { class: "plus", style: "display:block;letter-spacing:0" }, `+${bonus}`) : null);
+    })),
     h("div", { class: "kv", style: "margin-top:10px" }, h("span", {}, "재화"), h("span", {}, Number(c.currency).toLocaleString())),
     c.stat_points > 0
       ? h("button", { class: "btn block small", style: "margin-top:12px", type: "button", onclick: openStats }, `스탯 포인트 ${c.stat_points} 분배`)
@@ -836,7 +906,6 @@ function route() {
 }
 const SOON = {
   regional:  ["지역 안정화", "구역마다 E~A급 던전이 나타나고, 클리어하면 30분 뒤 다시 생깁니다.", "3단계"],
-  inventory: ["인벤토리", "보유 아이템과 장착 현황, 조합·상점·거래소를 이용합니다.", "3~5단계"],
   friends:   ["친구", "친구 추가, 목록, 1:1 메신저와 선물하기를 이용합니다.", "5단계"],
 };
 function renderMain() {
@@ -847,6 +916,7 @@ function renderMain() {
   if (r === "admin") return renderAdmin(pane);
   if (r === "dungeon") return renderDungeon(pane);
   if (r === "union") return renderUnion(pane);
+  if (r === "inventory") return renderInventory(pane);
   const [title, desc, stage] = SOON[r];
   pane.replaceChildren(
     h("h2", {}, title),
@@ -892,8 +962,9 @@ async function renderDungeon(pane, tab = "battle") {
   renderDungeonRun(body, data);
 }
 
-function renderDungeonIdle(body) {
+async function renderDungeonIdle(body) {
   let hours = 6, speed = 1;
+  const supplies = {};
   const val = h("strong", {}, "6시간");
   const range = h("input", { type: "range", min: "6", max: "12", step: "1", value: "6", class: "range", "aria-label": "진입 시간" });
   range.oninput = () => { hours = Number(range.value); val.textContent = `${hours}시간`; };
@@ -902,7 +973,8 @@ function renderDungeonIdle(body) {
   btn.onclick = async () => {
     err.textContent = "";
     busy(btn, true, "진입 중…");
-    const { error } = await sb.rpc("start_infinite", { p_hours: hours, p_speed: speed });
+    const chosen = Object.fromEntries(Object.entries(supplies).filter(([, n]) => n > 0));
+    const { error } = await sb.rpc("start_infinite", { p_hours: hours, p_speed: speed, p_supplies: chosen });
     busy(btn, false);
     if (error) return (err.textContent = koError(error));
     renderDungeon($("#main-pane"));
@@ -914,6 +986,30 @@ function renderDungeonIdle(body) {
     h("p", { class: "hint", style: "margin:0 0 16px" },
       "HP·MP가 부족해지면 쉬면서 회복한 뒤 다음 역으로 나아갑니다. 깊은 역일수록 전투도 휴식도 길어지니, 오래 머물수록 더 깊이 내려갈 수 있습니다."),
   ];
+  // 보급품: 소비 아이템 최대 3종, 종류당 5개
+  const { data: inv } = await sb.rpc("get_inventory");
+  const cons = (inv?.stacks || []).filter(x => x.kind === "consumable");
+  const supBox = h("div", {});
+  function paintSupplies() {
+    const types = Object.values(supplies).filter(n => n > 0).length;
+    supBox.replaceChildren(
+      h("div", { class: "kv", style: "border:0;padding:0 0 4px" }, h("span", {}, "보급품"), h("span", { class: "hint" }, `${types}/3종 · 종류당 최대 5개`)),
+      cons.length ? null : h("p", { class: "hint", style: "margin:0" }, "가진 소비 아이템이 없습니다. 상점에서 살 수 있습니다."),
+      ...cons.map(x => {
+        const n = supplies[x.code] || 0, max = Math.min(5, x.qty);
+        const canAdd = n < max && (n > 0 || types < 3);
+        return h("div", { class: "sup-row" },
+          h("div", {}, h("strong", {}, x.name), h("span", { class: "hint" }, ` ${fmtEffect(x.effect)} · 보유 ${x.qty}`)),
+          h("div", { class: "alloc-ctl" },
+            h("button", { type: "button", class: "btn ghost small", disabled: n === 0, "aria-label": `${x.name} 빼기`, onclick: () => { supplies[x.code] = n - 1; paintSupplies(); } }, "−"),
+            h("span", { class: "alloc-val", style: "min-width:28px" }, String(n)),
+            h("button", { type: "button", class: "btn ghost small", disabled: !canAdd, "aria-label": `${x.name} 더하기`, onclick: () => { supplies[x.code] = n + 1; paintSupplies(); } }, "+")));
+      }),
+      h("p", { class: "hint", style: "margin:4px 0 16px" }, "HP·MP가 부족해지면 쉬기 전에 챙긴 보급품을 먼저 씁니다. 남은 것은 복귀할 때 돌려받습니다."));
+  }
+  paintSupplies();
+  parts.push(supBox);
+
   if (state.profile?.is_admin) {
     const sel = h("select", { class: "input", id: "dg-speed" },
       h("option", { value: "1" }, "실시간"),
@@ -1031,9 +1127,164 @@ function showReport(body, r) {
     h("p", { class: "panel-title", style: "margin:18px 0 8px" }, r.push.success ? "조금 더 진입 — 성공" : "조금 더 진입 — 실패"),
     h("ol", { class: "dg-log short" }, ...r.push.log.filter(e => e.type !== "enter")
       .map(e => h("li", { class: `ev ev-${e.type}${e.boss ? " ev-boss" : ""}` }, h("span", {}, e.text)))));
+  if (r.drops?.length) kids.push(
+    h("p", { class: "panel-title", style: "margin:18px 0 8px" }, "획득한 아이템"),
+    h("div", { class: "report" }, ...r.drops.map(d => h("div", { class: "kv" },
+      h("span", { class: d.tier ? `tier${d.tier}` : null, style: d.tier ? "font-weight:700" : null }, d.name),
+      h("span", {}, `× ${d.qty}`)))));
+  if (r.supplies_returned?.length) kids.push(h("p", { class: "hint", style: "margin:10px 0 0" },
+    "돌려받은 보급품: " + r.supplies_returned.map(x => `${x.name} ${x.qty}개`).join(", ")));
   if (r.points > 0) kids.push(h("button", { class: "btn ghost block", style: "margin-top:16px", type: "button", onclick: openStats }, "스탯 포인트 분배하기"));
   kids.push(h("button", { class: "btn block", style: "margin-top:8px", type: "button", onclick: () => renderDungeon($("#main-pane")) }, "확인"));
   body.replaceChildren(...kids);
+}
+
+/* ===== 인벤토리 ===== */
+async function renderInventory(pane, tab = "items") {
+  const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
+  const cur = h("strong", {}, "");
+  pane.replaceChildren(
+    h("div", { class: "inv-head" }, h("h2", {}, "인벤토리"), h("span", { class: "hint" }, "재화 ", cur)),
+    h("div", { class: "tabs", style: "max-width:480px;margin-top:10px" },
+      ...[["items", "보유"], ["shop", "상점"], ["craft", "조합"], ["trade", "거래소"]].map(([id, label]) =>
+        h("button", { type: "button", class: tab === id ? "on" : null, onclick: () => renderInventory(pane, id) }, label))),
+    body);
+  if (tab === "craft") return body.replaceChildren(soonBox("4단계에서 열립니다", "모은 재료로 장비와 소비 아이템을 만듭니다."));
+  if (tab === "trade") return body.replaceChildren(soonBox("5단계에서 열립니다", "다른 헌터와 아이템을 사고팝니다."));
+  const { data: inv, error } = await sb.rpc("get_inventory");
+  if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
+  cur.textContent = Number(inv.currency).toLocaleString();
+  const refresh = async () => { await loadAll(); renderHunter(); renderInventory(pane, tab); };
+  async function act(call, okMsg) {
+    const { error } = await call();
+    if (error) return toast(koError(error));
+    if (okMsg) toast(okMsg);
+    refresh();
+  }
+  if (tab === "shop") return renderShop(body, inv, act);
+  renderOwned(body, inv, act, refresh);
+}
+
+function renderOwned(body, inv, act, refresh) {
+  const equipped = Object.fromEntries(inv.gear.filter(g => g.equipped).map(g => [g.slot, g]));
+  const slotCard = slot => {
+    const g = equipped[slot];
+    return h("div", { class: "slot" },
+      h("small", { class: "hint" }, SLOT_NAME[slot]),
+      ...(g ? [
+        h("strong", { class: `tier${g.tier}` }, gearName(g)),
+        h("span", { class: "hint" }, fmtStats(g.stats)),
+        h("button", { class: "btn ghost small", type: "button", style: "margin-top:auto",
+          onclick: () => act(() => sb.rpc("unequip_gear", { p_slot: slot }), "해제했습니다.") }, "해제"),
+      ] : [h("span", { class: "hint" }, "비어 있음")]));
+  };
+  const gearRow = g => h("div", { class: "item-row" },
+    h("div", { class: "item-main" },
+      h("strong", { class: `tier${g.tier}` }, gearName(g)),
+      g.equipped ? h("span", { class: "badge", style: "margin-left:6px" }, "장착 중") : null,
+      h("div", { class: "hint" }, `${SLOT_NAME[g.slot]} · ${TIER_NAME[g.tier]} · Lv.${g.req_level}부터 · ${fmtStats(g.stats)}`),
+      h("div", { class: "hint item-desc" }, g.description)),
+    h("div", { class: "item-actions" },
+      g.equipped ? null : h("button", { class: "btn small", type: "button", disabled: inv.level < g.req_level,
+        title: inv.level < g.req_level ? `${g.req_level}레벨부터 장착할 수 있습니다.` : null,
+        onclick: () => act(() => sb.rpc("equip_gear", { p_gear_id: g.id }), "장착했습니다.") }, "장착"),
+      g.enhance < 10 ? h("button", { class: "btn ghost small", type: "button", onclick: () => openEnhance(g.id, refresh) }, "강화") : null,
+      g.equipped ? null : h("button", { class: "btn ghost small", type: "button",
+        onclick: () => confirm(`${josa(gearName(g), "을", "를")} ${g.sell_price} 재화에 팔까요?`)
+          && act(() => sb.rpc("sell_gear", { p_gear_id: g.id }), "판매했습니다.") }, "판매")));
+  const stackRow = x => h("div", { class: "item-row" },
+    h("div", { class: "item-main" },
+      h("strong", {}, `${x.name} × ${x.qty}`),
+      h("div", { class: "hint" }, (x.kind === "consumable" ? fmtEffect(x.effect) : (x.boss_mat ? "보스 재료" : "일반 재료 · 강화에 사용")) + ` · 개당 ${x.sell_price}`),
+      h("div", { class: "hint item-desc" }, x.description)),
+    h("div", { class: "item-actions" },
+      h("button", { class: "btn ghost small", type: "button",
+        onclick: () => act(() => sb.rpc("shop_sell", { p_code: x.code, p_qty: 1 }), "1개 팔았습니다.") }, "1개 판매"),
+      x.qty > 1 ? h("button", { class: "btn ghost small", type: "button",
+        onclick: () => confirm(`${x.name} ${x.qty}개를 ${(x.qty * x.sell_price).toLocaleString()} 재화에 모두 팔까요?`)
+          && act(() => sb.rpc("shop_sell", { p_code: x.code, p_qty: x.qty }), "모두 팔았습니다.") }, "모두 판매") : null));
+
+  const cons = inv.stacks.filter(x => x.kind === "consumable"), mats = inv.stacks.filter(x => x.kind === "material");
+  const group = (title, rows, empty) => h("div", { class: "item-group" },
+    h("p", { class: "panel-title" }, title), rows.length ? rows : h("p", { class: "hint", style: "margin:0" }, empty));
+  body.replaceChildren(
+    h("p", { class: "panel-title", style: "margin-top:16px" }, "장착"),
+    h("div", { class: "slots" }, ...["weapon", "armor", "accessory"].map(slotCard)),
+    group(`장비 (${inv.gear.length})`, inv.gear.map(gearRow), "장비가 없습니다. 상점에서 사거나 보스에게서 얻을 수 있습니다."),
+    group(`소비 아이템 (${cons.length})`, cons.map(stackRow), "소비 아이템이 없습니다."),
+    group(`재료 (${mats.length})`, mats.map(stackRow), "재료는 무한 던전에서 얻습니다."));
+}
+
+function renderShop(body, inv, act) {
+  body.replaceChildren(h("p", { class: "hint" }, "불러오는 중…"));
+  sb.rpc("get_shop").then(({ data, error }) => {
+    if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
+    const row = it => {
+      const qty = h("input", { class: "input qty-input", type: "number", min: "1", max: it.kind === "equip" ? "5" : "99", value: "1",
+        "aria-label": `${it.name} 수량` });
+      const lowLv = inv.level < it.req_level;
+      return h("div", { class: "item-row" },
+        h("div", { class: "item-main" },
+          h("strong", { class: it.tier ? `tier${it.tier}` : null }, it.name),
+          h("div", { class: "hint" }, it.kind === "equip"
+            ? `${SLOT_NAME[it.slot]} · ${TIER_NAME[it.tier]} · Lv.${it.req_level}부터 · ${fmtStats(it.stats)}`
+            : fmtEffect(it.effect)),
+          h("div", { class: "hint item-desc" }, it.description)),
+        h("div", { class: "item-actions", style: "align-items:center" },
+          h("strong", {}, `${it.price.toLocaleString()}`), qty,
+          h("button", { class: "btn small", type: "button", disabled: lowLv,
+            title: lowLv ? `${it.req_level}레벨부터 살 수 있습니다.` : null,
+            onclick: () => {
+              const n = Math.max(1, Math.floor(Number(qty.value) || 1));
+              if (n * it.price > inv.currency) return toast("재화가 부족합니다.");
+              act(() => sb.rpc("shop_buy", { p_code: it.code, p_qty: n }), `${it.name} ${n}개를 샀습니다.`);
+            } }, lowLv ? `Lv.${it.req_level}` : "구매")));
+    };
+    const gear = data.filter(x => x.kind === "equip"), cons = data.filter(x => x.kind !== "equip");
+    body.replaceChildren(
+      h("p", { class: "hint", style: "margin:16px 0 8px" }, "팔 때는 '보유' 탭에서 판매 버튼을 누르세요. 상점은 판매가의 30%에 되삽니다."),
+      h("div", { class: "item-group" }, h("p", { class: "panel-title" }, "장비"), gear.map(row)),
+      h("div", { class: "item-group" }, h("p", { class: "panel-title" }, "소비 아이템"), cons.map(row)));
+  });
+}
+
+/* ===== 강화 ===== */
+async function openEnhance(gearId, onDone, lastResult) {
+  const { data: inv, error } = await sb.rpc("get_inventory");
+  if (error) return toast(koError(error));
+  const g = inv.gear.find(x => x.id === gearId);
+  if (!g) return;
+  const have = inv.stacks.filter(x => x.kind === "material" && !x.boss_mat).reduce((a, x) => a + x.qty, 0);
+  const box = $("#enh-body"), go = $("#enh-go");
+  const maxed = g.enhance >= 10;
+  const enough = !maxed && inv.currency >= g.enhance_cost && have >= g.enhance_mats;
+  box.replaceChildren(
+    lastResult ? h("p", { class: lastResult.success ? "result-ok" : "result-fail", style: "margin:0 0 10px" },
+      lastResult.success ? `강화 성공! +${lastResult.enhance}이 되었습니다.` : "강화 실패… 단계는 그대로입니다.") : null,
+    h("strong", { class: `tier${g.tier}` }, g.name),
+    maxed ? h("p", {}, "최대 강화(+10)에 도달했습니다.") : h("div", { class: "enh-arrow" },
+      h("div", {}, h("div", { class: "hint" }, `+${g.enhance}`), h("div", {}, fmtStats(g.stats))),
+      h("span", { "aria-hidden": "true" }, "→"),
+      h("div", {}, h("div", { class: "hint" }, `+${g.enhance + 1}`), h("div", { style: "font-weight:700" }, fmtStats(g.next_stats)))),
+    maxed ? null : h("div", { class: "report" },
+      h("div", { class: "kv" }, h("span", {}, "성공률"), h("span", {}, `${Math.round(g.enhance_rate * 100)}%`)),
+      h("div", { class: "kv" }, h("span", {}, "재화"), h("span", { class: inv.currency < g.enhance_cost ? "result-fail" : null },
+        `${g.enhance_cost.toLocaleString()} (보유 ${Number(inv.currency).toLocaleString()})`)),
+      h("div", { class: "kv" }, h("span", {}, "일반 재료"), h("span", { class: have < g.enhance_mats ? "result-fail" : null },
+        `${g.enhance_mats}개 (보유 ${have}개)`))),
+    maxed ? null : h("p", { class: "hint", style: "margin:10px 0 0" }, "가장 많이 가진 일반 재료부터 씁니다. 실패하면 비용만 사라지고 단계는 유지됩니다."));
+  go.disabled = !enough;
+  go.textContent = maxed ? "최대 강화" : "강화하기";
+  go.onclick = async () => {
+    busy(go, true);
+    const { data: res, error } = await sb.rpc("enhance_gear", { p_gear_id: gearId });
+    busy(go, false);
+    if (error) return toast(koError(error));
+    openEnhance(gearId, onDone, res);
+  };
+  const dlg = $("#dlg-enh");
+  dlg.onclose = () => { dlg.onclose = null; onDone(); };
+  if (!dlg.open) dlg.showModal();
 }
 
 /* ===== 스탯 분배 ===== */
@@ -1264,6 +1515,7 @@ $("#btn-guide").onclick = () => info("가이드",
   h("p", {}, "· 10역마다 구간(테마)이 바뀌고, 역마다 일반 몬스터 1마리·2마리 또는 보스를 만납니다. 보스는 강하지만 보상이 큽니다."),
   h("p", {}, "· 복귀 후 '조금 더 진입'을 고르면 50% 확률로 더 깊이 들어가 1.5배 보상을 받고, 실패하면 이번 보상의 20%를 잃습니다."),
   h("p", {}, "· 레벨이 오를 때마다 스탯 포인트 1개를 받아 자유롭게 분배할 수 있습니다."),
+  h("p", {}, "· 장비는 무기·방어구·장신구 3칸에 끼우고, 재화와 일반 재료로 +10까지 강화할 수 있습니다. 던전에 소비 아이템을 최대 3종 챙겨 가면 쉬는 대신 먼저 씁니다."),
   h("p", {}, "· 10레벨마다 등급이 오릅니다 (E 10 · D 20 · C 30 · B 40 · A 50 · S 60). 처음 받은 각성 등급이 더 높으면 그 레벨에 닿을 때까지 유지됩니다."),
   h("p", { class: "hint" }, "콘텐츠가 열릴 때마다 가이드가 추가됩니다."));
 
@@ -1277,13 +1529,14 @@ document.querySelectorAll(".js-logout").forEach(b => b.onclick = async () => {
 /* ===== 데이터 불러오기 & 시작 ===== */
 async function loadAll() {
   const uid = state.user.id;
-  const [p, c, s] = await Promise.all([
+  const [p, c, s, st] = await Promise.all([
     sb.from("profiles").select("*").eq("user_id", uid).maybeSingle(),
     sb.from("characters").select("*").eq("user_id", uid).maybeSingle(),
     sb.from("settings").select("*").eq("user_id", uid).maybeSingle(),
+    sb.rpc("get_my_stats"),
   ]);
   if (p.error) throw p.error;
-  state.profile = p.data; state.character = c.data; state.settings = s.data;
+  state.profile = p.data; state.character = c.data; state.settings = s.data; state.stats = st.data || null;
   state.avatarUrl = await signedAvatar(state.profile?.avatar_url);
   if (state.settings) applyTheme(state.settings.theme);
 }
