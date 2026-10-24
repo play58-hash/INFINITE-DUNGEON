@@ -215,6 +215,42 @@ table.list th, table.list td { text-align: left; padding: 8px 6px; border-bottom
 table.list th { color: var(--text-dim); font-size: 12px; }
 code.c { font-family: ui-monospace, Menlo, monospace; background: var(--surface-2); padding: 2px 6px; border-radius: 6px; }
 
+/* ===== 무한 던전 ===== */
+.range { width: 100%; accent-color: var(--primary); }
+.range-scale { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-dim); margin-bottom: 8px; }
+.dg-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 4px 0 6px; font-size: 14px; }
+.dg-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0; }
+.dg-stat { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; }
+.dg-stat small { display: block; color: var(--text-dim); font-size: 12px; font-weight: 700; }
+.dg-stat b { font-size: 18px; font-variant-numeric: tabular-nums; }
+.dg-log {
+  list-style: none; margin: 0; padding: 8px 0; max-height: 380px; overflow-y: auto;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px; font-size: 14px;
+}
+.dg-log.short { max-height: none; }
+.ev { display: flex; gap: 10px; padding: 4px 12px; }
+.ev time { flex: none; color: var(--text-dim); font-variant-numeric: tabular-nums; font-size: 12px; padding-top: 2px; }
+.ev-enter { color: var(--text-dim); }
+.ev-heal { color: var(--ok); }
+.ev-rest { color: var(--text-dim); font-style: italic; }
+.ev-down { color: var(--danger); font-weight: 700; }
+.ev-return { color: var(--accent-text); font-weight: 700; }
+.dg-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.dg-note { margin: 0; font-weight: 700; }
+.report-title { margin: 0 0 4px; font-size: 20px; }
+.report .kv:first-child { border-top: 0; }
+table.list.rank tr.me td { background: color-mix(in srgb, var(--primary) 10%, transparent); font-weight: 700; }
+.rank-n {
+  display: inline-flex; width: 26px; height: 26px; border-radius: 50%; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 13px; background: var(--surface-2);
+}
+.rank-n.top { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; }
+.alloc { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px dashed var(--border); }
+.alloc small { display: block; }
+.alloc-ctl { display: flex; align-items: center; gap: 8px; flex: none; }
+.alloc-val { min-width: 72px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+.plus { color: var(--ok); }
+
 /* ===== 팝업 ===== */
 dialog {
   border: 1px solid var(--border); border-radius: 16px; padding: 0; width: min(520px, calc(100% - 32px));
@@ -430,6 +466,7 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
         <div class="hint">장착 타이틀: 없음</div>
       </div>
     </div>
+    <div id="e-stats" style="margin-bottom:16px"></div>
     <div class="field">
       <label for="e-codename">코드네임</label>
       <input id="e-codename" class="input" maxlength="12">
@@ -465,6 +502,17 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
     <button class="btn ghost" type="button" id="e-cancel">취소</button>
     <button class="btn" type="button" id="e-save">저장</button>
   </div>
+</dialog>
+
+<!-- ===== 스탯 분배 팝업 ===== -->
+<dialog id="dlg-stats">
+  <form method="dialog" class="dlg-head"><h3>스탯 분배</h3><button class="x" aria-label="닫기">×</button></form>
+  <div class="dlg-body">
+    <p id="st-left" style="margin:0 0 8px"></p>
+    <div id="st-rows"></div>
+    <div id="st-error" class="error" role="alert"></div>
+  </div>
+  <div class="dlg-foot"><button class="btn" type="button" id="st-save">분배하기</button></div>
 </dialog>
 
 <!-- ===== 안내 팝업 ===== -->
@@ -748,13 +796,18 @@ function renderHunter() {
       h("div", { class: "bar" }, h("i", { style: `width:${pct}%` }))),
     h("div", { class: "stats" }, ...[["HP", c.hp], ["MP", c.mp], ["ATK", c.atk], ["DEF", c.def], ["LUK", c.luk]]
       .map(([k, v]) => h("div", { class: "stat" }, h("b", {}, String(v)), h("small", {}, k)))),
-    h("button", { class: "btn ghost block small", style: "margin-top:14px", type: "button", onclick: openHunter }, "세부 정보"),
+    h("div", { class: "kv", style: "margin-top:10px" }, h("span", {}, "재화"), h("span", {}, Number(c.currency).toLocaleString())),
+    c.stat_points > 0
+      ? h("button", { class: "btn block small", style: "margin-top:12px", type: "button", onclick: openStats }, `스탯 포인트 ${c.stat_points} 분배`)
+      : null,
+    h("button", { class: "btn ghost block small", style: "margin-top:8px", type: "button", onclick: openHunter }, "세부 정보"),
   );
 
   const mav = h("div", { class: "avatar" });
   avatarEl(mav, { url: state.avatarUrl, color: p.avatar_color, name: p.codename });
   $("#mobile-summary").replaceChildren(mav,
     h("div", { style: "flex:1;min-width:0" }, h("strong", {}, p.codename), h("div", { class: "hint" }, `Lv.${c.level} · ${c.grade}급 · ${REGIONS[p.region]}`)),
+    c.stat_points > 0 ? h("span", { class: "badge" }, `포인트 ${c.stat_points}`) : null,
     h("span", { class: "hint" }, "정보 ›"));
   $("#mobile-summary").onclick = openHunter;
 }
@@ -765,9 +818,7 @@ function route() {
   return ids.includes(r) ? r : "dungeon";
 }
 const SOON = {
-  dungeon:   ["무한 던전", "6~12시간 동안 끝없는 역을 공략하고, 실시간 전투 로그와 탐색 맵을 볼 수 있습니다.", "2단계"],
   regional:  ["지역 안정화", "구역마다 E~A급 던전이 나타나고, 클리어하면 30분 뒤 다시 생깁니다.", "3단계"],
-  union:     ["국제헌터연합", "도감, 업적·타이틀, 길드, 주간 랭킹을 확인합니다.", "3~5단계"],
   inventory: ["인벤토리", "보유 아이템과 장착 현황, 조합·상점·거래소를 이용합니다.", "3~5단계"],
   friends:   ["친구", "친구 추가, 목록, 1:1 메신저와 선물하기를 이용합니다.", "5단계"],
 };
@@ -775,7 +826,10 @@ function renderMain() {
   renderNav();
   const r = route();
   const pane = $("#main-pane");
+  stopDungeonTimers();
   if (r === "admin") return renderAdmin(pane);
+  if (r === "dungeon") return renderDungeon(pane);
+  if (r === "union") return renderUnion(pane);
   const [title, desc, stage] = SOON[r];
   pane.replaceChildren(
     h("h2", {}, title),
@@ -784,6 +838,256 @@ function renderMain() {
   );
 }
 addEventListener("hashchange", () => { if (state.character) renderMain(); });
+
+/* ===== 무한 던전 ===== */
+let dgTimer = null, dgPoll = null;
+function stopDungeonTimers() { clearInterval(dgTimer); clearTimeout(dgPoll); dgTimer = dgPoll = null; }
+const fmtTime = iso => new Date(iso).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+function fmtDur(ms) {
+  ms = Math.max(0, ms);
+  const hh = Math.floor(ms / 3600000), mm = Math.floor(ms % 3600000 / 60000), ss = Math.floor(ms % 60000 / 1000);
+  return hh ? `${hh}시간 ${mm}분` : mm ? `${mm}분 ${ss}초` : `${ss}초`;
+}
+const REASON = {
+  time: "정한 시간이 다 되어 복귀했습니다.",
+  wall: "다음 역의 적이 너무 강해 복귀했습니다.",
+  hp: "쓰러져 국제헌터연합에 구조되었습니다.",
+};
+
+async function renderDungeon(pane, tab = "battle") {
+  stopDungeonTimers();
+  const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
+  pane.replaceChildren(
+    h("h2", {}, "무한 던전"),
+    h("p", { class: "hint", style: "margin:0 0 16px" }, "끝이 없는 던전의 역을 하나씩 공략합니다. 창을 닫아도 서버에서 계속 진행됩니다."),
+    h("div", { class: "tabs", style: "max-width:280px" },
+      h("button", { type: "button", class: tab === "battle" ? "on" : null, onclick: () => renderDungeon(pane, "battle") }, "전투"),
+      h("button", { type: "button", class: tab === "explore" ? "on" : null, onclick: () => renderDungeon(pane, "explore") }, "탐색")),
+    body);
+  if (tab === "explore") {
+    return body.replaceChildren(h("div", { class: "soon" },
+      h("p", { style: "margin:0 0 4px;font-weight:700" }, "3단계에서 열립니다"),
+      h("p", { style: "margin:0" }, "10×10 맵을 한 칸씩 이동하며 재화와 아이템을 찾습니다.")));
+  }
+  const { data, error } = await sb.rpc("get_battle_log");
+  if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
+  if (!data) return renderDungeonIdle(body);
+  renderDungeonRun(body, data);
+}
+
+function renderDungeonIdle(body) {
+  let hours = 6, speed = 1;
+  const val = h("strong", {}, "6시간");
+  const range = h("input", { type: "range", min: "6", max: "12", step: "1", value: "6", class: "range", "aria-label": "진입 시간" });
+  range.oninput = () => { hours = Number(range.value); val.textContent = `${hours}시간`; };
+  const err = h("div", { class: "error", role: "alert" });
+  const btn = h("button", { class: "btn block", type: "button" }, "무한 던전 진입");
+  btn.onclick = async () => {
+    err.textContent = "";
+    busy(btn, true, "진입 중…");
+    const { error } = await sb.rpc("start_infinite", { p_hours: hours, p_speed: speed });
+    busy(btn, false);
+    if (error) return (err.textContent = koError(error));
+    renderDungeon($("#main-pane"));
+  };
+  const parts = [
+    h("div", { class: "kv", style: "border:0" }, h("span", {}, "진입 시간"), val),
+    range,
+    h("div", { class: "range-scale" }, h("span", {}, "6시간"), h("span", {}, "12시간")),
+    h("p", { class: "hint", style: "margin:0 0 16px" },
+      "HP·MP가 부족해지면 쉬면서 회복한 뒤 다음 역으로 나아갑니다. 깊은 역일수록 전투도 휴식도 길어지니, 오래 머물수록 더 깊이 내려갈 수 있습니다."),
+  ];
+  if (state.profile?.is_admin) {
+    const sel = h("select", { class: "input", id: "dg-speed" },
+      h("option", { value: "1" }, "실시간"),
+      h("option", { value: "60" }, "60배 (6시간 → 6분)"),
+      h("option", { value: "360" }, "360배 (6시간 → 1분)"));
+    sel.onchange = () => { speed = Number(sel.value); };
+    parts.push(h("div", { class: "field" }, h("label", { for: "dg-speed" }, "운영자 테스트 속도"), sel));
+  }
+  parts.push(err, btn);
+  body.replaceChildren(...parts);
+}
+
+function renderDungeonRun(body, first) {
+  const offset = Date.parse(first.now) - Date.now();
+  const start = Date.parse(first.started_at), end = Date.parse(first.planned_end);
+  const bar = h("i", { style: "width:0%" });
+  const timeLeft = h("span", { class: "hint" });
+  const stats = h("div", { class: "dg-stats" });
+  const list = h("ol", { class: "dg-log", "aria-live": "polite" });
+  const actions = h("div", { class: "dg-actions" });
+  const err = h("div", { class: "error", role: "alert" });
+  let cur = first, shown = 0;
+
+  body.replaceChildren(
+    h("div", { class: "dg-head" },
+      h("div", {}, h("strong", {}, `${cur.hours}시간 진입`),
+        cur.speed > 1 ? h("span", { class: "badge", style: "margin-left:6px" }, `테스트 ${cur.speed}배`) : null),
+      timeLeft),
+    h("div", { class: "bar" }, bar),
+    stats, list, err, actions);
+
+  const statBox = (k, v) => h("div", { class: "dg-stat" }, h("small", {}, k), h("b", {}, v));
+  function paintStats() {
+    stats.replaceChildren(
+      statBox("도달", `${cur.reached}역`),
+      statBox("가능성", `+${Math.round(cur.pot * cur.grade_mult).toLocaleString()}`),
+      statBox("재화", `+${Number(cur.cur).toLocaleString()}`));
+  }
+  function paintLog() {
+    const nearBottom = list.scrollTop + list.clientHeight >= list.scrollHeight - 40;
+    for (const e of cur.events.slice(shown))
+      list.append(h("li", { class: `ev ev-${e.type}` }, h("time", {}, fmtTime(e.at)), h("span", {}, e.text)));
+    shown = cur.events.length;
+    if (nearBottom) list.scrollTop = list.scrollHeight;
+  }
+  function paintActions() {
+    if (!cur.returned) {
+      actions.replaceChildren(h("button", { class: "btn ghost", type: "button", onclick: retreat }, "지금 복귀하기"));
+      return;
+    }
+    const kids = [h("p", { class: "dg-note" }, cur.retreated
+      ? "스스로 복귀했습니다. 지금까지 공략한 역의 보상을 받을 수 있습니다."
+      : "던전에서 돌아왔습니다. 결과를 받아 주세요.")];
+    if (cur.can_push) kids.push(
+      h("button", { class: "btn ghost", type: "button", onclick: () => claim(true) }, "조금 더 진입 (성공 50%)"),
+      h("p", { class: "hint", style: "margin:0" }, "성공하면 기력을 되찾아 몇 역을 더 공략하고 추가분 보상 1.5배, 실패하면 레기온에 구조되어 이번 보상의 20%를 잃습니다."));
+    kids.push(h("button", { class: "btn", type: "button", onclick: () => claim(false) }, "결과 받기"));
+    actions.replaceChildren(...kids);
+  }
+  function tick() {
+    const now = Date.now() + offset;
+    bar.style.width = (cur.returned ? 100 : Math.min(100, (now - start) / (end - start) * 100)) + "%";
+    timeLeft.textContent = cur.returned ? "복귀 완료" : `남은 시간 ${fmtDur(end - now)}`;
+  }
+  const pollDelay = () => (cur.speed > 1 ? 3000 : 15000);
+  async function poll() {
+    const { data, error } = await sb.rpc("get_battle_log");
+    if (error) err.textContent = koError(error);
+    else if (data) { err.textContent = ""; cur = data; paintStats(); paintLog(); paintActions(); tick(); }
+    if (!cur.returned) dgPoll = setTimeout(poll, pollDelay());
+  }
+  async function retreat() {
+    if (!confirm("지금 복귀할까요?\n지금까지 공략한 역의 보상만 받고, '조금 더 진입'은 할 수 없습니다.")) return;
+    const { error } = await sb.rpc("retreat_infinite");
+    if (error) return (err.textContent = koError(error));
+    clearTimeout(dgPoll);
+    poll();
+  }
+  async function claim(push) {
+    err.textContent = "";
+    actions.querySelectorAll("button").forEach(b => (b.disabled = true));
+    const { data, error } = await sb.rpc("claim_infinite", { p_push: push });
+    if (error) {
+      err.textContent = koError(error);
+      actions.querySelectorAll("button").forEach(b => (b.disabled = false));
+      return;
+    }
+    stopDungeonTimers();
+    await loadAll();
+    renderHunter();
+    showReport(body, data);
+  }
+
+  paintStats(); paintLog(); paintActions(); tick();
+  list.scrollTop = list.scrollHeight;
+  dgTimer = setInterval(tick, 1000);
+  if (!cur.returned) dgPoll = setTimeout(poll, pollDelay());
+}
+
+function showReport(body, r) {
+  const lvUp = r.level_after > r.level_before, grUp = r.grade_after !== r.grade_before;
+  const rows = [
+    ["최고 도달", `${r.reached}역`],
+    ["얻은 가능성", `+${Number(r.pot).toLocaleString()}` + (Number(r.grade_mult) !== 1 ? ` (등급 배율 ×${r.grade_mult})` : "")],
+    ["얻은 재화", `+${Number(r.cur).toLocaleString()}`],
+    ["레벨", lvUp ? `Lv.${r.level_before} → Lv.${r.level_after} (스탯 포인트 +${r.points})` : `Lv.${r.level_after}`],
+    ["등급", grUp ? `${r.grade_before}급 → ${r.grade_after}급` : `${r.grade_after}급`],
+  ];
+  const kids = [
+    h("h3", { class: "report-title" }, grUp ? `${r.grade_after}급으로 승급했습니다!` : lvUp ? "레벨이 올랐습니다!" : "던전 결과"),
+    h("p", { class: "hint", style: "margin:0 0 12px" }, r.retreated ? "스스로 복귀했습니다." : (REASON[r.reason] || "")),
+    h("div", { class: "report" }, ...rows.map(([k, v]) => h("div", { class: "kv" }, h("span", {}, k), h("span", {}, v)))),
+  ];
+  if (r.push?.tried) kids.push(
+    h("p", { class: "panel-title", style: "margin:18px 0 8px" }, r.push.success ? "조금 더 진입 — 성공" : "조금 더 진입 — 실패"),
+    h("ol", { class: "dg-log short" }, ...r.push.log.filter(e => e.type !== "enter")
+      .map(e => h("li", { class: `ev ev-${e.type}` }, h("span", {}, e.text)))));
+  if (r.points > 0) kids.push(h("button", { class: "btn ghost block", style: "margin-top:16px", type: "button", onclick: openStats }, "스탯 포인트 분배하기"));
+  kids.push(h("button", { class: "btn block", style: "margin-top:8px", type: "button", onclick: () => renderDungeon($("#main-pane")) }, "확인"));
+  body.replaceChildren(...kids);
+}
+
+/* ===== 스탯 분배 ===== */
+function openStats() {
+  const c = state.character;
+  const add = { hp: 0, mp: 0, atk: 0, def: 0, luk: 0 };
+  const per = { hp: 10, mp: 5, atk: 1, def: 1, luk: 1 };
+  const label = { hp: "HP", mp: "MP", atk: "ATK", def: "DEF", luk: "LUK" };
+  const desc = {
+    hp: "1포인트 = HP +10. 0이 되면 복귀", mp: "1포인트 = MP +5. 역마다 1씩 소모",
+    atk: "전투력과 공략 속도", def: "받는 피해 감소", luk: "치명타 확률",
+  };
+  const save = $("#st-save");
+  function paint() {
+    const used = Object.values(add).reduce((a, b) => a + b, 0);
+    $("#st-left").replaceChildren("남은 포인트 ", h("strong", {}, String(c.stat_points - used)));
+    $("#st-rows").replaceChildren(...Object.keys(add).map(k => h("div", { class: "alloc" },
+      h("div", {}, h("strong", {}, label[k]), h("small", { class: "hint" }, desc[k])),
+      h("div", { class: "alloc-ctl" },
+        h("button", { type: "button", class: "btn ghost small", disabled: add[k] === 0, "aria-label": `${label[k]} 빼기`,
+          onclick: () => { add[k]--; paint(); } }, "−"),
+        h("span", { class: "alloc-val" }, String(c[k] + add[k] * per[k]),
+          add[k] ? h("small", { class: "plus" }, ` +${add[k] * per[k]}`) : null),
+        h("button", { type: "button", class: "btn ghost small", disabled: used >= c.stat_points, "aria-label": `${label[k]} 더하기`,
+          onclick: () => { add[k]++; paint(); } }, "+")))));
+    save.disabled = used === 0;
+  }
+  $("#st-error").textContent = "";
+  save.onclick = async () => {
+    busy(save, true);
+    const { error } = await sb.rpc("allocate_stats", { p_hp: add.hp, p_mp: add.mp, p_atk: add.atk, p_def: add.def, p_luk: add.luk });
+    busy(save, false);
+    if (error) return ($("#st-error").textContent = koError(error));
+    $("#dlg-stats").close();
+    toast("스탯을 분배했습니다.");
+    await loadAll();
+    renderHunter();
+  };
+  paint();
+  $("#dlg-stats").showModal();
+}
+
+/* ===== 국제헌터연합: 주간 랭킹 ===== */
+async function renderUnion(pane, offset = 0) {
+  const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
+  pane.replaceChildren(
+    h("h2", {}, "국제헌터연합"),
+    h("p", { class: "hint", style: "margin:0 0 16px" }, "무한 던전 주간 랭킹은 매주 월요일 0시(한국 시간)에 새로 시작합니다. 같은 역이면 먼저 도달한 헌터가 앞섭니다."),
+    h("div", { class: "tabs", style: "max-width:320px" },
+      h("button", { type: "button", class: offset === 0 ? "on" : null, onclick: () => renderUnion(pane, 0) }, "이번 주"),
+      h("button", { type: "button", class: offset === 1 ? "on" : null, onclick: () => renderUnion(pane, 1) }, "지난주 (확정)")),
+    body,
+    h("p", { class: "hint", style: "margin-top:20px" }, "도감, 업적·타이틀, 길드는 3~5단계에서 열립니다."));
+  const { data, error } = await sb.rpc("get_weekly_ranking", { p_offset: offset });
+  if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
+  const ws = new Date(`${data.week_start}T00:00:00+09:00`), we = new Date(ws.getTime() + 6 * 864e5);
+  const span = `${ws.getMonth() + 1}월 ${ws.getDate()}일 ~ ${we.getMonth() + 1}월 ${we.getDate()}일`;
+  if (!data.rows.length) {
+    return body.replaceChildren(h("p", { class: "hint", style: "margin:0 0 8px" }, span),
+      h("div", { class: "soon" }, offset === 0 ? "아직 기록이 없습니다. 무한 던전에서 첫 기록을 세워 보세요." : "지난주 기록이 없습니다."));
+  }
+  body.replaceChildren(
+    h("p", { class: "hint", style: "margin:0 0 8px" }, span),
+    h("table", { class: "list rank" },
+      h("thead", {}, h("tr", {}, h("th", {}, "순위"), h("th", {}, "헌터"), h("th", {}, "등급"), h("th", { style: "text-align:right" }, "최고 도달"))),
+      h("tbody", {}, ...data.rows.map(r => h("tr", { class: r.me ? "me" : null },
+        h("td", {}, h("span", { class: "rank-n" + (r.rank <= 3 ? " top" : "") }, String(r.rank))),
+        h("td", {}, r.codename),
+        h("td", {}, `${r.grade}급 · Lv.${r.level}`),
+        h("td", { style: "text-align:right;font-weight:700" }, `${r.best_station}역`))))));
+}
 
 /* ===== 운영자: 초대코드 발급 ===== */
 async function renderAdmin(pane) {
@@ -840,6 +1144,13 @@ function openHunter() {
   const pos = POSITIONS[c.main_position];
   $("#e-position").textContent = `메인 포지션: ${pos.name} (${pos[c.main_option]}) · 변경 불가`;
   $("#edit-error").textContent = "";
+  const sbox = $("#e-stats");
+  sbox.replaceChildren(
+    h("div", { class: "stats", style: "margin:0 0 10px" }, ...[["HP", c.hp], ["MP", c.mp], ["ATK", c.atk], ["DEF", c.def], ["LUK", c.luk]]
+      .map(([k, v]) => h("div", { class: "stat" }, h("b", {}, String(v)), h("small", {}, k)))),
+    c.stat_points > 0
+      ? h("button", { class: "btn block small", type: "button", onclick: () => { $("#dlg-hunter").close(); openStats(); } }, `스탯 포인트 ${c.stat_points} 분배`)
+      : null);
   swatches($("#e-swatches"), edit.color, col => { edit.color = col; renderEditAvatar(); });
   renderEditAvatar();
   $("#dlg-hunter").showModal();
@@ -907,6 +1218,10 @@ $("#btn-legal").onclick = () => info("개인정보·저작권",
   h("p", { class: "hint" }, "정식 처리방침과 음원·이미지 출처는 6단계에서 이 자리에 정리됩니다."));
 $("#btn-guide").onclick = () => info("가이드",
   h("p", {}, "INFINITE DUNGEON은 방치형 게임입니다. 무한 던전에 6~12시간 진입해 두고, 돌아와 결과를 받으세요."),
+  h("p", {}, "· HP·MP가 부족해지면 쉬면서 회복하고 다시 나아갑니다. 깊은 역일수록 오래 걸려서, 진입 시간이 길수록 더 깊이 내려갑니다."),
+  h("p", {}, "· HP·DEF가 높을수록 덜 쉬고, 힐러는 전투 중 회복으로 휴식을 줄입니다."),
+  h("p", {}, "· 복귀 후 '조금 더 진입'을 고르면 50% 확률로 더 깊이 들어가 1.5배 보상을 받고, 실패하면 이번 보상의 20%를 잃습니다."),
+  h("p", {}, "· 레벨이 오를 때마다 스탯 포인트 1개를 받아 자유롭게 분배할 수 있습니다. 등급이 높을수록 가능성을 더 많이 얻습니다."),
   h("p", { class: "hint" }, "콘텐츠가 열릴 때마다 가이드가 추가됩니다."));
 
 document.querySelectorAll(".js-logout").forEach(b => b.onclick = async () => {
