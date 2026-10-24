@@ -1127,9 +1127,29 @@ async function renderAdmin(pane) {
           h("td", {}, r.expires_at ? new Date(r.expires_at).toLocaleDateString("ko-KR") : "-"));
       }))));
   }
+  // 가능성 획득률
+  const rate = h("input", { class: "input", type: "number", min: "0.05", max: "2", step: "0.05", id: "adm-rate" });
+  const rateOut = h("div", { class: "error", role: "alert" });
+  const rateBtn = h("button", { class: "btn", type: "button" }, "저장");
+  rateBtn.onclick = async () => {
+    rateOut.textContent = "";
+    busy(rateBtn, true);
+    const { error } = await sb.rpc("set_potential_rate", { p_rate: Number(rate.value) });
+    busy(rateBtn, false);
+    if (error) return (rateOut.textContent = koError(error));
+    toast(`가능성 획득률을 ×${Number(rate.value)}로 바꿨습니다.`);
+  };
+  sb.rpc("get_game_settings").then(({ data }) => { if (data) rate.value = data.potential_rate; });
+
   pane.replaceChildren(
     h("h2", {}, "운영"),
-    h("p", { class: "hint", style: "margin:0 0 20px" }, "초대코드는 한 번만 쓸 수 있습니다."),
+    h("p", { class: "panel-title", style: "margin:16px 0 8px" }, "가능성 획득률"),
+    h("p", { class: "hint", style: "margin:0 0 10px" }, "모든 콘텐츠에서 얻는 가능성에 곱해집니다. 레벨과 등급이 오르는 속도가 함께 바뀌며, 이미 받은 가능성에는 영향이 없습니다. (0.05~2)"),
+    h("div", { style: "display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;max-width:360px" },
+      h("div", { class: "field", style: "margin:0" }, h("label", { for: "adm-rate" }, "배율"), rate), rateBtn),
+    rateOut,
+    h("p", { class: "panel-title", style: "margin:24px 0 8px" }, "초대코드"),
+    h("p", { class: "hint", style: "margin:0 0 12px" }, "초대코드는 한 번만 쓸 수 있습니다."),
     h("div", { style: "display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin-bottom:8px" },
       h("div", { class: "field", style: "margin:0" }, h("label", { for: "adm-count" }, "개수 (1~20)"), count),
       h("div", { class: "field", style: "margin:0" }, h("label", { for: "adm-days" }, "유효 기간 (일)"), days),
