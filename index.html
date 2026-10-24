@@ -1,0 +1,948 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>INFINITE DUNGEON</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Staatliches&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=all_inclusive&display=block">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+/* ===== 테마 색 (주색 #3300FF · 보조색 #7D42DB · 바탕 #FFFFFF) ===== */
+:root {
+  --primary: #3300FF;
+  --secondary: #7D42DB;
+  --bg: #FFFFFF;
+  --surface: #F6F4FC;
+  --surface-2: #ECE8F8;
+  --border: #DCD6EE;
+  --text: #17132A;
+  --text-dim: #5E5878;
+  --accent-text: #3300FF;
+  --on-primary: #FFFFFF;
+  --danger: #C62A4A;
+  --ok: #1E8A5A;
+  --radius: 12px;
+  --shadow: 0 1px 2px rgba(23,19,42,.06), 0 4px 16px rgba(23,19,42,.06);
+}
+:root[data-theme="dark"] {
+  --bg: #0F0D18;
+  --surface: #181527;
+  --surface-2: #221E36;
+  --border: #322C4D;
+  --text: #EEEAFB;
+  --text-dim: #A49DC2;
+  --accent-text: #B9A2FF;
+  --danger: #FF7A93;
+  --ok: #5FD39B;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.3);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) {
+    --bg: #0F0D18; --surface: #181527; --surface-2: #221E36; --border: #322C4D;
+    --text: #EEEAFB; --text-dim: #A49DC2; --accent-text: #B9A2FF;
+    --danger: #FF7A93; --ok: #5FD39B;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.3);
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-size: 15px; line-height: 1.55;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: var(--accent-text); }
+.hidden { display: none !important; }
+
+/* ===== 공통 요소 ===== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 44px; padding: 0 18px; border-radius: 10px; border: 1px solid transparent;
+  background: var(--primary); color: var(--on-primary); font-weight: 700; cursor: pointer;
+}
+.btn:hover { filter: brightness(1.1); }
+.btn:disabled { opacity: .5; cursor: default; filter: none; }
+.btn.ghost { background: transparent; color: var(--text); border-color: var(--border); }
+.btn.ghost:hover { background: var(--surface-2); }
+.btn.small { min-height: 36px; padding: 0 12px; font-size: 14px; }
+.btn.block { width: 100%; }
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.field label { font-size: 13px; font-weight: 700; color: var(--text-dim); }
+.input, select.input, textarea.input {
+  width: 100%; min-height: 44px; padding: 10px 12px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--bg);
+}
+textarea.input { min-height: 88px; resize: vertical; }
+.input:focus { outline: 2px solid var(--secondary); outline-offset: 1px; }
+.hint { font-size: 13px; color: var(--text-dim); }
+.error { color: var(--danger); font-size: 14px; min-height: 20px; }
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow);
+}
+.badge {
+  display: inline-block; padding: 2px 10px; border-radius: 999px;
+  background: var(--surface-2); font-size: 13px; font-weight: 700;
+}
+
+/* ===== 시작 화면 (로그인·초대코드·캐릭터 생성) ===== */
+.gate {
+  min-height: 100%; display: flex; align-items: center; justify-content: center;
+  padding: 32px 16px;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb, var(--primary) 18%, transparent), transparent 60%),
+    radial-gradient(900px 500px at 110% 110%, color-mix(in srgb, var(--secondary) 20%, transparent), transparent 60%),
+    var(--bg);
+}
+.gate-box { width: 100%; max-width: 440px; }
+.gate-box.wide { max-width: 640px; }
+.logo {
+  display: inline-flex; align-items: center; gap: 6px; margin: 0 0 4px;
+  font-family: "Staatliches", "Pretendard Variable", sans-serif; font-weight: 400;
+  font-size: 34px; letter-spacing: .04em; line-height: 1;
+}
+.logo .word-b { color: var(--accent-text); }
+.logo .mark {
+  font-family: "Material Symbols Outlined"; font-weight: 500; font-style: normal;
+  font-size: 1.15em; line-height: 1; letter-spacing: 0; text-transform: none; white-space: nowrap;
+  font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0, "opsz" 48;
+  -webkit-font-feature-settings: "liga"; font-feature-settings: "liga";
+  color: var(--accent-text); overflow: hidden; display: inline-block; width: 1.15em;
+}
+.mark, .sym { visibility: hidden; }
+.sym-ready .mark, .sym-ready .sym { visibility: visible; }
+.page-title { font-weight: 800; font-size: 26px; margin: 0 0 4px; }
+.page-title span { color: var(--accent-text); }
+.sym {
+  font-family: "Material Symbols Outlined"; font-style: normal; line-height: 1; letter-spacing: 0;
+  font-feature-settings: "liga"; overflow: hidden; display: inline-block; width: 1em;
+}
+.tagline { color: var(--text-dim); margin: 0 0 20px; font-size: 14px; }
+.tabs { display: flex; gap: 4px; background: var(--surface-2); border-radius: 10px; padding: 4px; margin-bottom: 18px; }
+.tabs button { flex: 1; min-height: 38px; border: 0; border-radius: 8px; background: transparent; cursor: pointer; font-weight: 700; color: var(--text-dim); }
+.tabs button.on { background: var(--bg); color: var(--text); box-shadow: var(--shadow); }
+
+.pos-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.pos {
+  border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; cursor: pointer;
+  background: var(--bg); text-align: left;
+}
+.pos strong { display: block; }
+.pos small { color: var(--text-dim); }
+.pos.on { border-color: var(--primary); outline: 2px solid var(--primary); }
+.opt-row { display: flex; gap: 8px; margin-top: 8px; }
+.opt-row .pos { flex: 1; }
+
+.avatar-pick { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.swatches { display: flex; gap: 6px; flex-wrap: wrap; }
+.swatch { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--bg); outline: 1px solid var(--border); cursor: pointer; }
+.swatch.on { outline: 3px solid var(--text); }
+
+.reveal { text-align: center; }
+.grade-big {
+  width: 160px; height: 160px; margin: 12px auto 16px; border-radius: 24px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 88px; font-weight: 700; color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  animation: pop .7s cubic-bezier(.2,1.4,.4,1) both;
+}
+@keyframes pop { from { transform: scale(.3) rotate(-12deg); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* ===== 아바타 ===== */
+.avatar {
+  width: 56px; height: 56px; border-radius: 14px; flex: none; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 22px; background: var(--secondary);
+}
+.avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.avatar.lg { width: 96px; height: 96px; font-size: 38px; border-radius: 20px; }
+
+/* ===== 메인 화면 ===== */
+.app { min-height: 100%; display: grid; grid-template-rows: auto 1fr auto; }
+.topbar {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; gap: 8px; padding: 0 20px; height: 60px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+.topbar .logo { font-size: 24px; margin: 0 16px 0 0; white-space: nowrap; }
+.nav { display: flex; gap: 2px; flex: 1; overflow-x: auto; }
+.nav a {
+  padding: 8px 14px; border-radius: 8px; text-decoration: none; color: var(--text-dim);
+  font-weight: 700; white-space: nowrap;
+}
+.nav a:hover { background: var(--surface-2); color: var(--text); }
+.nav a.on { color: var(--accent-text); background: color-mix(in srgb, var(--primary) 10%, transparent); }
+.top-actions { display: flex; gap: 6px; }
+.top-actions .btn { white-space: nowrap; }
+
+.layout {
+  display: grid; grid-template-columns: 280px minmax(0, 1fr) 280px; gap: 20px;
+  padding: 20px; max-width: 1400px; width: 100%; margin: 0 auto; align-items: start;
+}
+.side { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 80px; }
+.hunter-head { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
+.hello { font-size: 13px; color: var(--text-dim); }
+.codename { font-size: 18px; font-weight: 700; word-break: break-all; }
+.kv { display: flex; justify-content: space-between; padding: 6px 0; border-top: 1px dashed var(--border); font-size: 14px; }
+.kv span:first-child { color: var(--text-dim); }
+.bar { height: 8px; background: var(--surface-2); border-radius: 99px; overflow: hidden; margin: 4px 0 2px; }
+.bar > i { display: block; height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); }
+.stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 10px; }
+.stat { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 0; text-align: center; }
+.stat b { display: block; font-size: 16px; }
+.stat small { font-size: 11px; color: var(--text-dim); font-weight: 700; letter-spacing: .05em; }
+.panel-title { font-size: 13px; font-weight: 700; color: var(--text-dim); margin: 0 0 10px; letter-spacing: .04em; }
+.main-pane { min-height: 480px; }
+.main-pane h2 { margin: 0 0 6px; font-size: 22px; }
+.soon {
+  border: 1px dashed var(--border); border-radius: var(--radius); padding: 40px 20px;
+  text-align: center; color: var(--text-dim);
+}
+.footer {
+  display: flex; gap: 16px; justify-content: center; padding: 16px; font-size: 13px;
+  border-top: 1px solid var(--border); color: var(--text-dim);
+}
+.footer button { background: none; border: 0; color: var(--text-dim); cursor: pointer; text-decoration: underline; }
+
+table.list { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.list th, table.list td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); }
+table.list th { color: var(--text-dim); font-size: 12px; }
+code.c { font-family: ui-monospace, Menlo, monospace; background: var(--surface-2); padding: 2px 6px; border-radius: 6px; }
+
+/* ===== 팝업 ===== */
+dialog {
+  border: 1px solid var(--border); border-radius: 16px; padding: 0; width: min(520px, calc(100% - 32px));
+  background: var(--surface); color: var(--text); box-shadow: 0 20px 60px rgba(0,0,0,.35);
+}
+dialog::backdrop { background: rgba(10,8,20,.55); }
+.dlg-head { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.dlg-head h3 { margin: 0; font-size: 17px; }
+.dlg-body { padding: 20px; max-height: 70vh; overflow-y: auto; }
+.dlg-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 20px; border-top: 1px solid var(--border); }
+.x { background: none; border: 0; font-size: 22px; cursor: pointer; color: var(--text-dim); width: 40px; height: 40px; }
+
+.toast {
+  position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%);
+  background: var(--text); color: var(--bg); padding: 10px 18px; border-radius: 10px;
+  font-weight: 700; z-index: 100; box-shadow: var(--shadow);
+}
+
+/* ===== 모바일 하단 탭 ===== */
+.tabbar { display: none; }
+.mobile-summary { display: none; }
+
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 260px minmax(0, 1fr); }
+  .side.right { display: none; }
+}
+@media (max-width: 720px) {
+  .topbar { padding: 0 12px; }
+  .topbar .logo { font-size: 22px; margin-right: auto; min-width: 0; overflow: hidden; }
+  .top-actions { flex: none; }
+  .top-actions .btn { padding: 0 10px; }
+  .nav { display: none; }
+  .layout { grid-template-columns: 1fr; padding: 16px; padding-bottom: 96px; }
+  .side.left { display: none; }
+  .mobile-summary {
+    display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+    background: var(--surface); border-bottom: 1px solid var(--border); cursor: pointer;
+  }
+  .mobile-summary .avatar { width: 36px; height: 36px; font-size: 15px; border-radius: 10px; }
+  .footer { padding-bottom: 84px; }
+  .tabbar {
+    display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    background: var(--surface); border-top: 1px solid var(--border);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .tabbar a {
+    min-height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-decoration: none; color: var(--text-dim); font-size: 12px; font-weight: 700; gap: 2px;
+  }
+  .tabbar a .ico { font-size: 18px; line-height: 1; }
+  .tabbar a.on { color: var(--accent-text); }
+  .pos-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== 1. 로그인 / 가입 ===== -->
+<section id="screen-auth" class="gate hidden">
+  <div class="gate-box">
+    <h1 class="logo" aria-label="INFINITE DUNGEON"><span class="mark" aria-hidden="true">all_inclusive</span>INFINITE <span class="word-b">DUNGEON</span></h1>
+    <p class="tagline">2126년, 무한 던전이 다시 열렸습니다.</p>
+    <div class="card">
+      <div class="tabs" role="tablist">
+        <button id="tab-login" class="on" type="button">로그인</button>
+        <button id="tab-signup" type="button">가입</button>
+      </div>
+      <form id="form-auth" novalidate>
+        <div class="field">
+          <label for="auth-email">이메일</label>
+          <input id="auth-email" class="input" type="email" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="auth-pass">비밀번호</label>
+          <input id="auth-pass" class="input" type="password" autocomplete="current-password" minlength="8" required>
+          <span id="pass-hint" class="hint hidden">8자 이상</span>
+        </div>
+        <div id="auth-error" class="error" role="alert"></div>
+        <button id="auth-submit" class="btn block" type="submit">로그인</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 2. 초대코드 ===== -->
+<section id="screen-invite" class="gate hidden">
+  <div class="gate-box">
+    <h1 class="logo" aria-label="INFINITE DUNGEON"><span class="mark" aria-hidden="true">all_inclusive</span>INFINITE <span class="word-b">DUNGEON</span></h1>
+    <p class="tagline">초대받은 헌터만 입장할 수 있습니다.</p>
+    <form id="form-invite" class="card" novalidate>
+      <div class="field">
+        <label for="invite-code">초대코드</label>
+        <input id="invite-code" class="input" autocomplete="off" spellcheck="false" placeholder="예: 98B21551906E" required>
+      </div>
+      <div id="invite-error" class="error" role="alert"></div>
+      <button class="btn block" type="submit">확인</button>
+      <p style="text-align:center;margin:12px 0 0"><button class="btn ghost small js-logout" type="button">로그아웃</button></p>
+    </form>
+  </div>
+</section>
+
+<!-- ===== 3. 캐릭터 생성 ===== -->
+<section id="screen-create" class="gate hidden">
+  <div class="gate-box wide">
+    <h1 class="page-title">헌터 <span>등록</span></h1>
+    <p class="tagline">국제헌터연합에 등록할 정보를 입력하세요. 포지션은 나중에 바꿀 수 없습니다.</p>
+    <form id="form-create" class="card" novalidate>
+      <div class="field">
+        <label for="c-codename">코드네임</label>
+        <input id="c-codename" class="input" maxlength="12" required placeholder="2~12자">
+        <span class="hint">헌터로서 불리는 이름입니다. 다른 헌터와 겹칠 수 없습니다.</span>
+      </div>
+
+      <div class="field">
+        <label>메인 포지션</label>
+        <div class="pos-grid" id="pos-grid"></div>
+        <div class="opt-row" id="opt-row"></div>
+      </div>
+
+      <div class="field">
+        <label>프로필 이미지</label>
+        <div class="avatar-pick">
+          <div id="c-avatar-preview" class="avatar lg">?</div>
+          <div>
+            <div class="swatches" id="c-swatches"></div>
+            <p class="hint" style="margin:8px 0 6px">사진이 없으면 단색 배경을 씁니다. 사진은 1:1로 잘려 올라갑니다.</p>
+            <label class="btn ghost small" for="c-photo">사진 선택</label>
+            <input id="c-photo" type="file" accept="image/png,image/jpeg,image/webp" class="hidden">
+            <button id="c-photo-clear" type="button" class="btn ghost small hidden">사진 빼기</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="c-region">활동 구역</label>
+        <select id="c-region" class="input"></select>
+      </div>
+
+      <div class="field">
+        <label for="c-bio">특징</label>
+        <textarea id="c-bio" class="input" maxlength="300" placeholder="이름, 나이 등 간략한 캐릭터 소개 (300자 이내)"></textarea>
+      </div>
+      <div class="field">
+        <label for="c-vis">특징 공개 범위</label>
+        <select id="c-vis" class="input">
+          <option value="all">모든 헌터</option>
+          <option value="friends">친구만</option>
+          <option value="private">나만 보기</option>
+        </select>
+      </div>
+
+      <div id="create-error" class="error" role="alert"></div>
+      <button id="create-submit" class="btn block" type="submit">등록하고 등급 측정</button>
+    </form>
+  </div>
+</section>
+
+<!-- ===== 3-1. 등급 공개 ===== -->
+<section id="screen-reveal" class="gate hidden">
+  <div class="gate-box">
+    <div class="card reveal">
+      <p class="hint" style="margin:0">각성 등급 측정 결과</p>
+      <div class="grade-big" id="reveal-grade">F</div>
+      <p id="reveal-text" style="margin:0 0 18px"></p>
+      <button id="reveal-go" class="btn block" type="button">입장하기</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 4. 메인 ===== -->
+<div id="screen-app" class="app hidden">
+  <header class="topbar">
+    <a href="#/dungeon" class="logo" aria-label="INFINITE DUNGEON 홈" style="text-decoration:none;color:var(--text)"><span class="mark" aria-hidden="true">all_inclusive</span>INFINITE <span class="word-b">DUNGEON</span></a>
+    <nav class="nav" id="nav"></nav>
+    <div class="top-actions">
+      <button class="btn ghost small" id="btn-theme" type="button" title="테마 바꾸기">테마</button>
+      <button class="btn ghost small js-logout" type="button">로그아웃</button>
+    </div>
+  </header>
+
+  <div>
+    <div class="mobile-summary" id="mobile-summary"></div>
+    <div class="layout">
+      <aside class="side left">
+        <div class="card" id="hunter-card"></div>
+      </aside>
+      <main class="card main-pane" id="main-pane"></main>
+      <aside class="side right">
+        <div class="card"><p class="panel-title">파티</p><p class="hint" style="margin:0">5단계에서 열립니다.</p></div>
+        <div class="card"><p class="panel-title">SNS</p><p class="hint" style="margin:0">5단계에서 열립니다.</p></div>
+      </aside>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <button type="button" id="btn-legal">개인정보·저작권</button>
+    <button type="button" id="btn-guide">가이드</button>
+  </footer>
+
+  <nav class="tabbar" id="tabbar"></nav>
+</div>
+
+<!-- ===== 헌터 세부 정보 팝업 ===== -->
+<dialog id="dlg-hunter">
+  <form method="dialog" class="dlg-head"><h3>헌터 정보</h3><button class="x" aria-label="닫기">×</button></form>
+  <div class="dlg-body">
+    <div class="hunter-head">
+      <div id="e-avatar" class="avatar lg"></div>
+      <div>
+        <div class="codename" id="e-title-line"></div>
+        <div class="hint" id="e-position"></div>
+        <div class="hint">장착 타이틀: 없음</div>
+      </div>
+    </div>
+    <div class="field">
+      <label for="e-codename">코드네임</label>
+      <input id="e-codename" class="input" maxlength="12">
+    </div>
+    <div class="field">
+      <label>프로필 이미지</label>
+      <div class="swatches" id="e-swatches"></div>
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+        <label class="btn ghost small" for="e-photo">사진 변경</label>
+        <input id="e-photo" type="file" accept="image/png,image/jpeg,image/webp" class="hidden">
+        <button id="e-photo-clear" type="button" class="btn ghost small">단색으로</button>
+      </div>
+    </div>
+    <div class="field">
+      <label for="e-region">활동 구역</label>
+      <select id="e-region" class="input"></select>
+    </div>
+    <div class="field">
+      <label for="e-bio">특징</label>
+      <textarea id="e-bio" class="input" maxlength="300"></textarea>
+    </div>
+    <div class="field">
+      <label for="e-vis">특징 공개 범위</label>
+      <select id="e-vis" class="input">
+        <option value="all">모든 헌터</option>
+        <option value="friends">친구만</option>
+        <option value="private">나만 보기</option>
+      </select>
+    </div>
+    <div id="edit-error" class="error" role="alert"></div>
+  </div>
+  <div class="dlg-foot">
+    <button class="btn ghost" type="button" id="e-cancel">취소</button>
+    <button class="btn" type="button" id="e-save">저장</button>
+  </div>
+</dialog>
+
+<!-- ===== 안내 팝업 ===== -->
+<dialog id="dlg-info">
+  <form method="dialog" class="dlg-head"><h3 id="info-title"></h3><button class="x" aria-label="닫기">×</button></form>
+  <div class="dlg-body" id="info-body"></div>
+</dialog>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+/* ===== 연결 정보 (공개용 키라 웹에 넣어도 안전합니다) ===== */
+const SUPABASE_URL = "https://ianurabcskdqkyotgbin.supabase.co";
+const SUPABASE_KEY = "sb_publishable_KdlSFs25OSjO3_slBbsg4w_QaUGiaiC";
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ===== 게임 기준 데이터 ===== */
+const POSITIONS = {
+  dealer:    { name: "딜러",   A: "데미지 증가",   B: "타격 수 증가" },
+  tanker:    { name: "탱커",   A: "도발",          B: "받는 피해 감소" },
+  supporter: { name: "서포터", A: "아군 버프",     B: "적군 디버프" },
+  healer:    { name: "힐러",   A: "HP 회복",       B: "MP 회복" },
+};
+const REGIONS = { europe: "유럽", asia: "아시아", america: "아메리카", oceania: "오세아니아", africa: "아프리카" };
+const COLORS = ["#7D42DB", "#3300FF", "#1E8A5A", "#C62A4A", "#D9822B", "#2B8AD9", "#444055", "#B0306E"];
+const GRADE_TEXT = {
+  F: "모든 헌터는 F에서 시작해 S를 꿈꿉니다.",
+  E: "가능성이 보이는 출발입니다.",
+  D: "평균 이상의 각성입니다.",
+  C: "연합이 주목할 만한 재능입니다.",
+  B: "상위 헌터의 자질을 갖췄습니다.",
+  A: "보기 드문 각성입니다.",
+  S: "전 세계에 손꼽히는 각성입니다!",
+};
+const MENUS = [
+  { id: "dungeon",   name: "무한 던전",   ico: "∞" },
+  { id: "regional",  name: "지역 안정화", ico: "◎" },
+  { id: "union",     name: "국제헌터연합", ico: "★" },
+  { id: "inventory", name: "인벤토리",   ico: "▤" },
+  { id: "friends",   name: "친구",       ico: "☺" },
+];
+const needFor = lv => Math.round(100 * Math.pow(lv, 1.5));
+
+/* ===== 상태 ===== */
+const state = { user: null, profile: null, character: null, settings: null, avatarUrl: null };
+
+/* ===== 작은 도우미 ===== */
+const $ = s => document.querySelector(s);
+function h(tag, attrs = {}, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === "class") el.className = v;
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat()) if (kid != null) el.append(kid);
+  return el;
+}
+function toast(msg) {
+  const t = h("div", { class: "toast", role: "status" }, msg);
+  document.body.append(t);
+  setTimeout(() => t.remove(), 2400);
+}
+function show(id) {
+  for (const s of ["screen-auth", "screen-invite", "screen-create", "screen-reveal", "screen-app"])
+    $("#" + s).classList.toggle("hidden", s !== id);
+}
+function koError(err) {
+  const m = (err && err.message) || String(err);
+  if (/Invalid login credentials/i.test(m)) return "이메일 또는 비밀번호가 올바르지 않습니다.";
+  if (/already registered|already been registered/i.test(m)) return "이미 가입된 이메일입니다. 로그인해 주세요.";
+  if (/Password should be at least/i.test(m)) return "비밀번호는 8자 이상이어야 합니다.";
+  if (/valid email|invalid email|Unable to validate email/i.test(m)) return "이메일 형식을 확인해 주세요.";
+  if (/rate limit/i.test(m)) return "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.";
+  if (/Failed to fetch|NetworkError/i.test(m)) return "서버에 연결할 수 없습니다. 인터넷 연결을 확인해 주세요.";
+  return m;
+}
+function busy(btn, on, label) {
+  if (on) { btn.dataset.label = btn.textContent; btn.textContent = label || "처리 중…"; btn.disabled = true; }
+  else { btn.textContent = btn.dataset.label || btn.textContent; btn.disabled = false; }
+}
+
+/* ===== 아이콘 글꼴이 준비되면 로고 아이콘 표시 ===== */
+document.fonts?.load('24px "Material Symbols Outlined"', "all_inclusive")
+  .then(f => { if (f.length) document.documentElement.classList.add("sym-ready"); })
+  .catch(() => {});
+
+/* ===== 테마 ===== */
+function applyTheme(theme) {
+  const root = document.documentElement;
+  if (theme === "light" || theme === "dark") root.dataset.theme = theme;
+  else delete root.dataset.theme;
+  try { localStorage.setItem("id-theme", theme); } catch {}
+  const btn = $("#btn-theme");
+  if (btn) btn.textContent = { light: "밝은 테마", dark: "어두운 테마", system: "기기 설정" }[theme] || "테마";
+}
+try { applyTheme(localStorage.getItem("id-theme") || "system"); } catch { applyTheme("system"); }
+
+/* ===== 사진: 가운데를 1:1로 잘라 256px WebP로 변환 ===== */
+async function squareImage(file) {
+  if (!/^image\/(png|jpeg|webp)$/.test(file.type)) throw new Error("PNG, JPG, WebP 이미지만 올릴 수 있습니다.");
+  const bmp = await createImageBitmap(file);
+  const side = Math.min(bmp.width, bmp.height);
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 256;
+  canvas.getContext("2d").drawImage(bmp, (bmp.width - side) / 2, (bmp.height - side) / 2, side, side, 0, 0, 256, 256);
+  const blob = await new Promise(r => canvas.toBlob(r, "image/webp", 0.85));
+  if (!blob) throw new Error("이미지를 변환하지 못했습니다.");
+  return blob;
+}
+async function uploadAvatar(blob) {
+  const path = `${state.user.id}/avatar.webp`;
+  const { error } = await sb.storage.from("avatars").upload(path, blob, { upsert: true, contentType: "image/webp" });
+  if (error) throw error;
+  return path;
+}
+async function signedAvatar(path) {
+  if (!path) return null;
+  const { data, error } = await sb.storage.from("avatars").createSignedUrl(path, 3600);
+  return error ? null : data.signedUrl + "&v=" + Date.now();
+}
+function avatarEl(el, { url, color, name }) {
+  el.replaceChildren();
+  el.style.background = color || "var(--secondary)";
+  if (url) el.append(h("img", { src: url, alt: "" }));
+  else el.textContent = (name || "?").trim().slice(0, 1) || "?";
+}
+function swatches(container, current, onPick) {
+  container.replaceChildren(...COLORS.map(c =>
+    h("button", {
+      type: "button", class: "swatch" + (c === current ? " on" : ""), style: `background:${c}`,
+      "aria-label": `배경색 ${c}`,
+      onclick: ev => {
+        container.querySelectorAll(".swatch").forEach(b => b.classList.remove("on"));
+        ev.currentTarget.classList.add("on");
+        onPick(c);
+      },
+    })));
+}
+function regionOptions(select, current) {
+  select.replaceChildren(...Object.entries(REGIONS).map(([v, n]) => h("option", { value: v, selected: v === current }, n)));
+}
+
+/* ===== 1. 로그인 / 가입 ===== */
+let authMode = "login";
+function setAuthMode(mode) {
+  authMode = mode;
+  $("#tab-login").classList.toggle("on", mode === "login");
+  $("#tab-signup").classList.toggle("on", mode === "signup");
+  $("#auth-submit").textContent = mode === "login" ? "로그인" : "가입하기";
+  $("#auth-pass").autocomplete = mode === "login" ? "current-password" : "new-password";
+  $("#pass-hint").classList.toggle("hidden", mode === "login");
+  $("#auth-error").textContent = "";
+}
+$("#tab-login").onclick = () => setAuthMode("login");
+$("#tab-signup").onclick = () => setAuthMode("signup");
+$("#form-auth").onsubmit = async e => {
+  e.preventDefault();
+  const email = $("#auth-email").value.trim();
+  const password = $("#auth-pass").value;
+  const err = $("#auth-error"), btn = $("#auth-submit");
+  err.textContent = "";
+  if (!email || !password) return (err.textContent = "이메일과 비밀번호를 입력해 주세요.");
+  if (authMode === "signup" && password.length < 8) return (err.textContent = "비밀번호는 8자 이상이어야 합니다.");
+  busy(btn, true);
+  const { data, error } = authMode === "login"
+    ? await sb.auth.signInWithPassword({ email, password })
+    : await sb.auth.signUp({ email, password });
+  busy(btn, false);
+  if (error) return (err.textContent = koError(error));
+  if (!data.session) return (err.textContent = "가입 확인 메일을 보냈습니다. 메일의 링크를 누른 뒤 로그인해 주세요.");
+  await boot();
+};
+
+/* ===== 2. 초대코드 ===== */
+$("#form-invite").onsubmit = async e => {
+  e.preventDefault();
+  const code = $("#invite-code").value.trim();
+  const err = $("#invite-error"), btn = e.submitter || $("#form-invite button[type=submit]");
+  err.textContent = "";
+  if (!code) return (err.textContent = "초대코드를 입력해 주세요.");
+  busy(btn, true);
+  const { error } = await sb.rpc("redeem_invite", { p_code: code });
+  busy(btn, false);
+  if (error) return (err.textContent = koError(error));
+  toast("초대가 확인되었습니다.");
+  await boot();
+};
+
+/* ===== 3. 캐릭터 생성 ===== */
+const draft = { position: null, option: null, color: COLORS[0], photo: null };
+function renderCreate() {
+  const grid = $("#pos-grid");
+  grid.replaceChildren(...Object.entries(POSITIONS).map(([id, p]) =>
+    h("button", {
+      type: "button", class: "pos" + (draft.position === id ? " on" : ""),
+      onclick: () => { draft.position = id; draft.option = null; renderCreate(); },
+    }, h("strong", {}, p.name), h("small", {}, `${p.A} / ${p.B}`))));
+  const row = $("#opt-row");
+  row.replaceChildren();
+  if (draft.position) {
+    const p = POSITIONS[draft.position];
+    for (const opt of ["A", "B"]) row.append(h("button", {
+      type: "button", class: "pos" + (draft.option === opt ? " on" : ""),
+      onclick: () => { draft.option = opt; renderCreate(); },
+    }, h("strong", {}, p[opt]), h("small", {}, `${p.name} 세부 선택`)));
+  }
+  avatarEl($("#c-avatar-preview"), { url: draft.photo ? URL.createObjectURL(draft.photo) : null, color: draft.color, name: $("#c-codename").value });
+  $("#c-photo-clear").classList.toggle("hidden", !draft.photo);
+}
+function setupCreate() {
+  swatches($("#c-swatches"), draft.color, c => { draft.color = c; renderCreate(); });
+  regionOptions($("#c-region"), "asia");
+  renderCreate();
+}
+$("#c-codename").oninput = () => renderCreate();
+$("#c-photo").onchange = async e => {
+  const f = e.target.files[0]; e.target.value = "";
+  if (!f) return;
+  try { draft.photo = await squareImage(f); renderCreate(); }
+  catch (er) { $("#create-error").textContent = koError(er); }
+};
+$("#c-photo-clear").onclick = () => { draft.photo = null; renderCreate(); };
+$("#form-create").onsubmit = async e => {
+  e.preventDefault();
+  const err = $("#create-error"), btn = $("#create-submit");
+  err.textContent = "";
+  const codename = $("#c-codename").value.trim();
+  if (codename.length < 2 || codename.length > 12) return (err.textContent = "코드네임은 2~12자로 입력해 주세요.");
+  if (!draft.position || !draft.option) return (err.textContent = "메인 포지션과 세부 선택을 골라 주세요.");
+  busy(btn, true, "측정 중…");
+  const { data, error } = await sb.rpc("create_character", {
+    p_codename: codename,
+    p_main_position: draft.position,
+    p_main_option: draft.option,
+    p_avatar_color: draft.color,
+    p_bio: $("#c-bio").value,
+    p_bio_visibility: $("#c-vis").value,
+    p_region: $("#c-region").value,
+  });
+  if (error) { busy(btn, false); return (err.textContent = koError(error)); }
+  if (draft.photo) {
+    try {
+      const path = await uploadAvatar(draft.photo);
+      await sb.from("profiles").update({ avatar_url: path }).eq("user_id", state.user.id);
+    } catch { toast("사진 업로드에 실패했습니다. 헌터 정보에서 다시 올려 주세요."); }
+  }
+  busy(btn, false);
+  $("#reveal-grade").textContent = data.grade;
+  $("#reveal-text").textContent = `${codename} 헌터, ${data.grade}급으로 등록되었습니다. ${GRADE_TEXT[data.grade]}`;
+  show("screen-reveal");
+};
+$("#reveal-go").onclick = () => boot();
+
+/* ===== 4. 메인 화면 ===== */
+function renderNav() {
+  const cur = route();
+  const items = [...MENUS];
+  if (state.profile?.is_admin) items.push({ id: "admin", name: "운영", ico: "⚙" });
+  $("#nav").replaceChildren(...items.map(m => h("a", { href: `#/${m.id}`, class: cur === m.id ? "on" : null }, m.name)));
+  $("#tabbar").replaceChildren(...items.map(m =>
+    h("a", { href: `#/${m.id}`, class: cur === m.id ? "on" : null }, m.id === "dungeon" ? h("span", { class: "ico sym", "aria-hidden": "true" }, "all_inclusive") : h("span", { class: "ico", "aria-hidden": "true" }, m.ico), m.name.replace("국제헌터연합", "연합").replace("지역 안정화", "안정화"))));
+}
+function renderHunter() {
+  const p = state.profile, c = state.character;
+  const need = needFor(c.level);
+  const pct = Math.min(100, (Number(c.potential_level) / need) * 100);
+  const pos = POSITIONS[c.main_position];
+  const av = h("div", { class: "avatar" });
+  avatarEl(av, { url: state.avatarUrl, color: p.avatar_color, name: p.codename });
+
+  $("#hunter-card").replaceChildren(
+    h("div", { class: "hunter-head" }, av,
+      h("div", {}, h("div", { class: "hello" }, "안녕하세요,"), h("div", { class: "codename" }, `${p.codename} 헌터`))),
+    h("div", { class: "kv" }, h("span", {}, "활동 구역"), h("span", {}, REGIONS[p.region])),
+    h("div", { class: "kv" }, h("span", {}, "레벨 · 등급"), h("span", {}, `Lv.${c.level} · `, h("span", { class: "badge" }, `${c.grade}급`))),
+    h("div", { class: "kv" }, h("span", {}, "포지션"), h("span", {}, pos ? `${pos.name} (${pos[c.main_option]})` : "-")),
+    h("div", { style: "padding-top:8px;border-top:1px dashed var(--border)" },
+      h("div", { class: "kv", style: "border:0;padding:0" }, h("span", {}, "가능성"), h("span", {}, `${Number(c.potential_level).toLocaleString()} / ${need.toLocaleString()}`)),
+      h("div", { class: "bar" }, h("i", { style: `width:${pct}%` }))),
+    h("div", { class: "stats" }, ...[["HP", c.hp], ["MP", c.mp], ["ATK", c.atk], ["DEF", c.def], ["LUK", c.luk]]
+      .map(([k, v]) => h("div", { class: "stat" }, h("b", {}, String(v)), h("small", {}, k)))),
+    h("button", { class: "btn ghost block small", style: "margin-top:14px", type: "button", onclick: openHunter }, "세부 정보"),
+  );
+
+  const mav = h("div", { class: "avatar" });
+  avatarEl(mav, { url: state.avatarUrl, color: p.avatar_color, name: p.codename });
+  $("#mobile-summary").replaceChildren(mav,
+    h("div", { style: "flex:1;min-width:0" }, h("strong", {}, p.codename), h("div", { class: "hint" }, `Lv.${c.level} · ${c.grade}급 · ${REGIONS[p.region]}`)),
+    h("span", { class: "hint" }, "정보 ›"));
+  $("#mobile-summary").onclick = openHunter;
+}
+
+function route() {
+  const r = (location.hash.match(/^#\/(\w+)/) || [])[1];
+  const ids = MENUS.map(m => m.id).concat(state.profile?.is_admin ? ["admin"] : []);
+  return ids.includes(r) ? r : "dungeon";
+}
+const SOON = {
+  dungeon:   ["무한 던전", "6~12시간 동안 끝없는 역을 공략하고, 실시간 전투 로그와 탐색 맵을 볼 수 있습니다.", "2단계"],
+  regional:  ["지역 안정화", "구역마다 E~A급 던전이 나타나고, 클리어하면 30분 뒤 다시 생깁니다.", "3단계"],
+  union:     ["국제헌터연합", "도감, 업적·타이틀, 길드, 주간 랭킹을 확인합니다.", "3~5단계"],
+  inventory: ["인벤토리", "보유 아이템과 장착 현황, 조합·상점·거래소를 이용합니다.", "3~5단계"],
+  friends:   ["친구", "친구 추가, 목록, 1:1 메신저와 선물하기를 이용합니다.", "5단계"],
+};
+function renderMain() {
+  renderNav();
+  const r = route();
+  const pane = $("#main-pane");
+  if (r === "admin") return renderAdmin(pane);
+  const [title, desc, stage] = SOON[r];
+  pane.replaceChildren(
+    h("h2", {}, title),
+    h("p", { class: "hint", style: "margin:0 0 20px" }, desc),
+    h("div", { class: "soon" }, h("p", { style: "margin:0 0 4px;font-weight:700" }, `${stage}에서 열립니다`), h("p", { style: "margin:0" }, "지금은 헌터 등록과 정보 관리까지 이용할 수 있습니다.")),
+  );
+}
+addEventListener("hashchange", () => { if (state.character) renderMain(); });
+
+/* ===== 운영자: 초대코드 발급 ===== */
+async function renderAdmin(pane) {
+  const list = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
+  const count = h("input", { class: "input", type: "number", min: "1", max: "20", value: "1", id: "adm-count" });
+  const days = h("input", { class: "input", type: "number", min: "1", max: "365", value: "14", id: "adm-days" });
+  const out = h("div", { class: "error", role: "alert" });
+  const btn = h("button", { class: "btn", type: "button" }, "초대코드 발급");
+  btn.onclick = async () => {
+    out.textContent = "";
+    busy(btn, true);
+    const { data, error } = await sb.rpc("issue_invite", { p_count: Number(count.value), p_days: Number(days.value) });
+    busy(btn, false);
+    if (error) return (out.textContent = koError(error));
+    toast(`${data.length}개 발급했습니다.`);
+    loadCodes();
+  };
+  async function loadCodes() {
+    const { data, error } = await sb.from("invite_codes").select("code, used_by, used_at, expires_at, created_at").order("created_at", { ascending: false }).limit(100);
+    if (error) return list.replaceChildren(h("p", { class: "error" }, koError(error)));
+    const now = Date.now();
+    list.replaceChildren(h("table", { class: "list" },
+      h("thead", {}, h("tr", {}, h("th", {}, "코드"), h("th", {}, "상태"), h("th", {}, "만료"))),
+      h("tbody", {}, ...data.map(r => {
+        const status = r.used_by ? "사용됨" : (r.expires_at && Date.parse(r.expires_at) < now ? "만료" : "사용 가능");
+        return h("tr", {},
+          h("td", {}, h("code", { class: "c" }, r.code), " ",
+            !r.used_by ? h("button", { class: "btn ghost small", type: "button", onclick: () => navigator.clipboard?.writeText(r.code).then(() => toast("복사했습니다.")) }, "복사") : null),
+          h("td", {}, status),
+          h("td", {}, r.expires_at ? new Date(r.expires_at).toLocaleDateString("ko-KR") : "-"));
+      }))));
+  }
+  pane.replaceChildren(
+    h("h2", {}, "운영"),
+    h("p", { class: "hint", style: "margin:0 0 20px" }, "초대코드는 한 번만 쓸 수 있습니다."),
+    h("div", { style: "display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin-bottom:8px" },
+      h("div", { class: "field", style: "margin:0" }, h("label", { for: "adm-count" }, "개수 (1~20)"), count),
+      h("div", { class: "field", style: "margin:0" }, h("label", { for: "adm-days" }, "유효 기간 (일)"), days),
+      btn),
+    out, list);
+  loadCodes();
+}
+
+/* ===== 헌터 세부 정보·수정 ===== */
+const edit = { color: null, photo: null, clearPhoto: false };
+function openHunter() {
+  const p = state.profile, c = state.character;
+  edit.color = p.avatar_color; edit.photo = null; edit.clearPhoto = false;
+  $("#e-codename").value = p.codename;
+  $("#e-bio").value = p.bio || "";
+  $("#e-vis").value = p.bio_visibility;
+  regionOptions($("#e-region"), p.region);
+  $("#e-title-line").textContent = `${p.codename} · ${c.grade}급 Lv.${c.level}`;
+  const pos = POSITIONS[c.main_position];
+  $("#e-position").textContent = `메인 포지션: ${pos.name} (${pos[c.main_option]}) · 변경 불가`;
+  $("#edit-error").textContent = "";
+  swatches($("#e-swatches"), edit.color, col => { edit.color = col; renderEditAvatar(); });
+  renderEditAvatar();
+  $("#dlg-hunter").showModal();
+}
+function renderEditAvatar() {
+  const url = edit.photo ? URL.createObjectURL(edit.photo) : (edit.clearPhoto ? null : state.avatarUrl);
+  avatarEl($("#e-avatar"), { url, color: edit.color, name: $("#e-codename").value });
+}
+$("#e-photo").onchange = async e => {
+  const f = e.target.files[0]; e.target.value = "";
+  if (!f) return;
+  try { edit.photo = await squareImage(f); edit.clearPhoto = false; renderEditAvatar(); }
+  catch (er) { $("#edit-error").textContent = koError(er); }
+};
+$("#e-photo-clear").onclick = () => { edit.photo = null; edit.clearPhoto = true; renderEditAvatar(); };
+$("#e-cancel").onclick = () => $("#dlg-hunter").close();
+$("#e-save").onclick = async () => {
+  const err = $("#edit-error"), btn = $("#e-save");
+  err.textContent = "";
+  const codename = $("#e-codename").value.trim();
+  if (codename.length < 2 || codename.length > 12) return (err.textContent = "코드네임은 2~12자로 입력해 주세요.");
+  busy(btn, true);
+  try {
+    let avatar_url = state.profile.avatar_url;
+    if (edit.photo) avatar_url = await uploadAvatar(edit.photo);
+    else if (edit.clearPhoto) {
+      if (avatar_url) await sb.storage.from("avatars").remove([avatar_url]);
+      avatar_url = null;
+    }
+    const { error } = await sb.from("profiles").update({
+      codename, avatar_url, avatar_color: edit.color,
+      bio: $("#e-bio").value.trim() || null,
+      bio_visibility: $("#e-vis").value, region: $("#e-region").value,
+    }).eq("user_id", state.user.id);
+    if (error) {
+      if (/duplicate|unique/i.test(error.message)) throw new Error("이미 사용 중인 코드네임입니다.");
+      throw error;
+    }
+    $("#dlg-hunter").close();
+    toast("저장했습니다.");
+    await loadAll();
+    renderHunter();
+  } catch (er) { err.textContent = koError(er); }
+  busy(btn, false);
+};
+
+/* ===== 테마 버튼 (기기 설정 → 밝게 → 어둡게) ===== */
+$("#btn-theme").onclick = async () => {
+  const order = ["system", "light", "dark"];
+  const next = order[(order.indexOf(state.settings?.theme || "system") + 1) % 3];
+  applyTheme(next);
+  if (state.settings) state.settings.theme = next;
+  await sb.from("settings").update({ theme: next, updated_at: new Date().toISOString() }).eq("user_id", state.user.id);
+};
+
+/* ===== 안내 ===== */
+function info(title, ...body) {
+  $("#info-title").textContent = title;
+  $("#info-body").replaceChildren(...body);
+  $("#dlg-info").showModal();
+}
+$("#btn-legal").onclick = () => info("개인정보·저작권",
+  h("p", {}, "수집하는 정보: 이메일, 코드네임, 프로필 사진, 캐릭터 소개, 게임 기록."),
+  h("p", {}, "이용 목적: 로그인과 게임 진행에만 사용하며 외부에 제공하지 않습니다."),
+  h("p", { class: "hint" }, "정식 처리방침과 음원·이미지 출처는 6단계에서 이 자리에 정리됩니다."));
+$("#btn-guide").onclick = () => info("가이드",
+  h("p", {}, "INFINITE DUNGEON은 방치형 게임입니다. 무한 던전에 6~12시간 진입해 두고, 돌아와 결과를 받으세요."),
+  h("p", { class: "hint" }, "콘텐츠가 열릴 때마다 가이드가 추가됩니다."));
+
+document.querySelectorAll(".js-logout").forEach(b => b.onclick = async () => {
+  await sb.auth.signOut();
+  Object.assign(state, { user: null, profile: null, character: null, settings: null, avatarUrl: null });
+  setAuthMode("login");
+  show("screen-auth");
+});
+
+/* ===== 데이터 불러오기 & 시작 ===== */
+async function loadAll() {
+  const uid = state.user.id;
+  const [p, c, s] = await Promise.all([
+    sb.from("profiles").select("*").eq("user_id", uid).maybeSingle(),
+    sb.from("characters").select("*").eq("user_id", uid).maybeSingle(),
+    sb.from("settings").select("*").eq("user_id", uid).maybeSingle(),
+  ]);
+  if (p.error) throw p.error;
+  state.profile = p.data; state.character = c.data; state.settings = s.data;
+  state.avatarUrl = await signedAvatar(state.profile?.avatar_url);
+  if (state.settings) applyTheme(state.settings.theme);
+}
+
+async function boot() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { setAuthMode("login"); return show("screen-auth"); }
+  state.user = session.user;
+  try { await loadAll(); }
+  catch (er) { toast(koError(er)); return show("screen-auth"); }
+  if (!state.profile?.invited) return show("screen-invite");
+  if (!state.character) { setupCreate(); return show("screen-create"); }
+  renderHunter();
+  renderMain();
+  show("screen-app");
+}
+boot();
+</script>
+</body>
+</html>
