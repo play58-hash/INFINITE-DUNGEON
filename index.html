@@ -275,6 +275,22 @@ table.list.rank tr.me td { background: color-mix(in srgb, var(--primary) 10%, tr
 .rg-cell.sel { outline: 2px solid var(--primary); outline-offset: 1px; }
 .rg-cell:disabled { cursor: default; }
 .rg-notice { border: 1px solid var(--border); background: var(--surface-2); border-radius: 10px; padding: 12px 14px; margin: 0 0 14px; font-size: 14px; }
+.ev-hp { margin-left: auto; flex: none; padding-left: 10px; font-style: normal; font-size: 12px; color: var(--text-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ev-foe span { color: color-mix(in srgb, var(--danger) 75%, var(--text)); }
+.ev-act span { color: var(--text); }
+.ev-event { color: var(--text-dim); font-style: italic; }
+.ev-reward { color: var(--accent-text); font-weight: 700; padding-bottom: 10px; }
+.ev-clear span { font-weight: 700; }
+.rg-run-stats { grid-template-columns: 0.7fr 1fr 1fr 1.2fr; }
+.gauge { height: 5px; border-radius: 3px; background: var(--surface-2); margin-top: 6px; overflow: hidden; }
+.gauge i { display: block; height: 100%; border-radius: 3px; transition: width .4s; }
+.gauge.hp i { background: var(--ok); } .gauge.mp i { background: var(--tier3); }
+@media (max-width: 720px) {
+  .rg-run-stats { grid-template-columns: 1fr 1fr; }
+  .ev { display: grid; grid-template-columns: auto 1fr; column-gap: 10px; }
+  .ev-theme { display: flex; }
+  .ev-hp { grid-column: 2; margin-left: 0; padding-left: 0; }
+}
 .ok-text { color: var(--ok); } .bad-text { color: var(--danger); }
 
 /* ===== 탐색 ===== */
@@ -1268,10 +1284,10 @@ async function renderRegionalBoard(body, act) {
     const pc = Math.round(g.success * 100);
     info.replaceChildren(
       statBox("예상 성공률", `${pc}%`, pc >= 60 ? "ok-text" : pc < 35 ? "bad-text" : null),
-      statBox("공략 시간", `약 ${g.minutes}분`),
+      statBox("공략 시간", `약 ${g.minutes}분 · ${g.zones}구역`),
       statBox("가능성", `+${Number(g.pot).toLocaleString()}`),
       statBox("재화", `+${Number(g.cur).toLocaleString()}`));
-    note.textContent = `${g.theme} 테마의 몬스터와 보스가 나옵니다. 성공하면 보상과 함께 재료·보급품을 얻고, 실패하면 보상이 없습니다.`
+    note.textContent = `${g.theme} · 구역 ${g.zones}개. 구역마다 몬스터·보물·함정·휴식 같은 일이 생기고, 마지막 구역에서 보스를 만납니다. 구역을 지날 때마다 보상을 얻고, 보스를 쓰러뜨리면 던전이 안정화됩니다. 도중에 쓰러지면 그때까지의 보상만 받습니다.`
       + (g.reward_mult < 1 ? ` 지금은 ${rg.top_grade}급까지 들어갈 수 있어서, 이 등급의 보상은 ${Math.round(g.reward_mult * 100)}%만 받습니다.` : "");
   }
   function paintBoard() {
@@ -1337,23 +1353,40 @@ function renderRegionalRun(body, first) {
   const t = first.target;
   const bar = h("i", { style: "width:0%" });
   const timeLeft = h("span", { class: "hint" });
-  const list = h("ol", { class: "dg-log short", "aria-live": "polite" });
+  const list = h("ol", { class: "dg-log", "aria-live": "polite" });
   const actions = h("div", { class: "dg-actions" });
   const err = h("div", { class: "error", role: "alert" });
   let cur = first, shown = 0;
+  const stats = h("div", { class: "dg-stats rg-run-stats" });
+  const maxHp = t.max_hp || 100, maxMp = t.max_mp || 30;
+  const gauge = (label, v, max, cls) => h("div", { class: "dg-stat" },
+    h("small", {}, label), h("b", {}, `${v}`, h("span", { class: "hint", style: "font-size:13px;font-weight:600" }, ` / ${max}`)),
+    h("div", { class: `gauge ${cls}` }, h("i", { style: `width:${Math.max(0, Math.min(100, v / max * 100))}%` })));
   body.replaceChildren(
     h("div", { class: "dg-head" },
       h("div", {}, h("strong", {}, `${t.grade}급 던전 ${t.slot}번 공략`),
         cur.speed > 1 ? h("span", { class: "badge", style: "margin-left:6px" }, `테스트 ${cur.speed}배`) : null),
       timeLeft),
     h("div", { class: "bar" }, bar),
-    h("div", { style: "height:14px" }),
-    list, err, actions);
+    stats, list, err, actions);
 
+  function paintStats() {
+    const last = [...cur.events].reverse().find(e => e.hp != null);
+    const zone = Math.max(0, ...cur.events.map(e => e.zone || 0));
+    const hp = last ? last.hp : maxHp, mp = last ? last.mp : maxMp;
+    stats.replaceChildren(
+      h("div", { class: "dg-stat" }, h("small", {}, "구역"), h("b", {}, `${zone}`, h("span", { class: "hint", style: "font-size:13px;font-weight:600" }, ` / ${t.zones || "?"}`))),
+      gauge("HP", hp, maxHp, "hp"), gauge("MP", mp, maxMp, "mp"),
+      h("div", { class: "dg-stat" }, h("small", {}, "모은 보상"), h("b", { style: "font-size:14px" }, `가능성 +${cur.pot || 0}`, h("br"), `재화 +${cur.cur || 0}`)));
+  }
   function paint() {
+    const nearBottom = list.scrollTop + list.clientHeight >= list.scrollHeight - 40;
     for (const e of cur.events.slice(shown))
-      list.append(h("li", { class: `ev ev-${e.type}${e.boss ? " ev-boss" : ""}` }, h("time", {}, fmtTime(e.at)), h("span", {}, e.text)));
+      list.append(h("li", { class: `ev ev-${e.type}${e.boss ? " ev-boss" : ""}` }, h("time", {}, fmtTime(e.at)), h("span", {}, e.text),
+        e.hp != null && e.type !== "reward" ? h("em", { class: "ev-hp" }, `HP ${e.hp}/${maxHp} · MP ${e.mp}/${maxMp}`) : null));
     shown = cur.events.length;
+    if (nearBottom) list.scrollTop = list.scrollHeight;
+    paintStats();
     actions.replaceChildren(cur.returned
       ? h("button", { class: "btn", type: "button", onclick: claim }, "결과 받기")
       : h("p", { class: "hint", style: "margin:0" }, "공략은 서버에서 진행됩니다. 창을 닫았다가 돌아와도 됩니다."));
@@ -1369,7 +1402,7 @@ function renderRegionalRun(body, first) {
     const { data, error } = await sb.rpc("get_regional_status");
     if (error) err.textContent = koError(error);
     else if (data) { err.textContent = ""; cur = data; paint(); tick(); }
-    if (!cur.returned) dgPoll = setTimeout(poll, cur.speed > 1 ? 2000 : 20000);
+    if (!cur.returned) dgPoll = setTimeout(poll, cur.speed > 1 ? 2000 : 15000);
   }
   async function claim() {
     err.textContent = "";
@@ -1386,8 +1419,9 @@ function renderRegionalRun(body, first) {
     showRegionalReport(body, data);
   }
   paint(); tick();
+  list.scrollTop = list.scrollHeight;
   dgTimer = setInterval(tick, 1000);
-  if (!cur.returned) dgPoll = setTimeout(poll, cur.speed > 1 ? 2000 : 20000);
+  if (!cur.returned) dgPoll = setTimeout(poll, cur.speed > 1 ? 2000 : 15000);
 }
 
 function showRegionalReport(body, r) {
@@ -1397,9 +1431,10 @@ function showRegionalReport(body, r) {
       ? (grUp ? `${r.grade_after}급으로 승급했습니다!` : lvUp ? "안정화 성공 · 레벨 업!" : "던전 안정화 성공")
       : "공략 실패"),
     h("p", { class: "hint", style: "margin:0 0 12px" }, `${r.target.grade}급 던전 ${r.target.slot}번 · 예상 성공률 ${Math.round(r.prob * 100)}%`
-      + (r.success ? (r.mult < 1 ? ` · 보상 ${Math.round(r.mult * 100)}%` : "") : " · 이번에는 보상이 없습니다.")),
+      + (r.mult < 1 ? ` · 보상 ${Math.round(r.mult * 100)}%` : "")
+      + (r.success ? "" : " · 쓰러지기 전까지 클리어한 구역의 보상만 받습니다. 던전은 그대로 남습니다.")),
   ];
-  if (r.success) kids.push(h("div", { class: "report" }, ...rows.map(([k, v]) => h("div", { class: "kv" }, h("span", {}, k), h("span", {}, v)))));
+  kids.push(h("div", { class: "report" }, ...rows.map(([k, v]) => h("div", { class: "kv" }, h("span", {}, k), h("span", {}, v)))));
   if (r.drops?.length) kids.push(h("p", { class: "panel-title", style: "margin:18px 0 8px" }, "획득한 아이템"), dropList(r.drops));
   if (r.points > 0) kids.push(h("button", { class: "btn ghost block", style: "margin-top:16px", type: "button", onclick: openStats }, "스탯 포인트 분배하기"));
   kids.push(h("button", { class: "btn block", style: "margin-top:8px", type: "button", onclick: () => renderRegional($("#main-pane")) }, "확인"));
@@ -1928,7 +1963,7 @@ $("#btn-guide").onclick = () => info("가이드",
   h("p", {}, "· 레벨이 오를 때마다 스탯 포인트 1개를 받아 자유롭게 분배할 수 있습니다."),
   h("p", {}, "· 장비는 무기·방어구·장신구 3칸에 끼우고, 재화와 일반 재료로 +10까지 강화할 수 있습니다. 던전에 소비 아이템을 최대 3종 챙겨 가면 쉬는 대신 먼저 씁니다."),
   h("p", {}, "· 10레벨마다 등급이 오릅니다 (E 10 · D 20 · C 30 · B 40 · A 50 · S 60). 처음 받은 각성 등급이 더 높으면 그 레벨에 닿을 때까지 유지됩니다."),
-  h("p", {}, "· 지역 안정화: 활동 구역의 E~A급 던전을 공략합니다. 평균 E 30분에서 A 75분까지 등급이 높을수록 오래 걸립니다. 입장 레벨은 E 1 · D 10 · C 20 · B 30 · A 40이고, 성공률은 내 전력으로 미리 알려 줍니다. 안정화한 던전은 30분 뒤 다시 나타납니다. 더 높은 등급에 들어갈 수 있으면 낮은 등급 보상은 줄어듭니다."),
+  h("p", {}, "· 지역 안정화: 활동 구역의 E~A급 던전을 공략합니다. E급 5구역부터 등급마다 1구역씩 늘고(평균 30~75분), 마지막 구역은 보스입니다. 구역마다 보상을 얻고, 도중에 쓰러지면 그때까지의 보상만 받습니다. 입장 레벨은 E 1 · D 10 · C 20 · B 30 · A 40이고, 성공률은 내 전력으로 미리 알려 줍니다. 안정화한 던전은 30분 뒤 다시 나타납니다. 더 높은 등급에 들어갈 수 있으면 낮은 등급 보상은 줄어듭니다."),
   h("p", {}, "· 탐색: 무한 던전의 '탐색' 탭에서 하루 3번, 보이지 않는 10×10 구역을 걸으며 재화와 아이템을 줍습니다. 무한 던전·지역 안정화와 동시에 할 수 없습니다."),
   h("p", { class: "hint" }, "콘텐츠가 열릴 때마다 가이드가 추가됩니다."));
 
