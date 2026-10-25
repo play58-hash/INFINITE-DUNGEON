@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>INFINITE DUNGEON</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 -960 960 960'%3E%3Cstyle%3Epath{fill:%233300FF}%40media (prefers-color-scheme:dark){path{fill:%23B9A2FF}}%3C/style%3E%3Cpath d='M211.89-255.93q-91.56 0-153.76-66.7-62.2-66.7-62.2-159.37 0-91.67 62.7-156.87t153.26-65.2q36.72 0 70.96 12.24 34.24 12.23 60.78 37.72l90.85 87.61-48.22 47.5-85.81-83.87q-17.51-17.52-40.46-25.29t-47.98-7.77q-62.45 0-105.19 45.27-42.75 45.27-42.75 108.75 0 64.48 42.24 111.16 42.25 46.68 105.69 46.68 24.28 0 47.12-7.76 22.83-7.77 41.25-24.28l316-298q26.54-25.49 60.78-37.72 34.24-12.24 69.96-12.24 91.56 0 154.26 65.2 62.7 65.2 62.7 156.87 0 92.67-62.7 159.37t-154.26 66.7q-35.72 0-70.46-11.74-34.74-11.73-60.28-37.22l-88.61-87.61 47.98-47.5 83.88 83.89q16.53 16.52 39.81 24.28 23.29 7.76 47.57 7.76 63.44 0 106.19-46.72 42.74-46.72 42.74-111.13 0-63.41-43.24-108.71-43.25-45.3-105.69-45.3-24.28 0-47.12 8.76-22.83 8.77-40.25 25.28l-316 298q-26.54 24.49-61.28 36.22-34.74 11.74-70.46 11.74Z'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Staatliches&display=swap" rel="stylesheet">
@@ -135,6 +136,9 @@ textarea.input { min-height: 88px; resize: vertical; }
 .pos strong { display: block; }
 .pos small { color: var(--text-dim); }
 .pos.on { border-color: var(--primary); outline: 2px solid var(--primary); }
+.pos small { line-height: 1.45; word-break: keep-all; overflow-wrap: break-word; }
+.pos-en { font-size: 12px; font-weight: 600; color: var(--text-dim); }
+.pos-eff { display: block; margin-top: 6px; color: var(--accent-text) !important; font-weight: 700; }
 .opt-row { display: flex; gap: 8px; margin-top: 8px; }
 .opt-row .pos { flex: 1; }
 
@@ -472,7 +476,7 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
         <label>메인 포지션</label>
         <div class="pos-grid" id="pos-grid"></div>
         <div class="opt-row" id="opt-row"></div>
-        <span class="hint">선호 스탯은 전투력에 1.5배로 반영되고, 나머지 스탯은 0.8배로 반영됩니다.</span>
+        <span class="hint">추천 스탯은 전투력에 1.5배로 반영되고, 나머지 스탯은 0.8배로 반영됩니다. 25레벨이 되면 서브 포지션을 하나 더 고를 수 있습니다.</span>
       </div>
 
       <div class="field">
@@ -643,11 +647,38 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* ===== 게임 기준 데이터 ===== */
 const POSITIONS = {
-  dealer:    { name: "딜러",   A: "데미지 증가",   B: "타격 수 증가" },
-  tanker:    { name: "탱커",   A: "도발",          B: "받는 피해 감소" },
-  supporter: { name: "서포터", A: "아군 버프",     B: "적군 디버프" },
-  healer:    { name: "힐러",   A: "HP 회복",       B: "MP 회복" },
+  dealer: { name: "딜러", desc: "강한 힘으로 적을 먼저 제압하는 헌터.",
+    A: { name: "갤런트리", en: "gallantry", tag: "용맹", desc: "마주한 상대와 정면 승부를 즐기는 헌터.", effect: "주는 피해 +20%" },
+    B: { name: "스카우트", en: "scout", tag: "정찰병", desc: "넓은 시야를 가지고 상황을 주도하는 헌터.", effect: "공격 횟수 +1 (회당 피해 60%)" } },
+  tanker: { name: "탱커", desc: "적의 공격에도 무너지지 않는 헌터.",
+    A: { name: "뱅가드", en: "vanguard", tag: "선봉", desc: "가장 앞으로 나가 적의 시선을 이끄는 헌터.", effect: "도발 (파티원 대신 피격, 혼자일 때는 10% 확률로 공격 회피)" },
+    B: { name: "시타델", en: "citadel", tag: "성채", desc: "적의 공격으로부터 수호하는 헌터.", effect: "받는 피해 -20%" } },
+  supporter: { name: "서포터", desc: "상대의 능력을 전략적으로 가감하는 헌터.",
+    A: { name: "카탈리스트", en: "catalyst", tag: "촉매", desc: "아군을 극대화하는 헌터.", effect: "아군 ATK·DEF +20%" },
+    B: { name: "아티피스", en: "artifice", tag: "계략", desc: "적을 무력화시키는 헌터.", effect: "적 ATK·DEF -20%" } },
+  healer: { name: "힐러", desc: "아군이 지치지 않도록 독려하는 헌터.",
+    A: { name: "리커버리", en: "recovery", tag: "회복", desc: "아군의 부상을 치유하는 헌터.", effect: "아군 HP 50% 미만이면 HP 30% 회복 (조건마다, 회당 MP 5)" },
+    B: { name: "서플라이", en: "supply", tag: "공급", desc: "아군의 이능력 한도를 늘리는 헌터.", effect: "아군 MP 30% 미만이면 MP 30% 회복 (조건마다, 회당 MP 5)" } },
 };
+const posLabel = (pos, opt) => POSITIONS[pos] ? `${POSITIONS[pos].name} · ${POSITIONS[pos][opt]?.name || ""}` : "-";
+// 포지션 고르기 (캐릭터 생성 · 서브 포지션 공용)
+function posPicker(grid, row, pick, onChange) {
+  grid.replaceChildren(...Object.entries(POSITIONS).map(([id, p]) =>
+    h("button", {
+      type: "button", class: "pos" + (pick.position === id ? " on" : ""), "aria-pressed": pick.position === id ? "true" : "false",
+      onclick: () => { pick.position = id; pick.option = null; onChange(); },
+    }, h("strong", {}, p.name), h("small", { style: "display:block" }, p.desc),
+       h("small", { style: "display:block;margin-top:4px" }, `추천 스탯 ${prefText(id)} · ${p.A.name} / ${p.B.name}`))));
+  row.replaceChildren();
+  if (!pick.position) return;
+  const p = POSITIONS[pick.position];
+  for (const opt of ["A", "B"]) row.append(h("button", {
+    type: "button", class: "pos" + (pick.option === opt ? " on" : ""), "aria-pressed": pick.option === opt ? "true" : "false",
+    onclick: () => { pick.option = opt; onChange(); },
+  }, h("strong", {}, p[opt].name, h("span", { class: "pos-en" }, ` ${p[opt].en} · ${p[opt].tag}`)),
+     h("small", { style: "display:block" }, p[opt].desc),
+     h("small", { class: "pos-eff" }, p[opt].effect)));
+}
 const PREF = { dealer: ["atk", "luk"], tanker: ["hp", "def"], supporter: ["mp", "luk"], healer: ["mp", "hp"] };
 const STAT_NAME = { hp: "HP", mp: "MP", atk: "ATK", def: "DEF", luk: "LUK" };
 const prefText = pos => PREF[pos].map(k => STAT_NAME[k]).join("·");
@@ -786,7 +817,8 @@ async function signedAvatar(path) {
 }
 function avatarEl(el, { url, color, name }) {
   el.replaceChildren();
-  el.style.background = color || "var(--secondary)";
+  // 사진이 있으면 배경색을 깔지 않는다 (투명 PNG는 투명한 그대로)
+  el.style.background = url ? "transparent" : (color || "var(--secondary)");
   if (url) el.append(h("img", { src: url, alt: "" }));
   else el.textContent = (name || "?").trim().slice(0, 1) || "?";
 }
@@ -855,21 +887,7 @@ $("#form-invite").onsubmit = async e => {
 /* ===== 3. 캐릭터 생성 ===== */
 const draft = { position: null, option: null, color: COLORS[0], photo: null };
 function renderCreate() {
-  const grid = $("#pos-grid");
-  grid.replaceChildren(...Object.entries(POSITIONS).map(([id, p]) =>
-    h("button", {
-      type: "button", class: "pos" + (draft.position === id ? " on" : ""),
-      onclick: () => { draft.position = id; draft.option = null; renderCreate(); },
-    }, h("strong", {}, p.name), h("small", {}, `${p.A} / ${p.B}`), h("small", { style: "display:block;margin-top:2px" }, `선호 스탯 ${prefText(id)}`))));
-  const row = $("#opt-row");
-  row.replaceChildren();
-  if (draft.position) {
-    const p = POSITIONS[draft.position];
-    for (const opt of ["A", "B"]) row.append(h("button", {
-      type: "button", class: "pos" + (draft.option === opt ? " on" : ""),
-      onclick: () => { draft.option = opt; renderCreate(); },
-    }, h("strong", {}, p[opt]), h("small", {}, `${p.name} 세부 선택`)));
-  }
+  posPicker($("#pos-grid"), $("#opt-row"), draft, renderCreate);
   avatarEl($("#c-avatar-preview"), { url: draft.photo ? URL.createObjectURL(draft.photo) : null, color: draft.color, name: $("#c-codename").value });
   $("#c-photo-clear").classList.toggle("hidden", !draft.photo);
 }
@@ -941,7 +959,9 @@ function renderHunter() {
     h("div", { class: "kv" }, h("span", {}, "활동 구역"), h("span", {}, REGIONS[p.region])),
     h("div", { class: "kv" }, h("span", {}, "레벨 · 등급"), h("span", {}, `Lv.${c.level} · `, h("span", { class: "badge" }, `${c.grade}급`))),
     h("div", { class: "kv" }, h("span", {}, "다음 승급"), h("span", {}, nextPromotion(c.grade))),
-    h("div", { class: "kv" }, h("span", {}, "포지션"), h("span", {}, pos ? `${pos.name} (${pos[c.main_option]})` : "-")),
+    h("div", { class: "kv" }, h("span", {}, "포지션"), h("span", {}, posLabel(c.main_position, c.main_option))),
+    c.sub_position ? h("div", { class: "kv" }, h("span", {}, "서브 포지션"), h("span", {}, posLabel(c.sub_position, c.sub_option))) : null,
+    !c.sub_position && c.level >= 25 ? h("button", { class: "btn ghost block small", style: "margin:6px 0", type: "button", onclick: openSubPosition }, "서브 포지션 정하기") : null,
     h("div", { style: "padding-top:8px;border-top:1px dashed var(--border)" },
       h("div", { class: "kv", style: "border:0;padding:0" }, h("span", {}, "가능성"), h("span", {}, `${Number(c.potential_level).toLocaleString()} / ${need.toLocaleString()}`)),
       h("div", { class: "bar" }, h("i", { style: `width:${pct}%` }))),
@@ -1749,7 +1769,7 @@ function openStats() {
   function paint() {
     const used = Object.values(add).reduce((a, b) => a + b, 0);
     $("#st-left").replaceChildren("남은 포인트 ", h("strong", {}, String(c.stat_points - used)),
-      h("span", { class: "hint", style: "display:block;margin-top:4px" }, `${POSITIONS[c.main_position].name}의 선호 스탯(${prefText(c.main_position)})은 전투력에 1.5배로 반영됩니다.`));
+      h("span", { class: "hint", style: "display:block;margin-top:4px" }, `${POSITIONS[c.main_position].name}의 추천 스탯(${prefText(c.main_position)})은 전투력에 1.5배로 반영됩니다.`));
     $("#st-rows").replaceChildren(...Object.keys(add).map(k => h("div", { class: "alloc" },
       h("div", {}, h("strong", {}, label[k]), pref.has(k) ? h("span", { class: "badge", style: "margin-left:6px;font-size:11px" }, "선호") : null,
         h("small", { class: "hint" }, desc[k])),
@@ -1880,7 +1900,9 @@ function openHunter() {
   regionOptions($("#e-region"), p.region);
   $("#e-title-line").textContent = `${p.codename} · ${c.grade}급 Lv.${c.level}`;
   const pos = POSITIONS[c.main_position];
-  $("#e-position").textContent = `메인 포지션: ${pos.name} (${pos[c.main_option]}) · 선호 ${prefText(c.main_position)} · 변경 불가`;
+  $("#e-position").textContent = `메인 포지션: ${posLabel(c.main_position, c.main_option)} · 추천 ${prefText(c.main_position)}`
+    + (c.sub_position ? ` / 서브: ${posLabel(c.sub_position, c.sub_option)}` : c.level >= 25 ? " / 서브 포지션 선택 가능" : " / 서브 포지션은 25레벨부터")
+    + " · 변경 불가";
   $("#e-start-grade").textContent = `각성 등급: ${c.start_grade}급 · 다음 승급 ${nextPromotion(c.grade)}`;
   $("#edit-error").textContent = "";
   const sbox = $("#e-stats");
@@ -1946,6 +1968,34 @@ $("#btn-theme").onclick = async () => {
 };
 
 /* ===== 안내 ===== */
+function openSubPosition() {
+  const c = state.character;
+  const pick = { position: null, option: null };
+  const grid = h("div", { class: "pos-grid" }), row = h("div", { class: "opt-row" });
+  const err = h("div", { class: "error", role: "alert" });
+  const note = h("p", { class: "hint", style: "margin:10px 0 0" });
+  const go = h("button", { class: "btn block", type: "button", style: "margin-top:12px", disabled: true }, "서브 포지션 정하기");
+  function paint() {
+    posPicker(grid, row, pick, paint);
+    const same = pick.position === c.main_position && pick.option === c.main_option;
+    note.textContent = !pick.option ? "서브 포지션은 효과가 절반이고, 추천 스탯은 전투력에 1.25배로 반영됩니다."
+      : same ? `메인과 같은 ${posLabel(pick.position, pick.option)}을(를) 고르면 메인 효과가 1.5배가 됩니다.`
+      : `${posLabel(pick.position, pick.option)}의 효과가 절반으로 적용됩니다. 한 번 정하면 바꿀 수 없습니다.`;
+    go.disabled = !pick.option;
+  }
+  go.onclick = async () => {
+    if (!confirm(`서브 포지션을 ${posLabel(pick.position, pick.option)}(으)로 정할까요?\n한 번 정하면 바꿀 수 없습니다.`)) return;
+    busy(go, true, "저장 중…");
+    const { error } = await sb.rpc("set_sub_position", { p_position: pick.position, p_option: pick.option });
+    busy(go, false);
+    if (error) return (err.textContent = koError(error));
+    $("#dlg-info").close();
+    await loadAll(); renderHunter();
+    toast("서브 포지션을 정했습니다.");
+  };
+  paint();
+  info("서브 포지션", h("p", { style: "margin:0 0 12px" }, `메인 포지션: ${posLabel(c.main_position, c.main_option)}`), grid, row, note, err, go);
+}
 function info(title, ...body) {
   $("#info-title").textContent = title;
   $("#info-body").replaceChildren(...body);
@@ -1962,6 +2012,7 @@ $("#btn-guide").onclick = () => info("가이드",
   h("p", {}, "· 10역마다 구간(테마)이 바뀌고, 역마다 일반 몬스터 1마리·2마리 또는 보스를 만납니다. 보스는 강하지만 보상이 큽니다."),
   h("p", {}, "· 복귀 후 '조금 더 진입'을 고르면 50% 확률로 더 깊이 들어가 1.5배 보상을 받고, 실패하면 이번 보상의 20%를 잃습니다."),
   h("p", {}, "· 레벨이 오를 때마다 스탯 포인트 1개를 받아 자유롭게 분배할 수 있습니다."),
+  h("p", {}, "· 포지션: 시작할 때 메인 포지션을 고르고, 25레벨이 되면 서브 포지션을 한 번 고릅니다. 서브는 효과가 절반이고, 메인과 같은 포지션을 고르면 메인 효과가 1.5배가 됩니다."),
   h("p", {}, "· 장비는 무기·방어구·장신구 3칸에 끼우고, 재화와 일반 재료로 +10까지 강화할 수 있습니다. 던전에 소비 아이템을 최대 3종 챙겨 가면 쉬는 대신 먼저 씁니다."),
   h("p", {}, "· 10레벨마다 등급이 오릅니다 (E 10 · D 20 · C 30 · B 40 · A 50 · S 60). 처음 받은 각성 등급이 더 높으면 그 레벨에 닿을 때까지 유지됩니다."),
   h("p", {}, "· 지역 안정화: 활동 구역의 E~A급 던전을 공략합니다. E급 5구역부터 등급마다 1구역씩 늘고(평균 30~75분), 마지막 구역은 보스입니다. 구역마다 보상을 얻고, 도중에 쓰러지면 그때까지의 보상만 받습니다. 입장 레벨은 E 1 · D 10 · C 20 · B 30 · A 40이고, 성공률은 내 전력으로 미리 알려 줍니다. 안정화한 던전은 30분 뒤 다시 나타납니다. 더 높은 등급에 들어갈 수 있으면 낮은 등급 보상은 줄어듭니다."),
