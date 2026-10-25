@@ -265,8 +265,9 @@ table.list.rank tr.me td { background: color-mix(in srgb, var(--primary) 10%, tr
   min-height: 74px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg);
   padding: 8px; text-align: left; font: inherit; color: var(--text); cursor: pointer; display: flex; flex-direction: column; gap: 2px;
 }
-.rg-cell b { font-size: 15px; }
-.rg-cell small { font-size: 12px; color: var(--text-dim); line-height: 1.35; overflow-wrap: anywhere; }
+.rg-cell b { font-size: 13px; color: var(--text-dim); }
+.rg-place { font-size: 14px; font-weight: 700; line-height: 1.3; word-break: keep-all; overflow-wrap: break-word; }
+.rg-cell small { font-size: 12px; color: var(--text-dim); line-height: 1.35; word-break: keep-all; overflow-wrap: break-word; }
 .rg-cell.open small { color: var(--ok); font-weight: 700; }
 .rg-cell.attacking { background: color-mix(in srgb, var(--danger) 8%, var(--bg)); cursor: default; }
 .rg-cell.attacking small { color: var(--danger); }
@@ -1029,7 +1030,7 @@ async function renderDungeon(pane, tab = "battle") {
     const { data: act } = await sb.rpc("get_current_action");
     if (act?.kind === "regional") return body.replaceChildren(
       h("div", { class: "rg-notice" },
-        h("p", { style: "margin:0 0 8px;font-weight:700" }, `지역 안정화 — ${act.target.grade}급 던전 ${act.target.slot}번을 공략하고 있습니다.`),
+        h("p", { style: "margin:0 0 8px;font-weight:700" }, `지역 안정화 — ${act.target.grade}급 ${josa(act.target.place || `${act.target.slot}번 던전`, "을", "를")} 공략하고 있습니다.`),
         h("p", { class: "hint", style: "margin:0 0 10px" }, "공략이 끝나고 결과를 받은 뒤에 무한 던전에 진입하거나 탐색할 수 있습니다."),
         h("a", { class: "btn small", href: "#/regional" }, "지역 안정화로 가기")));
     const { data: ex } = await sb.rpc("explore_state");
@@ -1295,19 +1296,19 @@ async function renderRegionalBoard(body, act) {
     board.replaceChildren(...list.map(d => {
       const label = d.state === "open" ? "공략 가능"
         : d.state === "attacking" ? `${d.mine ? "내가" : d.by} 공략 중 · ${leftUntil(d.until, offset)}`
-        : `안정화됨 · ${leftUntil(d.until, offset)} 뒤 재등장`;
+        : `안정화됨 · ${leftUntil(d.until, offset)} 뒤 다른 곳에 재등장`;
       return h("button", {
         type: "button", class: `rg-cell ${d.state}${d.mine ? " mine" : ""}${selected === d.id ? " sel" : ""}`,
         disabled: d.state !== "open" || busyElsewhere, "aria-pressed": selected === d.id ? "true" : "false",
         onclick: () => { selected = d.id; paintBoard(); paintBtn(); },
-      }, h("b", {}, `${d.grade}-${d.slot}`), h("small", {}, label));
+      }, h("b", {}, `${d.grade}-${d.slot}`), d.place ? h("span", { class: "rg-place" }, d.place) : null, h("small", {}, label));
     }));
   }
   function paintBtn() {
     const d = rg.dungeons.find(x => x.id === selected);
     const g = rg.grades.find(x => x.grade === rgGrade);
     btn.disabled = !d || busyElsewhere;
-    btn.textContent = d ? `${d.grade}-${d.slot} 공략 시작 (예상 성공 ${Math.round(g.success * 100)}%)` : "공략할 던전을 고르세요";
+    btn.textContent = d ? `${d.place || `${d.grade}-${d.slot}`} 공략 시작 (예상 성공 ${Math.round(g.success * 100)}%)` : "공략할 던전을 고르세요";
   }
   function paintAll() { paintTabs(); paintInfo(); paintBoard(); paintBtn(); }
 
@@ -1364,7 +1365,7 @@ function renderRegionalRun(body, first) {
     h("div", { class: `gauge ${cls}` }, h("i", { style: `width:${Math.max(0, Math.min(100, v / max * 100))}%` })));
   body.replaceChildren(
     h("div", { class: "dg-head" },
-      h("div", {}, h("strong", {}, `${t.grade}급 던전 ${t.slot}번 공략`),
+      h("div", {}, h("strong", {}, t.place ? `${t.grade}급 · ${t.place}` : `${t.grade}급 던전 ${t.slot}번 공략`),
         cur.speed > 1 ? h("span", { class: "badge", style: "margin-left:6px" }, `테스트 ${cur.speed}배`) : null),
       timeLeft),
     h("div", { class: "bar" }, bar),
@@ -1430,7 +1431,7 @@ function showRegionalReport(body, r) {
     h("h3", { class: "report-title" }, r.success
       ? (grUp ? `${r.grade_after}급으로 승급했습니다!` : lvUp ? "안정화 성공 · 레벨 업!" : "던전 안정화 성공")
       : "공략 실패"),
-    h("p", { class: "hint", style: "margin:0 0 12px" }, `${r.target.grade}급 던전 ${r.target.slot}번 · 예상 성공률 ${Math.round(r.prob * 100)}%`
+    h("p", { class: "hint", style: "margin:0 0 12px" }, `${r.target.grade}급 · ${r.target.place || `${r.target.slot}번 던전`} · 예상 성공률 ${Math.round(r.prob * 100)}%`
       + (r.mult < 1 ? ` · 보상 ${Math.round(r.mult * 100)}%` : "")
       + (r.success ? "" : " · 쓰러지기 전까지 클리어한 구역의 보상만 받습니다. 던전은 그대로 남습니다.")),
   ];
@@ -1489,7 +1490,7 @@ function renderExploreIdle(body, s, last, act) {
       h("li", {}, "무한 던전·지역 안정화와 동시에 할 수 없습니다. 횟수는 매일 0시(한국 시간)에 다시 채워집니다.")));
   if (act) kids.push(h("div", { class: "rg-notice" },
     h("p", { style: "margin:0 0 8px;font-weight:700" }, act.kind === "regional"
-      ? `지역 안정화 — ${act.target.grade}급 던전 ${act.target.slot}번을 공략하고 있습니다.` : "무한 던전에 진입해 있습니다."),
+      ? `지역 안정화 — ${act.target.grade}급 ${josa(act.target.place || `${act.target.slot}번 던전`, "을", "를")} 공략하고 있습니다.` : "무한 던전에 진입해 있습니다."),
     h("p", { class: "hint", style: "margin:0" }, "던전에서 돌아와 결과를 받은 뒤에 탐색할 수 있습니다.")));
   kids.push(err, btn);
   body.replaceChildren(...kids);
