@@ -328,12 +328,26 @@ table.list.rank tr.me td { background: color-mix(in srgb, var(--primary) 10%, tr
 }
 
 /* ===== 아이템 ===== */
-:root { --tier1: #6B6680; --tier2: #1E8A5A; --tier3: #2463C9; --tier4: #8A3FD6; }
-:root[data-theme="dark"] { --tier1: #A49DC2; --tier2: #5FD39B; --tier3: #7FB2FF; --tier4: #C9A2FF; }
+:root { --tier1: #6B6680; --tier2: #1E8A5A; --tier3: #2463C9; --tier4: #C2570C; --tier5: #8A3FD6; }
+:root[data-theme="dark"] { --tier1: #A49DC2; --tier2: #5FD39B; --tier3: #7FB2FF; --tier4: #FFA05C; --tier5: #C9A2FF; }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]):not([data-theme="dark"]) { --tier1: #A49DC2; --tier2: #5FD39B; --tier3: #7FB2FF; --tier4: #C9A2FF; }
+  :root:not([data-theme="light"]):not([data-theme="dark"]) { --tier1: #A49DC2; --tier2: #5FD39B; --tier3: #7FB2FF; --tier4: #FFA05C; --tier5: #C9A2FF; }
 }
-.tier1 { color: var(--tier1); } .tier2 { color: var(--tier2); } .tier3 { color: var(--tier3); } .tier4 { color: var(--tier4); }
+.tier1 { color: var(--tier1); } .tier2 { color: var(--tier2); } .tier3 { color: var(--tier3); } .tier4 { color: var(--tier4); } .tier5 { color: var(--tier5); }
+.craft-slots { display: grid; grid-template-columns: repeat(3, 1fr) auto; gap: 8px; align-items: stretch; margin: 6px 0 10px; }
+.craft-slot { min-height: 64px; border: 1.5px dashed var(--border); border-radius: 10px; background: var(--bg); font: inherit; color: var(--text);
+  padding: 8px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 2px; cursor: pointer; word-break: keep-all; }
+.craft-slot.filled { border-style: solid; border-color: var(--primary); }
+.craft-slot small { color: var(--text-dim); font-size: 11px; }
+.craft-pick { display: flex; flex-wrap: wrap; gap: 6px; }
+.craft-pick button { border: 1px solid var(--border); background: var(--bg); color: var(--text); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+.craft-pick button:disabled { opacity: .4; cursor: default; }
+.craft-pick { margin-bottom: 18px; }
+.craft-pick button.on { border-color: var(--primary); outline: 2px solid var(--primary); font-weight: 700; }
+.craft-pick button.tier1 { color: var(--tier1); } .craft-pick button.tier2 { color: var(--tier2); } .craft-pick button.tier3 { color: var(--tier3); }
+.craft-pick button.tier4 { color: var(--tier4); } .craft-pick button.tier5 { color: var(--tier5); }
+.craft-msg { margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); font-weight: 700; }
+@media (max-width: 720px) { .craft-slots { grid-template-columns: repeat(3, 1fr); } .craft-slots .btn { grid-column: 1 / -1; } }
 .inv-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 .slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 4px 0 20px; }
 .slot { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; min-height: 108px; }
@@ -702,7 +716,9 @@ const MENUS = [
 ];
 const needFor = lv => Math.round(100 * Math.pow(lv, 1.5));
 const SLOT_NAME = { weapon: "무기", armor: "방어구", accessory: "장신구" };
-const TIER_NAME = { 1: "일반", 2: "고급", 3: "희귀", 4: "전설" };
+const TIER_NAME = { 1: "D티어", 2: "C티어", 3: "B티어", 4: "A티어", 5: "S티어" };
+const RARITY = { common: "흔함", normal: "보통", rare: "희귀" };
+const matInfo = x => x.grade ? `${RARITY[x.rarity] || ""} · ${x.grade}급 보스 재료` : `${RARITY[x.rarity] || ""}${x.rarity === "common" ? " · 강화·조합 재료" : " · 조합 재료"}`;
 const STAT_ORDER = ["hp", "mp", "atk", "def", "luk"];
 function fmtStats(st) {
   return STAT_ORDER.filter(k => st && st[k]).map(k => `${k.toUpperCase()} +${st[k]}`).join(", ") || "-";
@@ -1616,7 +1632,6 @@ async function renderInventory(pane, tab = "items") {
       ...[["items", "보유"], ["shop", "상점"], ["craft", "조합"], ["trade", "거래소"]].map(([id, label]) =>
         h("button", { type: "button", class: tab === id ? "on" : null, onclick: () => renderInventory(pane, id) }, label))),
     body);
-  if (tab === "craft") return body.replaceChildren(soonBox("4단계에서 열립니다", "모은 재료로 장비와 소비 아이템을 만듭니다."));
   if (tab === "trade") return body.replaceChildren(soonBox("5단계에서 열립니다", "다른 헌터와 아이템을 사고팝니다."));
   const { data: inv, error } = await sb.rpc("get_inventory");
   if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
@@ -1629,6 +1644,7 @@ async function renderInventory(pane, tab = "items") {
     refresh();
   }
   if (tab === "shop") return renderShop(body, inv, act);
+  if (tab === "craft") return renderCraft(body, inv, refresh);
   renderOwned(body, inv, act, refresh);
 }
 
@@ -1662,7 +1678,7 @@ function renderOwned(body, inv, act, refresh) {
   const stackRow = x => h("div", { class: "item-row" },
     h("div", { class: "item-main" },
       h("strong", {}, `${x.name} × ${x.qty}`),
-      h("div", { class: "hint" }, (x.kind === "consumable" ? fmtEffect(x.effect) : (x.boss_mat ? "보스 재료" : "일반 재료 · 강화에 사용")) + ` · 개당 ${x.sell_price}`),
+      h("div", { class: "hint" }, (x.kind === "consumable" ? fmtEffect(x.effect) : matInfo(x)) + ` · 개당 ${x.sell_price}`),
       h("div", { class: "hint item-desc" }, x.description)),
     h("div", { class: "item-actions" },
       h("button", { class: "btn ghost small", type: "button",
@@ -1679,7 +1695,7 @@ function renderOwned(body, inv, act, refresh) {
     h("div", { class: "slots" }, ...["weapon", "armor", "accessory"].map(slotCard)),
     group(`장비 (${inv.gear.length})`, inv.gear.map(gearRow), "장비가 없습니다. 상점에서 사거나 보스에게서 얻을 수 있습니다."),
     group(`소비 아이템 (${cons.length})`, cons.map(stackRow), "소비 아이템이 없습니다."),
-    group(`재료 (${mats.length})`, mats.map(stackRow), "재료는 무한 던전에서 얻습니다."));
+    group(`재료 (${mats.length})`, mats.map(stackRow), "재료는 던전·탐색에서 얻고, 청정수는 상점에서 살 수 있습니다."));
 }
 
 function renderShop(body, inv, act) {
@@ -1711,8 +1727,83 @@ function renderShop(body, inv, act) {
     body.replaceChildren(
       h("p", { class: "hint", style: "margin:16px 0 8px" }, "팔 때는 '보유' 탭에서 판매 버튼을 누르세요. 상점은 판매가의 30%에 되삽니다."),
       h("div", { class: "item-group" }, h("p", { class: "panel-title" }, "장비"), gear.map(row)),
-      h("div", { class: "item-group" }, h("p", { class: "panel-title" }, "소비 아이템"), cons.map(row)));
+      h("div", { class: "item-group" }, h("p", { class: "panel-title" }, "소비 아이템 · 재료"), cons.map(row)));
   });
+}
+
+/* ===== 조합 ===== */
+let craftMsg = null;
+async function renderCraft(body, inv, refresh) {
+  const { data: known } = await sb.rpc("get_recipes");
+  const picks = [];   // { kind: "stack", code, name } | { kind: "gear", id, name, tier }
+  const slots = h("div", { class: "craft-slots" });
+  const pickBox = h("div", { class: "craft-pick" });
+  const gearBox = h("div", { class: "craft-pick" });
+  const go = h("button", { class: "btn", type: "button" }, "조합하기");
+  const used = code => picks.filter(p => p.code === code).length;
+  function paint() {
+    slots.replaceChildren(...[0, 1, 2].map(i => {
+      const p = picks[i];
+      return h("button", { type: "button", class: "craft-slot" + (p ? " filled" : ""), "aria-label": p ? `${p.name} 빼기` : `빈 칸 ${i + 1}`,
+        onclick: () => { if (p) { picks.splice(i, 1); paint(); } } },
+        p ? h("strong", { class: p.tier ? `tier${p.tier}` : null }, p.name) : h("small", {}, i < 2 ? "재료" : "재료 (선택)"),
+        p ? h("small", {}, "눌러서 빼기") : null);
+    }), go);
+    go.disabled = picks.length < 2;
+    const stacks = inv.stacks;
+    pickBox.replaceChildren(...(stacks.length ? stacks.map(x => h("button", {
+      type: "button", disabled: picks.length >= 3 || used(x.code) >= x.qty,
+      onclick: () => { picks.push({ kind: "stack", code: x.code, name: x.name }); paint(); },
+    }, `${x.name} ${x.qty - used(x.code)}`)) : [h("span", { class: "hint" }, "재료가 없습니다.")]));
+    const gears = inv.gear.filter(g => !g.equipped);
+    gearBox.replaceChildren(...(gears.length ? gears.map(g => h("button", {
+      type: "button", class: `tier${g.tier}`, disabled: picks.length >= 3 || picks.some(p => p.id === g.id),
+      onclick: () => { picks.push({ kind: "gear", id: g.id, name: gearName(g), tier: g.tier, code: g.code, enhance: g.enhance }); paint(); },
+    }, gearName(g))) : [h("span", { class: "hint" }, "장착하지 않은 장비가 없습니다.")]));
+  }
+  go.onclick = async () => {
+    const enh = picks.filter(p => p.kind === "gear" && p.enhance > 0);
+    if (enh.length && !confirm(`강화된 장비(${enh.map(p => p.name).join(", ")})를 넣으면 강화 단계도 함께 사라집니다. 계속할까요?`)) return;
+    busy(go, true, "조합 중…");
+    const { data, error } = await sb.rpc("craft", {
+      p_codes: picks.filter(p => p.kind === "stack").map(p => p.code),
+      p_gear_ids: picks.filter(p => p.kind === "gear").map(p => p.id),
+    });
+    busy(go, false);
+    if (error) return toast(koError(error));
+    craftMsg = data.result === "success"
+      ? `${data.great ? "대성공! " : ""}${josa(data.qty > 1 ? `${data.name} ${data.qty}개` : data.name, "을", "를")} 만들었습니다.${data.first ? " 새 조합식을 기록했습니다." : ""}`
+      : data.result === "nothing" ? "아무 일도 일어나지 않았다. 맞는 조합식이 없어 재료는 그대로입니다."
+      : "재료가 빛을 내며 부서져 사라졌다… (1% 확률)";
+    refresh();
+  };
+  // 아는 조합식으로 칸 채우기
+  function fill(r) {
+    picks.length = 0;
+    const left = Object.fromEntries(inv.stacks.map(x => [x.code, x.qty]));
+    const gearsLeft = inv.gear.filter(g => !g.equipped).sort((a, b) => a.enhance - b.enhance);
+    for (const ing of r.ingredients) {
+      if (left[ing.code] > 0) { left[ing.code]--; picks.push({ kind: "stack", code: ing.code, name: ing.name }); continue; }
+      const gi = gearsLeft.findIndex(g => g.code === ing.code);
+      if (gi >= 0) { const g = gearsLeft.splice(gi, 1)[0]; picks.push({ kind: "gear", id: g.id, name: gearName(g), tier: g.tier, code: g.code, enhance: g.enhance }); continue; }
+      picks.length = 0; return toast(`${josa(ing.name, "이", "가")} 부족합니다.`);
+    }
+    paint();
+  }
+  const msg = craftMsg ? h("p", { class: "craft-msg", role: "status" }, craftMsg) : null;
+  craftMsg = null;
+  body.replaceChildren(
+    h("p", { class: "hint", style: "margin:16px 0 10px" }, "재료를 2~3개 넣고 조합해 보세요. 맞는 조합식이면 아이템이 나오고, 처음 성공한 조합식은 아래에 기록됩니다. 맞지 않으면 재료는 그대로 돌아옵니다. 다만 어떤 조합이든 1% 확률로 재료가 부서지고, 성공하면 5% 확률로 2개가 나옵니다."),
+    msg, slots,
+    h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "소비 아이템 · 재료"), pickBox,
+    h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "장비 (장착하지 않은 것)"), gearBox,
+    h("div", { class: "item-group" }, h("p", { class: "panel-title" }, `알게 된 조합식 (${(known || []).length})`),
+      (known || []).length ? known.map(r => h("div", { class: "item-row" },
+        h("div", { class: "item-main" }, h("strong", { class: r.tier ? `tier${r.tier}` : null }, r.name),
+          h("div", { class: "hint" }, r.ingredients.map(x => x.name).join(" + "))),
+        h("div", { class: "item-actions" }, h("button", { class: "btn ghost small", type: "button", onclick: () => fill(r) }, "칸 채우기"))))
+      : h("p", { class: "hint", style: "margin:0" }, "아직 없습니다. 여러 재료를 넣어 보며 찾아보세요.")));
+  paint();
 }
 
 /* ===== 강화 ===== */
@@ -1721,10 +1812,20 @@ async function openEnhance(gearId, onDone, lastResult) {
   if (error) return toast(koError(error));
   const g = inv.gear.find(x => x.id === gearId);
   if (!g) return;
-  const have = inv.stacks.filter(x => x.kind === "material" && !x.boss_mat).reduce((a, x) => a + x.qty, 0);
+  const have = inv.stardust ?? 0;
+  const dups = inv.gear.filter(x => x.code === g.code && x.id !== g.id && !x.equipped).sort((a, b) => a.enhance - b.enhance);
+  let dupId = null;
   const box = $("#enh-body"), go = $("#enh-go");
   const maxed = g.enhance >= 10;
-  const enough = !maxed && inv.currency >= g.enhance_cost && have >= g.enhance_mats;
+  const baseOk = !maxed && inv.currency >= g.enhance_cost && have >= g.enhance_mats && (!g.enhance_dup || dups.length > 0);
+  const dupBox = h("div", { class: "craft-pick", style: "margin:8px 0 0" });
+  function paintDups() {
+    dupBox.replaceChildren(...(dups.length ? dups.map(d => h("button", {
+      type: "button", class: `tier${d.tier}` + (dupId === d.id ? " on" : ""), "aria-pressed": dupId === d.id ? "true" : "false",
+      onclick: () => { dupId = d.id; paintDups(); },
+    }, gearName(d))) : [h("span", { class: "hint" }, "장착하지 않은 같은 장비가 없습니다.")]));
+    go.disabled = !baseOk || (g.enhance_dup && !dupId);
+  }
   box.replaceChildren(
     lastResult ? h("p", { class: lastResult.success ? "result-ok" : "result-fail", style: "margin:0 0 10px" },
       lastResult.success ? `강화 성공! +${lastResult.enhance}이 되었습니다.` : "강화 실패… 단계는 그대로입니다.") : null,
@@ -1737,14 +1838,21 @@ async function openEnhance(gearId, onDone, lastResult) {
       h("div", { class: "kv" }, h("span", {}, "성공률"), h("span", {}, `${Math.round(g.enhance_rate * 100)}%`)),
       h("div", { class: "kv" }, h("span", {}, "재화"), h("span", { class: inv.currency < g.enhance_cost ? "result-fail" : null },
         `${g.enhance_cost.toLocaleString()} (보유 ${Number(inv.currency).toLocaleString()})`)),
-      h("div", { class: "kv" }, h("span", {}, "일반 재료"), h("span", { class: have < g.enhance_mats ? "result-fail" : null },
-        `${g.enhance_mats}개 (보유 ${have}개)`))),
-    maxed ? null : h("p", { class: "hint", style: "margin:10px 0 0" }, "가장 많이 가진 일반 재료부터 씁니다. 실패하면 비용만 사라지고 단계는 유지됩니다."));
-  go.disabled = !enough;
+      h("div", { class: "kv" }, h("span", {}, "별가루"), h("span", { class: have < g.enhance_mats ? "result-fail" : null },
+        `${g.enhance_mats}개 (보유 ${have}개)`)),
+      g.enhance_dup ? h("div", { class: "kv" }, h("span", {}, "같은 장비"), h("span", { class: dups.length < 1 ? "result-fail" : null },
+        "1개 — 아래에서 고르세요")) : null),
+    maxed || !g.enhance_dup ? null : dupBox,
+    maxed ? null : h("p", { class: "hint", style: "margin:10px 0 0" },
+      g.enhance_dup ? "고른 장비는 성공·실패와 관계없이 사라집니다(강화 단계도 함께). 실패해도 단계는 유지되지만 비용은 돌려받지 못합니다."
+        : "실패해도 단계는 유지되지만 비용은 돌려받지 못합니다. +6부터는 장착하지 않은 같은 장비 1개가 더 필요합니다."));
   go.textContent = maxed ? "최대 강화" : "강화하기";
+  paintDups();
   go.onclick = async () => {
+    const dup = dups.find(d => d.id === dupId);
+    if (dup && dup.enhance > 0 && !confirm(`재료로 쓸 ${gearName(dup)}의 강화 단계도 함께 사라집니다. 계속할까요?`)) return;
     busy(go, true);
-    const { data: res, error } = await sb.rpc("enhance_gear", { p_gear_id: gearId });
+    const { data: res, error } = await sb.rpc("enhance_gear", { p_gear_id: gearId, p_dup_id: dupId });
     busy(go, false);
     if (error) return toast(koError(error));
     openEnhance(gearId, onDone, res);
@@ -2013,7 +2121,7 @@ $("#btn-guide").onclick = () => info("가이드",
   h("p", {}, "· 복귀 후 '조금 더 진입'을 고르면 50% 확률로 더 깊이 들어가 1.5배 보상을 받고, 실패하면 이번 보상의 20%를 잃습니다."),
   h("p", {}, "· 레벨이 오를 때마다 스탯 포인트 1개를 받아 자유롭게 분배할 수 있습니다."),
   h("p", {}, "· 포지션: 시작할 때 메인 포지션을 고르고, 25레벨이 되면 서브 포지션을 한 번 고릅니다. 서브는 효과가 절반이고, 메인과 같은 포지션을 고르면 메인 효과가 1.5배가 됩니다."),
-  h("p", {}, "· 장비는 무기·방어구·장신구 3칸에 끼우고, 재화와 일반 재료로 +10까지 강화할 수 있습니다. 던전에 소비 아이템을 최대 3종 챙겨 가면 쉬는 대신 먼저 씁니다."),
+  h("p", {}, "· 장비는 D~S 다섯 티어가 있고 무기·방어구·장신구 3칸에 끼웁니다. 재화와 별가루로 +10까지 강화하며, +6부터는 재료로 쓸 같은 장비 1개를 직접 고릅니다. 인벤토리의 조합에서 재료 2~3개를 섞어 새 아이템을 만들 수 있습니다. 던전에 소비 아이템을 최대 3종 챙겨 가면 쉬는 대신 먼저 씁니다."),
   h("p", {}, "· 10레벨마다 등급이 오릅니다 (E 10 · D 20 · C 30 · B 40 · A 50 · S 60). 처음 받은 각성 등급이 더 높으면 그 레벨에 닿을 때까지 유지됩니다."),
   h("p", {}, "· 지역 안정화: 활동 구역의 E~A급 던전을 공략합니다. E급 5구역부터 등급마다 1구역씩 늘고(평균 30~75분), 마지막 구역은 보스입니다. 구역마다 보상을 얻고, 도중에 쓰러지면 그때까지의 보상만 받습니다. 입장 레벨은 E 1 · D 10 · C 20 · B 30 · A 40이고, 성공률은 내 전력으로 미리 알려 줍니다. 안정화한 던전은 30분 뒤 다시 나타납니다. 더 높은 등급에 들어갈 수 있으면 낮은 등급 보상은 줄어듭니다."),
   h("p", {}, "· 탐색: 무한 던전의 '탐색' 탭에서 하루 3번, 보이지 않는 10×10 구역을 걸으며 재화와 아이템을 줍습니다. 무한 던전·지역 안정화와 동시에 할 수 없습니다."),
