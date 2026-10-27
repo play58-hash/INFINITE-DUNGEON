@@ -66,6 +66,7 @@ body {
 button, input, select, textarea { font: inherit; color: inherit; }
 a { color: var(--accent-text); }
 .hidden { display: none !important; }
+[hidden] { display: none !important; }
 
 /* ===== 공통 요소 ===== */
 .btn {
@@ -361,6 +362,96 @@ html.doc-open, html.doc-open body { overflow: hidden; }
 .pw-eye { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: 0; background: none;
   color: var(--text-dim); font-size: 13px; font-weight: 700; padding: 6px 8px; border-radius: 6px; cursor: pointer; }
 .pw-eye:hover { color: var(--accent-text); background: var(--surface-2); }
+/* 교류 */
+.nbadge { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; margin-left: 6px;
+  border-radius: 9px; background: var(--danger); color: #fff; font-size: 11px; font-weight: 800; line-height: 1; vertical-align: middle; }
+.tabbar a { position: relative; }
+.tabbar a .nbadge { position: absolute; top: 6px; left: calc(50% + 6px); margin: 0; }
+.avatar.mini { flex: none; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; overflow: hidden; }
+.avatar.mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.hunter-link { border: 0; background: none; padding: 0; font: inherit; font-weight: 700; color: var(--text); cursor: pointer; text-align: left; }
+.hunter-link:hover { color: var(--accent-text); text-decoration: underline; }
+.link-btn { border: 0; background: none; padding: 2px 4px; font: inherit; font-size: 13px; color: var(--text-dim); cursor: pointer; border-radius: 6px; }
+.link-btn:hover { color: var(--accent-text); background: var(--surface-2); }
+.soc-grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; align-items: start; }
+.fr-list { min-width: 0; }
+.fr-sec { margin: 0 0 14px; }
+.fr-sec .panel-title { margin: 6px 0 8px; }
+.fr-row { display: flex; align-items: center; gap: 10px; padding: 8px 6px; border-radius: 10px; width: 100%; }
+.fr-main { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.fr-pick { border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.fr-pick:hover { background: var(--surface-2); }
+.fr-pick.on { background: color-mix(in srgb, var(--primary) 14%, var(--surface)); }
+.chat { border: 1px solid var(--border); background: var(--bg); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; min-height: 460px; }
+.chat-empty { margin: auto; text-align: center; }
+.chat-head { display: flex; align-items: center; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.chat-head .fr-main { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-head .hunter-link { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.chat-back { display: none; }
+.chat-log { list-style: none; margin: 0; padding: 4px 2px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; height: 420px; }
+.msg { display: flex; flex-direction: column; align-items: flex-start; max-width: 80%; }
+.msg.mine { align-self: flex-end; align-items: flex-end; }
+.msg .bubble { padding: 8px 12px; border-radius: 14px 14px 14px 4px; background: var(--surface-2); white-space: pre-wrap; overflow-wrap: anywhere; word-break: keep-all; }
+.msg.mine .bubble { background: var(--primary); color: var(--on-primary); border-radius: 14px 14px 4px 14px; }
+.msg .meta { display: flex; gap: 6px; align-items: center; font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+.keep { border: 0; background: none; padding: 0 2px; font-size: 14px; line-height: 1; color: var(--text-dim); cursor: pointer; }
+.keep.on { color: #E0A800; }
+.chat-note { margin: 0; font-size: 12px; }
+.chat-form { display: flex; gap: 8px; align-items: flex-end; }
+.chat-form textarea { flex: 1; resize: none; min-height: 44px; }
+.menu { position: relative; }
+.menu > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; }
+.menu > summary::-webkit-details-marker { display: none; }
+.menu-pop { position: absolute; right: 0; top: calc(100% + 6px); z-index: 5; min-width: 140px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; box-shadow: var(--shadow); padding: 6px; display: flex; flex-direction: column; }
+.menu-pop button { border: 0; background: none; font: inherit; text-align: left; padding: 8px 10px; border-radius: 8px; cursor: pointer; color: var(--text); }
+.menu-pop button:hover { background: var(--surface-2); }
+.menu-pop button.danger { color: var(--danger); }
+.gift-sec { margin: 10px 0 0; }
+.gift-sec summary { cursor: pointer; }
+.gift-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+.gift-row input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--primary); }
+.gift-card { border: 1px solid var(--border); background: var(--bg); border-radius: 12px; padding: 10px 14px; margin-bottom: 10px; }
+.gift-what { margin: 4px 0 6px; font-weight: 700; }
+.gift-msg { margin: 0 0 8px; color: var(--text-dim); font-style: italic; }
+.cat-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+.cat-chip { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--surface-2); color: var(--text-dim); border: 1px solid transparent; white-space: nowrap; }
+button.cat-chip { cursor: pointer; font-family: inherit; }
+.cat-chip.big { padding: 6px 12px; font-size: 13px; }
+.cat-chip.on { background: color-mix(in srgb, var(--primary) 16%, var(--surface)); color: var(--accent-text); border-color: color-mix(in srgb, var(--primary) 40%, transparent); }
+.sns-write { padding: 14px; margin-bottom: 14px; }
+.sns-write textarea { width: 100%; resize: vertical; }
+.sns-write-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+.sns-feed { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+.sns-post { border: 1px solid var(--border); background: var(--bg); border-radius: 12px; padding: 8px 14px 10px; }
+.sns-post .fr-row { padding: 6px 0; }
+.sns-body { margin: 4px 0 6px; white-space: pre-wrap; overflow-wrap: anywhere; word-break: keep-all; line-height: 1.65; }
+.sns-actions { display: flex; gap: 6px; margin-left: -4px; }
+.sns-comments { border-top: 1px solid var(--border); margin-top: 8px; padding-top: 8px; }
+.sns-cmt { display: flex; gap: 8px; align-items: flex-start; padding: 6px 0; }
+.sns-cmt p { margin: 2px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; word-break: keep-all; font-size: 14px; }
+.side-feed { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.side-feed li { border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+.side-feed li:last-child { border-bottom: 0; }
+.side-feed-head { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.side-feed p { margin: 4px 0 0; font-size: 13px; overflow-wrap: anywhere; word-break: keep-all; color: var(--text); }
+.rp-card { border: 1px solid var(--border); background: var(--bg); border-radius: 12px; padding: 10px 14px; margin-bottom: 10px; }
+.rp-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.rp-dm { list-style: none; margin: 8px 0; padding: 8px 10px; background: var(--surface-2); border-radius: 8px; max-height: 240px; overflow-y: auto; font-size: 13px; }
+.rp-dm li + li { margin-top: 6px; }
+.rp-quote { margin: 8px 0; padding: 8px 12px; border-left: 3px solid var(--border); background: var(--surface-2); border-radius: 6px; white-space: pre-wrap; font-size: 14px; }
+.rp-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+.rp-actions > .input { flex: 1 1 200px; min-height: 36px; }
+.rp-ban { display: inline-flex; align-items: center; gap: 6px; }
+.rp-ban .input { min-height: 36px; }
+@media (max-width: 860px) {
+  .soc-grid { grid-template-columns: 1fr; }
+  .soc-grid.chatting .fr-list { display: none; }
+  .soc-grid:not(.chatting) .chat { display: none; }
+  .chat-back { display: inline-flex; }
+  .chat-log { height: max(260px, calc(100dvh - 430px)); }
+  .chat-head .avatar.mini { display: none; }
+}
 .rg-notice { border: 1px solid var(--border); background: var(--surface-2); border-radius: 10px; padding: 12px 14px; margin: 0 0 14px; font-size: 14px; }
 .ev-hp { margin-left: auto; flex: none; padding-left: 10px; font-style: normal; font-size: 12px; color: var(--text-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ev-foe span { color: color-mix(in srgb, var(--danger) 75%, var(--text)); }
@@ -546,6 +637,19 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
   </div>
 </section>
 
+<!-- ===== 정지된 계정 ===== -->
+<section id="screen-banned" class="gate hidden">
+  <div class="gate-box">
+    <h1 class="logo" aria-label="INFINITE DUNGEON"><span class="mark" aria-hidden="true">all_inclusive</span>INFINITE <span class="word-b">DUNGEON</span></h1>
+    <div class="card">
+      <p style="margin:0 0 8px;font-weight:700">이용이 정지되었습니다</p>
+      <p id="banned-msg" class="hint" style="margin:0 0 12px"></p>
+      <p class="hint" style="margin:0 0 16px">문의는 <a href="https://forms.gle/MZJSdr1iEbZKQcPT6" target="_blank" rel="noopener">문의 폼</a>으로 보내 주세요.</p>
+      <button class="btn ghost block js-logout" type="button">로그아웃</button>
+    </div>
+  </div>
+</section>
+
 <!-- ===== 2. 초대코드 ===== -->
 <section id="screen-invite" class="gate hidden">
   <div class="gate-box">
@@ -651,8 +755,8 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
       </aside>
       <main class="card main-pane" id="main-pane"></main>
       <aside class="side right">
-        <div class="card"><p class="panel-title">파티</p><p class="hint" style="margin:0">5단계에서 열립니다.</p></div>
-        <div class="card"><p class="panel-title">SNS</p><p class="hint" style="margin:0">5단계에서 열립니다.</p></div>
+        <div class="card"><p class="panel-title">파티</p><p class="hint" style="margin:0">곧 열립니다.</p></div>
+        <div class="card" id="side-sns"><p class="panel-title">SNS</p><p class="hint" style="margin:0">불러오는 중…</p></div>
       </aside>
     </div>
   </div>
@@ -810,7 +914,7 @@ const MENUS = [
   { id: "regional",  name: "지역 안정화", ico: "◎" },
   { id: "union",     name: "국제헌터연합", ico: "★" },
   { id: "inventory", name: "인벤토리",   ico: "▤" },
-  { id: "friends",   name: "친구",       ico: "☺" },
+  { id: "friends",   name: "교류",       ico: "☺" },
 ];
 const needFor = lv => Math.round(100 * Math.pow(lv, 1.5));
 const SLOT_NAME = { weapon: "무기", armor: "방어구", accessory: "장신구" };
@@ -872,7 +976,7 @@ function toast(msg) {
   setTimeout(() => t.remove(), 2400);
 }
 function show(id) {
-  for (const s of ["screen-auth", "screen-invite", "screen-create", "screen-reveal", "screen-app"])
+  for (const s of ["screen-auth", "screen-invite", "screen-create", "screen-reveal", "screen-banned", "screen-app"])
     $("#" + s).classList.toggle("hidden", s !== id);
 }
 function koError(err) {
@@ -1076,9 +1180,10 @@ function renderNav() {
   const cur = route();
   const items = [...MENUS];
   if (state.profile?.is_admin) items.push({ id: "admin", name: "운영", ico: "⚙" });
-  $("#nav").replaceChildren(...items.map(m => h("a", { href: `#/${m.id}`, class: cur === m.id ? "on" : null }, m.name)));
+  $("#nav").replaceChildren(...items.map(m => h("a", { href: `#/${m.id}`, "data-menu": m.id, class: cur === m.id ? "on" : null }, m.name)));
   $("#tabbar").replaceChildren(...items.map(m =>
-    h("a", { href: `#/${m.id}`, class: cur === m.id ? "on" : null }, m.id === "dungeon" ? h("span", { class: "ico sym", "aria-hidden": "true" }, "all_inclusive") : h("span", { class: "ico", "aria-hidden": "true" }, m.ico), m.name.replace("국제헌터연합", "연합").replace("지역 안정화", "안정화"))));
+    h("a", { href: `#/${m.id}`, "data-menu": m.id, class: cur === m.id ? "on" : null }, m.id === "dungeon" ? h("span", { class: "ico sym", "aria-hidden": "true" }, "all_inclusive") : h("span", { class: "ico", "aria-hidden": "true" }, m.ico), m.name.replace("국제헌터연합", "연합").replace("지역 안정화", "안정화"))));
+  paintSocialBadge();
 }
 function renderHunter() {
   const p = state.profile, c = state.character;
@@ -1106,7 +1211,7 @@ function renderHunter() {
         h("b", {}, String(total)), h("small", {}, k.toUpperCase()),
         bonus ? h("small", { class: "plus", style: "display:block;letter-spacing:0" }, `+${bonus}`) : null);
     })),
-    h("div", { class: "kv", style: "margin-top:10px" }, h("span", {}, "재화"), h("span", {}, Number(c.currency).toLocaleString())),
+    h("div", { class: "kv", style: "margin-top:10px" }, h("span", {}, "메헨"), h("span", {}, fmtMh(c.currency))),
     c.stat_points > 0
       ? h("button", { class: "btn block small", style: "margin-top:12px", type: "button", onclick: openStats }, `스탯 포인트 ${c.stat_points} 분배`)
       : null,
@@ -1135,8 +1240,11 @@ function renderMain() {
   const r = route();
   const pane = $("#main-pane");
   stopDungeonTimers();
+  social.onDm = null;
+  if (!social.poll && state.user) startSocial();
   if (r === "admin") return renderAdmin(pane);
   if (r === "home") return renderHome(pane);
+  if (r === "friends") return renderSocial(pane);
   if (r === "dungeon") { const t = nextDgTab || "battle"; nextDgTab = null; return renderDungeon(pane, t); }
   if (r === "regional") return renderRegional(pane);
   if (r === "union") return renderUnion(pane);
@@ -1149,6 +1257,535 @@ function renderMain() {
   );
 }
 addEventListener("hashchange", () => { if (syncDoc()) return; if (state.character) renderMain(); });
+
+/* ===== 교류: 친구 · 메신저 · 선물 · SNS · 신고 ===== */
+const fmtMh = n => `${Number(n || 0).toLocaleString()} Mh`;
+const SNS_CATS = ["잡담", "공략", "질문", "모집", "거래"];
+const REPORT_REASONS = ["욕설·비하", "도배·광고", "불쾌한 내용", "사기·거래 문제", "개인정보 노출", "기타"];
+const fmtWhen = iso => {
+  const d = new Date(iso), now = new Date(), diff = (now - d) / 1000;
+  if (diff < 60) return "방금";
+  if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
+  if (d.toDateString() === now.toDateString()) return fmtTime(iso);
+  return `${d.getMonth() + 1}/${d.getDate()} ${fmtTime(iso)}`;
+};
+const social = { summary: {}, chan: null, poll: null, onDm: null };
+
+// 다른 헌터 프로필 사진: 주소를 한 번만 받아 두고 다시 쓴다
+const avatarCache = new Map();
+function avatarUrlOf(path) {
+  if (!path) return Promise.resolve(null);
+  if (!avatarCache.has(path))
+    avatarCache.set(path, sb.storage.from("avatars").createSignedUrl(path, 3600).then(({ data, error }) => error ? null : data.signedUrl));
+  return avatarCache.get(path);
+}
+function miniAvatar(card, size = 34) {
+  const el = h("div", { class: "avatar mini", style: `width:${size}px;height:${size}px;font-size:${Math.round(size * 0.42)}px;border-radius:${Math.round(size * 0.28)}px` });
+  avatarEl(el, { url: null, color: card?.avatar_color, name: card?.codename });
+  if (card?.avatar_url) avatarUrlOf(card.avatar_url).then(u => { if (u) avatarEl(el, { url: u, color: card.avatar_color, name: card.codename }); });
+  return el;
+}
+const hunterLink = card => h("button", { type: "button", class: "hunter-link", onclick: e => { e.stopPropagation(); openPublicHunter(card.codename); } }, card.codename);
+const hunterSub = card => card ? `${card.grade || "-"}급 · Lv.${card.level ?? "-"}` : "";
+
+/* 알림 숫자 (친구 신청 + 받은 선물 + 안 읽은 메시지, 운영자는 신고) */
+async function refreshSocial() {
+  const { data } = await sb.rpc("social_summary");
+  if (!data) return;
+  social.summary = data;
+  paintSocialBadge();
+}
+function paintSocialBadge() {
+  const s = social.summary || {};
+  const n = (s.friend_requests || 0) + (s.gifts || 0) + (s.unread || 0);
+  document.querySelectorAll('[data-menu="friends"]').forEach(a => {
+    a.querySelector(".nbadge")?.remove();
+    if (n > 0) a.append(h("span", { class: "nbadge", "aria-label": `새 소식 ${n}개` }, n > 99 ? "99+" : String(n)));
+  });
+  document.querySelectorAll('[data-menu="admin"]').forEach(a => {
+    a.querySelector(".nbadge")?.remove();
+    if (s.reports > 0) a.append(h("span", { class: "nbadge", "aria-label": `신고 ${s.reports}개` }, String(s.reports)));
+  });
+}
+function startSocial() {
+  stopSocial();
+  refreshSocial();
+  refreshSideSns();
+  social.poll = setInterval(() => { refreshSocial(); refreshSideSns(); }, 60000);
+  // 새 메시지는 실시간으로 받는다
+  social.chan = sb.channel("dm-" + state.user.id)
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "dm_messages", filter: `recipient=eq.${state.user.id}` }, payload => {
+      if (social.onDm && social.onDm(payload.new)) return;   // 지금 열린 대화면 그 자리에서 보여 준다
+      social.summary.unread = (social.summary.unread || 0) + 1;
+      paintSocialBadge();
+      toast("새 메시지가 왔습니다.");
+    })
+    .subscribe();
+}
+function stopSocial() {
+  clearInterval(social.poll); social.poll = null;
+  if (social.chan) { sb.removeChannel(social.chan); social.chan = null; }
+  social.onDm = null;
+}
+
+/* 오른쪽 SNS 칸 (PC) */
+async function refreshSideSns() {
+  const box = $("#side-sns");
+  if (!box || !state.character) return;
+  const { data } = await sb.rpc("sns_feed", { p_category: null, p_before: null });
+  const posts = (data?.posts || []).slice(0, 4);
+  box.replaceChildren(
+    h("p", { class: "panel-title" }, "SNS"),
+    posts.length ? h("ul", { class: "side-feed" }, ...posts.map(p => h("li", {},
+      h("div", { class: "side-feed-head" }, h("span", { class: "cat-chip" }, p.category), h("b", {}, p.author.codename), h("span", { class: "hint" }, fmtWhen(p.at))),
+      h("p", {}, p.body.length > 70 ? p.body.slice(0, 70) + "…" : p.body))))
+      : h("p", { class: "hint", style: "margin:0 0 10px" }, "아직 글이 없습니다."),
+    h("a", { class: "btn ghost small block", href: "#/friends", onclick: () => { nextSocialTab = "sns"; } }, "SNS 열기"));
+}
+
+/* ===== 교류 화면 ===== */
+let nextSocialTab = null, socialTab = "friends", chatWith = null;
+async function renderSocial(pane, tab) {
+  socialTab = tab || nextSocialTab || socialTab || "friends"; nextSocialTab = null;
+  social.onDm = null;
+  const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
+  const s = social.summary || {};
+  const tabBtn = (id, label, n) => h("button", { type: "button", class: socialTab === id ? "on" : null, onclick: () => renderSocial(pane, id) },
+    label, n > 0 ? h("span", { class: "nbadge" }, String(n)) : null);
+  pane.replaceChildren(
+    h("h2", {}, "교류"),
+    h("p", { class: "hint", style: "margin:0 0 16px" }, "친구와 메시지·선물을 주고받고, SNS에서 다른 헌터들과 이야기를 나눕니다."),
+    h("div", { class: "tabs", style: "max-width:420px" },
+      tabBtn("friends", "친구 · 메시지", (s.friend_requests || 0) + (s.unread || 0)),
+      tabBtn("gifts", "선물함", s.gifts || 0),
+      tabBtn("sns", "SNS", 0)),
+    body);
+  if (socialTab === "gifts") return renderGifts(body);
+  if (socialTab === "sns") return renderSns(body);
+  return renderFriends(body, pane);
+}
+
+async function renderFriends(body, pane) {
+  const { data: fl, error } = await sb.rpc("friend_list");
+  if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
+  const reload = () => { refreshSocial(); renderSocial(pane, "friends"); };
+  async function run(name, args, okMsg) {
+    const { data, error } = await sb.rpc(name, args);
+    if (error) { toast(koError(error)); return null; }
+    if (okMsg) toast(okMsg);
+    return data ?? true;
+  }
+
+  // 친구 신청 보내기
+  const addIn = h("input", { class: "input", maxlength: "12", placeholder: "코드네임", "aria-label": "친구 신청할 코드네임" });
+  const addBtn = h("button", { class: "btn small", type: "submit" }, "친구 신청");
+  const addForm = h("form", { class: "todo-form" }, addIn, addBtn);
+  addForm.onsubmit = async e => {
+    e.preventDefault();
+    if (!addIn.value.trim()) return;
+    busy(addBtn, true, "…");
+    const r = await run("friend_request", { p_codename: addIn.value.trim() });
+    busy(addBtn, false);
+    if (r) { toast(r.result === "accepted" ? "상대도 신청을 보냈던 터라 바로 친구가 되었습니다." : "친구 신청을 보냈습니다."); reload(); }
+  };
+  const friendCount = fl.friends.length + fl.outgoing.length;
+  const row = (card, ...right) => h("div", { class: "fr-row" }, miniAvatar(card), h("div", { class: "fr-main" }, hunterLink(card), h("div", { class: "hint" }, hunterSub(card))), ...right);
+
+  const list = h("div", { class: "fr-list" },
+    h("p", { class: "panel-title" }, `친구 ${fl.friends.length} / ${fl.cap}`, fl.outgoing.length ? h("span", { class: "hint", style: "font-weight:500" }, ` (보낸 신청 ${fl.outgoing.length} 포함 ${friendCount})`) : null),
+    addForm,
+    fl.incoming.length ? h("div", { class: "fr-sec" }, h("p", { class: "panel-title" }, `받은 친구 신청 ${fl.incoming.length}`),
+      ...fl.incoming.map(r => row(r,
+        h("button", { class: "btn small", type: "button", onclick: async () => { if (await run("friend_respond", { p_id: r.id, p_accept: true }, "친구가 되었습니다.")) reload(); } }, "수락"),
+        h("button", { class: "btn ghost small", type: "button", onclick: async () => { if (await run("friend_respond", { p_id: r.id, p_accept: false })) reload(); } }, "거절")))) : null,
+    h("div", { class: "fr-sec" },
+      fl.friends.length ? null : h("p", { class: "hint", style: "margin:0" }, "아직 친구가 없습니다. 코드네임으로 친구 신청을 보내 보세요."),
+      ...fl.friends.map(f => {
+        const r = h("button", { type: "button", class: `fr-row fr-pick${chatWith === f.codename ? " on" : ""}`, onclick: () => openChat(f.codename) },
+          miniAvatar(f), h("div", { class: "fr-main" }, h("b", {}, f.codename), h("div", { class: "hint" }, f.last_at ? `${hunterSub(f)} · ${fmtWhen(f.last_at)}` : hunterSub(f))),
+          f.unread > 0 ? h("span", { class: "nbadge" }, String(f.unread)) : null);
+        return r;
+      })),
+    fl.outgoing.length ? h("div", { class: "fr-sec" }, h("p", { class: "panel-title" }, "보낸 신청"),
+      ...fl.outgoing.map(o => row(o, h("button", { class: "btn ghost small", type: "button",
+        onclick: async () => { if (await run("friend_remove", { p_codename: o.codename }, "신청을 취소했습니다.")) reload(); } }, "취소")))) : null,
+    fl.blocked.length ? h("details", { class: "fr-sec" }, h("summary", { class: "panel-title", style: "cursor:pointer" }, `차단한 헌터 ${fl.blocked.length}`),
+      ...fl.blocked.map(b => row(b, h("button", { class: "btn ghost small", type: "button",
+        onclick: async () => { if (await run("block_user", { p_codename: b.codename, p_block: false }, "차단을 풀었습니다.")) reload(); } }, "차단 해제")))) : null);
+
+  const chat = h("div", { class: "chat" });
+  const grid = h("div", { class: `soc-grid${chatWith ? " chatting" : ""}` }, list, chat);
+  body.replaceChildren(grid);
+  if (chatWith && fl.friends.some(f => f.codename === chatWith)) openChat(chatWith);
+  else { chatWith = null; grid.classList.remove("chatting"); chat.replaceChildren(h("div", { class: "chat-empty hint" }, "왼쪽에서 친구를 고르면 대화가 열립니다.")); }
+
+  async function openChat(codename) {
+    chatWith = codename;
+    grid.classList.add("chatting");
+    list.querySelectorAll(".fr-pick").forEach(b => b.classList.toggle("on", b.querySelector("b")?.textContent === codename));
+    chat.replaceChildren(h("p", { class: "hint" }, "불러오는 중…"));
+    const { data: d, error } = await sb.rpc("dm_list", { p_codename: codename, p_before: null });
+    if (error) return chat.replaceChildren(h("p", { class: "error" }, koError(error)));
+    refreshSocial();
+    const fr = list.querySelector(".fr-pick.on .nbadge"); if (fr) fr.remove();
+    let msgs = d.messages;
+    const log = h("ol", { class: "chat-log", "aria-live": "polite" });
+    const more = h("button", { class: "btn ghost small", type: "button", style: "align-self:center" }, "이전 메시지 더 보기");
+    more.hidden = msgs.length < 50;
+    more.onclick = async () => {
+      const { data: older } = await sb.rpc("dm_list", { p_codename: codename, p_before: msgs[0]?.id });
+      if (!older) return;
+      msgs = [...older.messages, ...msgs];
+      more.hidden = older.messages.length < 50;
+      paint(false);
+    };
+    function bubble(m) {
+      const keep = h("button", { type: "button", class: `keep${m.kept ? " on" : ""}`, title: m.kept ? "보관 중 (누르면 보관 해제)" : "보관하기 (30일 뒤에도 남김)",
+        "aria-pressed": m.kept ? "true" : "false", "aria-label": m.kept ? "보관 해제" : "보관하기" }, m.kept ? "★" : "☆");
+      keep.onclick = async () => {
+        const { error } = await sb.rpc("dm_keep", { p_id: m.id, p_keep: !m.kept });
+        if (error) return toast(koError(error));
+        m.kept = !m.kept; paint(false);
+      };
+      return h("li", { class: `msg${m.mine ? " mine" : ""}` },
+        h("div", { class: "bubble" }, m.body),
+        h("div", { class: "meta" }, h("time", {}, fmtWhen(m.at)), m.mine && m.read ? h("span", {}, "읽음") : null, keep));
+    }
+    function paint(scroll = true) {
+      log.replaceChildren(...(msgs.length ? msgs.map(bubble) : [h("li", { class: "hint", style: "text-align:center;list-style:none" }, "첫 메시지를 보내 보세요.")]));
+      if (scroll) log.scrollTop = log.scrollHeight;
+    }
+    const ta = h("textarea", { class: "input", rows: "2", maxlength: "500", placeholder: d.friend ? "메시지 (Enter로 보내기, Shift+Enter 줄바꿈)" : "친구가 아니어서 메시지를 보낼 수 없습니다.", "aria-label": "메시지" });
+    const send = h("button", { class: "btn", type: "submit" }, "보내기");
+    ta.disabled = send.disabled = !d.friend || d.blocked;
+    const form = h("form", { class: "chat-form" }, ta, send);
+    form.onsubmit = async e => {
+      e.preventDefault();
+      const v = ta.value.trim();
+      if (!v) return;
+      busy(send, true, "…");
+      const { data: m, error } = await sb.rpc("dm_send", { p_codename: codename, p_body: v });
+      busy(send, false);
+      if (error) return toast(koError(error));
+      ta.value = ""; msgs.push(m); paint(); ta.focus();
+    };
+    ta.onkeydown = e => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); form.requestSubmit(); } };
+    // 이 대화에 새 메시지가 오면 다시 불러온다
+    social.onDm = async row => {
+      if (chatWith !== codename || !document.body.contains(log)) { social.onDm = null; return false; }
+      const { data: fresh } = await sb.rpc("dm_list", { p_codename: codename, p_before: null });
+      if (fresh) { const older = msgs.filter(x => x.id < (fresh.messages[0]?.id ?? 0)); msgs = [...older, ...fresh.messages]; paint(); }
+      return true;
+    };
+    const menu = h("details", { class: "menu" }, h("summary", { class: "btn ghost small", "aria-label": "더 보기", title: "더 보기" }, "⋯"),
+      h("div", { class: "menu-pop" },
+        h("button", { type: "button", onclick: () => openReport("dm", codename, `${codename}님과의 대화`) }, "대화 신고"),
+        h("button", { type: "button", onclick: async () => {
+          if (!confirm(`${codename}님과 친구를 끊을까요? 대화 기록은 남습니다.`)) return;
+          if (await run("friend_remove", { p_codename: codename }, "친구를 끊었습니다.")) { chatWith = null; reload(); } } }, "친구 끊기"),
+        h("button", { type: "button", class: "danger", onclick: async () => {
+          if (!confirm(`${codename}님을 차단할까요?\n친구가 끊기고, 서로 메시지·선물·친구 신청을 할 수 없으며 SNS 글도 보이지 않습니다.`)) return;
+          if (await run("block_user", { p_codename: codename, p_block: true }, "차단했습니다.")) { chatWith = null; reload(); } } }, "차단")));
+    chat.replaceChildren(
+      h("div", { class: "chat-head" },
+        h("button", { type: "button", class: "btn ghost small chat-back", "aria-label": "친구 목록으로", onclick: () => { chatWith = null; social.onDm = null; grid.classList.remove("chatting"); list.querySelectorAll(".fr-pick").forEach(b => b.classList.remove("on")); } }, "←"),
+        miniAvatar(d.other, 38), h("div", { class: "fr-main" }, hunterLink(d.other), h("div", { class: "hint" }, hunterSub(d.other))),
+        d.friend ? h("button", { class: "btn small", type: "button", onclick: () => openGift(codename) }, "선물") : null,
+        menu),
+      more, log,
+      h("p", { class: "hint chat-note" }, "보관(☆)하지 않은 메시지는 30일 뒤 사라집니다."),
+      form);
+    paint();
+    if (matchMedia("(min-width: 721px)").matches) ta.focus();
+  }
+}
+
+/* 선물 보내기 */
+async function openGift(codename) {
+  const [{ data: inv, error }, { data: gl }] = await Promise.all([sb.rpc("get_inventory"), sb.rpc("gift_list")]);
+  if (error) return toast(koError(error));
+  const pick = { items: {}, gears: new Set() };
+  const mh = h("input", { class: "input", type: "number", min: "0", max: String(inv.currency), value: "0", id: "gift-mh" });
+  const stacks = inv.stacks.filter(x => x.qty > 0);
+  const gears = inv.gear.filter(g => !g.equipped);
+  const sumEl = h("p", { class: "hint", style: "margin:8px 0 0" });
+  const paintSum = () => {
+    const nItems = Object.values(pick.items).reduce((a, b) => a + b, 0);
+    sumEl.textContent = `보낼 것: ${fmtMh(Number(mh.value) || 0)} · 아이템 ${nItems}개 · 장비 ${pick.gears.size}개`;
+  };
+  mh.oninput = paintSum;
+  const stackRows = stacks.map(x => {
+    const n = h("input", { class: "input", type: "number", min: "0", max: String(x.qty), value: "0", style: "width:76px", "aria-label": `${x.name} 개수` });
+    n.oninput = () => { const v = Math.max(0, Math.min(x.qty, Number(n.value) || 0)); if (v) pick.items[x.code] = v; else delete pick.items[x.code]; paintSum(); };
+    return h("div", { class: "gift-row" }, h("span", {}, `${x.name}`, h("span", { class: "hint" }, ` (보유 ${x.qty})`)), n);
+  });
+  const gearRows = gears.map(g => {
+    const cb = h("input", { type: "checkbox", "aria-label": gearName(g) });
+    cb.onchange = () => { cb.checked ? pick.gears.add(g.id) : pick.gears.delete(g.id); paintSum(); };
+    return h("label", { class: "gift-row" }, h("span", {}, h("strong", { class: `tier${g.tier}` }, gearName(g)), h("span", { class: "hint" }, ` ${SLOT_NAME[g.slot]} · ${TIER_NAME[g.tier]}`)), cb);
+  });
+  const msg = h("input", { class: "input", maxlength: "100", placeholder: "메시지 (선택, 100자까지)", "aria-label": "선물 메시지" });
+  const err = h("div", { class: "error", role: "alert" });
+  const go = h("button", { class: "btn block", type: "button", disabled: !(gl?.left_today > 0) }, gl?.left_today > 0 ? `${codename}님에게 보내기 (오늘 ${gl.left_today}번 남음)` : "오늘 선물은 모두 보냈습니다");
+  go.onclick = async () => {
+    err.textContent = "";
+    const items = Object.entries(pick.items).map(([code, qty]) => ({ code, qty }));
+    const cur = Math.max(0, Math.floor(Number(mh.value) || 0));
+    if (!cur && !items.length && !pick.gears.size) return (err.textContent = "보낼 것을 골라 주세요.");
+    if (!confirm(`${codename}님에게 선물을 보낼까요?\n상대가 받거나 거절할 때까지 내 인벤토리에서 빠져 있고, 거절하거나 7일 동안 받지 않으면 돌아옵니다.`)) return;
+    busy(go, true, "보내는 중…");
+    const { error } = await sb.rpc("gift_send", { p_codename: codename, p_currency: cur, p_items: items, p_gear_ids: [...pick.gears], p_message: msg.value.trim() || null });
+    busy(go, false);
+    if (error) return (err.textContent = koError(error));
+    $("#dlg-info").close();
+    toast("선물을 보냈습니다.");
+    await loadAll(); renderHunter();
+  };
+  info(`${codename}님에게 선물`,
+    h("div", { class: "field" }, h("label", { for: "gift-mh" }, `메헨 (보유 ${fmtMh(inv.currency)})`), mh),
+    h("details", { class: "gift-sec", open: stacks.length ? true : null }, h("summary", { class: "panel-title" }, `아이템 (${stacks.length})`),
+      stackRows.length ? stackRows : h("p", { class: "hint" }, "보낼 수 있는 아이템이 없습니다.")),
+    h("details", { class: "gift-sec" }, h("summary", { class: "panel-title" }, `장비 (${gears.length}) · 장착 중인 장비는 보낼 수 없습니다`),
+      gearRows.length ? gearRows : h("p", { class: "hint" }, "보낼 수 있는 장비가 없습니다.")),
+    h("div", { class: "field", style: "margin-top:12px" }, msg),
+    sumEl, err, h("div", { style: "margin-top:12px" }, go));
+  paintSum();
+}
+
+/* 선물함 */
+function giftContents(g) {
+  const parts = [];
+  if (g.currency > 0) parts.push(fmtMh(g.currency));
+  for (const it of g.items) parts.push(`${it.name || it.code} ×${it.qty}`);
+  for (const ge of g.gears) parts.push(`${ge.name || ge.code}${ge.enhance ? ` +${ge.enhance}` : ""}`);
+  return parts.join(", ");
+}
+async function renderGifts(body) {
+  const { data, error } = await sb.rpc("gift_list");
+  if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
+  const STATUS = { pending: "기다리는 중", accepted: "받음", declined: "거절됨", expired: "기간이 지나 돌아옴" };
+  const respond = async (id, ok) => {
+    const { error } = await sb.rpc("gift_respond", { p_id: id, p_accept: ok });
+    if (error) return toast(koError(error));
+    toast(ok ? "선물을 받았습니다." : "선물을 거절했습니다. 보낸 헌터에게 돌아갑니다.");
+    await loadAll(); renderHunter(); refreshSocial(); renderGifts(body);
+  };
+  body.replaceChildren(
+    h("p", { class: "hint", style: "margin:0 0 14px" }, `친구에게 하루 10번까지 선물할 수 있습니다 (오늘 ${data.left_today}번 남음). 선물은 친구 목록의 대화에서 '선물'을 눌러 보냅니다. 7일 동안 받지 않은 선물은 보낸 헌터에게 돌아갑니다.`),
+    h("p", { class: "panel-title" }, `받은 선물 ${data.incoming.length}`),
+    data.incoming.length ? h("div", { class: "fr-sec" }, ...data.incoming.map(g => h("div", { class: "gift-card" },
+      h("div", { class: "fr-row" }, miniAvatar(g.from), h("div", { class: "fr-main" }, hunterLink(g.from), h("div", { class: "hint" }, fmtWhen(g.at)))),
+      h("p", { class: "gift-what" }, giftContents(g)),
+      g.message ? h("p", { class: "gift-msg" }, `“${g.message}”`) : null,
+      h("div", { style: "display:flex;gap:8px" },
+        h("button", { class: "btn small", type: "button", onclick: () => respond(g.id, true) }, "받기"),
+        h("button", { class: "btn ghost small", type: "button", onclick: () => confirm("이 선물을 거절할까요? 보낸 헌터에게 돌아갑니다.") && respond(g.id, false) }, "거절")))))
+      : h("p", { class: "hint", style: "margin:0 0 16px" }, "받을 선물이 없습니다."),
+    h("p", { class: "panel-title", style: "margin-top:18px" }, "최근 30일 기록"),
+    data.history.length ? h("table", { class: "list" },
+      h("thead", {}, h("tr", {}, h("th", {}, "날짜"), h("th", {}, "보낸 · 받은"), h("th", {}, "내용"), h("th", {}, "상태"))),
+      h("tbody", {}, ...data.history.map(g => h("tr", {},
+        h("td", {}, fmtWhen(g.at)),
+        h("td", {}, g.mine ? `→ ${g.to.codename}` : `← ${g.from.codename}`),
+        h("td", {}, giftContents(g)),
+        h("td", {}, STATUS[g.status] || g.status)))))
+      : h("p", { class: "hint", style: "margin:0" }, "기록이 없습니다."));
+}
+
+/* SNS */
+let snsCat = null;
+async function renderSns(body) {
+  const feed = h("div", { class: "sns-feed" });
+  let posts = [], cat = snsCat;
+  const chips = h("div", { class: "cat-row", role: "tablist", "aria-label": "분류" });
+  const paintChips = () => chips.replaceChildren(...[null, ...SNS_CATS].map(c => h("button", { type: "button", class: `cat-chip big${cat === c ? " on" : ""}`, "aria-pressed": cat === c ? "true" : "false",
+    onclick: () => { cat = snsCat = c; paintChips(); load(true); } }, c || "전체")));
+  // 글쓰기
+  let wcat = "잡담";
+  const wchips = h("div", { class: "cat-row" });
+  const paintW = () => wchips.replaceChildren(...SNS_CATS.map(c => h("button", { type: "button", class: `cat-chip${wcat === c ? " on" : ""}`, "aria-pressed": wcat === c ? "true" : "false", onclick: () => { wcat = c; paintW(); } }, c)));
+  const ta = h("textarea", { class: "input", rows: "3", maxlength: "1000", placeholder: "무슨 일이 있었나요? (1,000자까지)", "aria-label": "새 글" });
+  const cnt = h("span", { class: "hint" }, "0 / 1000");
+  ta.oninput = () => { cnt.textContent = `${ta.value.length} / 1000`; };
+  const postBtn = h("button", { class: "btn small", type: "submit" }, "올리기");
+  const werr = h("div", { class: "error", role: "alert" });
+  const wform = h("form", { class: "sns-write card" }, wchips, ta, h("div", { class: "sns-write-foot" }, cnt, postBtn), werr);
+  wform.onsubmit = async e => {
+    e.preventDefault();
+    werr.textContent = "";
+    if (!ta.value.trim()) return;
+    busy(postBtn, true, "…");
+    const { error } = await sb.rpc("sns_post", { p_category: wcat, p_body: ta.value });
+    busy(postBtn, false);
+    if (error) return (werr.textContent = koError(error));
+    ta.value = ""; cnt.textContent = "0 / 1000";
+    load(true); refreshSideSns();
+  };
+  const moreBtn = h("button", { class: "btn ghost block", type: "button" }, "더 보기");
+  moreBtn.onclick = () => load(false);
+  async function load(reset) {
+    if (reset) { posts = []; feed.replaceChildren(h("p", { class: "hint" }, "불러오는 중…")); }
+    const { data, error } = await sb.rpc("sns_feed", { p_category: cat, p_before: reset ? null : posts.at(-1)?.id ?? null });
+    if (error) return feed.replaceChildren(h("p", { class: "error" }, koError(error)));
+    posts = reset ? data.posts : [...posts, ...data.posts];
+    moreBtn.hidden = data.posts.length < 20;
+    feed.replaceChildren(...(posts.length ? posts.map(postCard) : [h("p", { class: "hint" }, "아직 글이 없습니다. 첫 글을 남겨 보세요.")]));
+  }
+  function postCard(p) {
+    const cbox = h("div", { class: "sns-comments", hidden: true });
+    const cbtn = h("button", { type: "button", class: "link-btn" }, `댓글 ${p.comments}`);
+    cbtn.onclick = () => { cbox.hidden = !cbox.hidden; if (!cbox.hidden) loadComments(); };
+    async function loadComments(list) {
+      if (!list) { const { data, error } = await sb.rpc("sns_comments", { p_post: p.id }); if (error) return toast(koError(error)); list = data; }
+      p.comments = list.length; cbtn.textContent = `댓글 ${list.length}`;
+      const inp = h("input", { class: "input", maxlength: "300", placeholder: "댓글 (300자까지)", "aria-label": "댓글" });
+      const send = h("button", { class: "btn small", type: "submit" }, "달기");
+      const f = h("form", { class: "todo-form", style: "margin:8px 0 0" }, inp, send);
+      f.onsubmit = async e => {
+        e.preventDefault();
+        if (!inp.value.trim()) return;
+        busy(send, true, "…");
+        const { data, error } = await sb.rpc("sns_comment", { p_post: p.id, p_body: inp.value });
+        busy(send, false);
+        if (error) return toast(koError(error));
+        loadComments(data);
+      };
+      cbox.replaceChildren(...list.map(c => h("div", { class: "sns-cmt" },
+        miniAvatar(c.author, 26),
+        h("div", { class: "fr-main" },
+          h("div", {}, hunterLink(c.author), h("span", { class: "hint" }, ` · ${fmtWhen(c.at)}`)),
+          h("p", {}, c.body)),
+        c.mine || state.profile?.is_admin
+          ? h("button", { type: "button", class: "link-btn", onclick: async () => {
+              if (!confirm("이 댓글을 지울까요?")) return;
+              const { data, error } = await sb.rpc("sns_delete_comment", { p_id: c.id });
+              if (error) return toast(koError(error));
+              loadComments(data); } }, "삭제")
+          : h("button", { type: "button", class: "link-btn", onclick: () => openReport("comment", String(c.id), "댓글") }, "신고"))), f);
+    }
+    return h("article", { class: "sns-post" },
+      h("div", { class: "fr-row" }, miniAvatar(p.author),
+        h("div", { class: "fr-main" }, h("div", {}, hunterLink(p.author), h("span", { class: "hint" }, ` · ${hunterSub(p.author)}`)), h("div", { class: "hint" }, fmtWhen(p.at))),
+        h("span", { class: "cat-chip" }, p.category)),
+      h("p", { class: "sns-body" }, p.body),
+      h("div", { class: "sns-actions" }, cbtn,
+        p.mine || state.profile?.is_admin
+          ? h("button", { type: "button", class: "link-btn", onclick: async () => {
+              if (!confirm("이 글을 지울까요?")) return;
+              const { error } = await sb.rpc("sns_delete_post", { p_id: p.id });
+              if (error) return toast(koError(error));
+              load(true); refreshSideSns(); } }, "삭제")
+          : h("button", { type: "button", class: "link-btn", onclick: () => openReport("post", String(p.id), "글") }, "신고")),
+      cbox);
+  }
+  paintChips(); paintW();
+  body.replaceChildren(wform, chips, feed, moreBtn);
+  load(true);
+}
+
+/* 헌터 정보 (다른 헌터) */
+async function openPublicHunter(codename) {
+  const { data: p, error } = await sb.rpc("public_hunter", { p_codename: codename });
+  if (error || !p) return toast(error ? koError(error) : "헌터를 찾을 수 없습니다.");
+  const run = async (name, args, okMsg) => {
+    const { data, error } = await sb.rpc(name, args);
+    if (error) return toast(koError(error));
+    toast(typeof okMsg === "function" ? okMsg(data) : okMsg);
+    $("#dlg-info").close(); refreshSocial();
+    if (route() === "friends") renderSocial($("#main-pane"));
+  };
+  const btns = [];
+  if (!p.me) {
+    if (p.friend) btns.push(h("button", { class: "btn small", type: "button", onclick: () => { $("#dlg-info").close(); chatWith = p.codename; nextSocialTab = "friends"; route() === "friends" ? renderSocial($("#main-pane"), "friends") : (location.hash = "#/friends"); } }, "메시지"),
+      h("button", { class: "btn ghost small", type: "button", onclick: () => { $("#dlg-info").close(); openGift(p.codename); } }, "선물"));
+    else if (p.pending) btns.push(h("span", { class: "badge" }, "친구 신청 중"));
+    else if (!p.blocked) btns.push(h("button", { class: "btn small", type: "button", onclick: () => run("friend_request", { p_codename: p.codename }, d => d?.result === "accepted" ? "친구가 되었습니다." : "친구 신청을 보냈습니다.") }, "친구 신청"));
+    btns.push(p.blocked
+      ? h("button", { class: "btn ghost small", type: "button", onclick: () => run("block_user", { p_codename: p.codename, p_block: false }, "차단을 풀었습니다.") }, "차단 해제")
+      : h("button", { class: "btn ghost small", type: "button", onclick: () => confirm(`${p.codename}님을 차단할까요?`) && run("block_user", { p_codename: p.codename, p_block: true }, "차단했습니다.") }, "차단"),
+      h("button", { class: "btn ghost small", type: "button", onclick: () => { $("#dlg-info").close(); openReport("user", p.codename, `${p.codename}님`); } }, "신고"));
+  }
+  const av = h("div", { class: "avatar lg" });
+  avatarEl(av, { url: null, color: p.avatar_color, name: p.codename });
+  if (p.avatar_url) avatarUrlOf(p.avatar_url).then(u => u && avatarEl(av, { url: u, color: p.avatar_color, name: p.codename }));
+  info(p.codename,
+    h("div", { class: "hunter-head" }, av, h("div", {},
+      h("div", { class: "codename" }, `${p.codename} · ${p.grade}급 Lv.${p.level}`),
+      h("div", { class: "hint" }, `${REGIONS[p.region] || p.region} 구역 · ${POSITIONS[p.main_position]?.name || p.main_position}${p.sub_position ? ` / ${POSITIONS[p.sub_position]?.name || p.sub_position}` : ""}`),
+      p.friend ? h("span", { class: "badge", style: "margin-top:4px;display:inline-block" }, "친구") : null)),
+    h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "특징"),
+    h("p", { style: "margin:0;white-space:pre-wrap" }, p.bio || h("span", { class: "hint" }, "공개하지 않았습니다.")),
+    btns.length ? h("div", { style: "display:flex;gap:8px;flex-wrap:wrap;margin-top:16px" }, ...btns) : null);
+}
+
+/* 신고 */
+function openReport(kind, target, label) {
+  const sel = h("select", { class: "input", id: "rp-reason" }, h("option", { value: "" }, "사유를 골라 주세요"), ...REPORT_REASONS.map(r => h("option", { value: r }, r)));
+  const detail = h("textarea", { class: "input", id: "rp-detail", rows: "3", maxlength: "300", placeholder: "자세한 내용 (선택, 300자까지)" });
+  const err = h("div", { class: "error", role: "alert" });
+  const go = h("button", { class: "btn block", type: "button" }, "신고하기");
+  go.onclick = async () => {
+    err.textContent = "";
+    if (!sel.value) return (err.textContent = "사유를 골라 주세요.");
+    busy(go, true, "보내는 중…");
+    const { error } = await sb.rpc("report_create", { p_kind: kind, p_target: target, p_reason: sel.value, p_detail: detail.value.trim() || null });
+    busy(go, false);
+    if (error) return (err.textContent = koError(error));
+    $("#dlg-info").close();
+    toast("신고를 접수했습니다. 운영자가 확인합니다.");
+  };
+  info(`${label} 신고`,
+    kind === "dm" ? h("p", { class: "hint", style: "margin:0 0 12px" }, "신고하면 이 대화의 최근 메시지 100개가 운영자에게 전달되고, 확인이 끝날 때까지 지워지지 않습니다.") : null,
+    h("div", { class: "field" }, h("label", { for: "rp-reason" }, "사유"), sel),
+    h("div", { class: "field" }, h("label", { for: "rp-detail" }, "설명"), detail),
+    err, go);
+}
+
+/* 운영: 신고 처리 */
+function adminReportsSection() {
+  const wrap = h("div", {});
+  let status = "open";
+  const KIND = { dm: "대화", post: "글", comment: "댓글", user: "헌터" };
+  async function load() {
+    wrap.replaceChildren(h("p", { class: "hint" }, "불러오는 중…"));
+    const { data, error } = await sb.rpc("admin_reports", { p_status: status });
+    if (error) return wrap.replaceChildren(h("p", { class: "error" }, koError(error)));
+    const tabs = h("div", { class: "tabs", style: "max-width:260px" },
+      h("button", { type: "button", class: status === "open" ? "on" : null, onclick: () => { status = "open"; load(); } }, "처리 전"),
+      h("button", { type: "button", class: status === "done" ? "on" : null, onclick: () => { status = "done"; load(); } }, "처리 완료"));
+    wrap.replaceChildren(tabs, ...(data.length ? data.map(card) : [h("p", { class: "hint" }, status === "open" ? "처리할 신고가 없습니다." : "처리한 신고가 없습니다.")]));
+  }
+  function card(r) {
+    const snap = r.snapshot;
+    let content = null;
+    if (r.kind === "dm" && Array.isArray(snap)) content = h("ol", { class: "rp-dm" }, ...snap.map(m => h("li", {}, h("b", {}, m.from), h("span", { class: "hint" }, ` ${fmtWhen(m.at)}`), h("div", {}, m.body))));
+    else if (snap?.body) content = h("blockquote", { class: "rp-quote" }, snap.category ? `[${snap.category}] ` : "", snap.body);
+    const note = h("input", { class: "input", placeholder: "처리 메모 (선택)", "aria-label": "처리 메모" });
+    const days = h("input", { class: "input", type: "number", min: "0", max: "365", value: "3", style: "width:80px", "aria-label": "정지 일수" });
+    const act = async (action) => {
+      const msg = { dismiss: "문제없음으로 처리할까요?", hide: "이 글·댓글을 숨길까요?", ban: Number(days.value) > 0 ? `${r.target}님을 ${days.value}일 동안 정지할까요?` : `${r.target}님의 정지를 풀까요?` }[action];
+      if (!confirm(msg)) return;
+      const { error } = await sb.rpc("admin_report_resolve", { p_id: r.id, p_action: action, p_days: Number(days.value) || 0, p_note: note.value.trim() || null });
+      if (error) return toast(koError(error));
+      toast("처리했습니다."); refreshSocial(); load();
+    };
+    const banned = r.target_banned_until && Date.parse(r.target_banned_until) > Date.now();
+    return h("div", { class: "rp-card" },
+      h("div", { class: "rp-head" }, h("span", { class: "badge" }, KIND[r.kind]), h("b", {}, r.reason), h("span", { class: "hint" }, `${r.reporter} → ${r.target || "(탈퇴)"} · ${fmtWhen(r.at)}`),
+        banned ? h("span", { class: "badge", style: "color:var(--danger)" }, `정지 중 · ${new Date(r.target_banned_until).toLocaleDateString("ko-KR")}까지`) : null,
+        r.hidden ? h("span", { class: "badge" }, "숨김") : null),
+      r.detail ? h("p", { style: "margin:6px 0" }, r.detail) : null,
+      content,
+      r.status === "open"
+        ? h("div", { class: "rp-actions" }, note,
+            h("button", { class: "btn ghost small", type: "button", onclick: () => act("dismiss") }, "문제없음"),
+            ["post", "comment"].includes(r.kind) ? h("button", { class: "btn ghost small", type: "button", onclick: () => act("hide") }, "숨기기") : null,
+            r.target ? h("span", { class: "rp-ban" }, days, h("span", { class: "hint" }, "일"), h("button", { class: "btn small", type: "button", onclick: () => act("ban") }, "정지")) : null)
+        : h("p", { class: "hint", style: "margin:6px 0 0" }, `처리: ${({ dismiss: "문제없음", hide: "숨김" })[r.action] || (r.action?.startsWith("ban:") ? (r.action === "ban:0" ? "정지 해제" : `${r.action.slice(4)}일 정지`) : r.action)}${r.note ? ` · ${r.note}` : ""}`));
+  }
+  load();
+  return wrap;
+}
 
 /* ===== 홈 ===== */
 async function renderHome(pane) {
@@ -1407,7 +2044,7 @@ function renderDungeonRun(body, first) {
     stats.replaceChildren(
       statBox("도달", `${cur.reached}역`),
       statBox("가능성", `+${Math.round(cur.pot * cur.grade_mult).toLocaleString()}`),
-      statBox("재화", `+${Number(cur.cur).toLocaleString()}`));
+      statBox("메헨", `+${Number(cur.cur).toLocaleString()} Mh`));
   }
   function paintLog() {
     const nearBottom = list.scrollTop + list.clientHeight >= list.scrollHeight - 40;
@@ -1475,7 +2112,7 @@ function showReport(body, r) {
   const rows = [
     ["최고 도달", `${r.reached}역`],
     ["얻은 가능성", `+${Number(r.pot).toLocaleString()}` + (Number(r.grade_mult) !== 1 ? ` (등급 배율 ×${r.grade_mult})` : "")],
-    ["얻은 재화", `+${Number(r.cur).toLocaleString()}`],
+    ["얻은 메헨", `+${Number(r.cur).toLocaleString()} Mh`],
     ["레벨", lvUp ? `Lv.${r.level_before} → Lv.${r.level_after} (스탯 포인트 +${r.points})` : `Lv.${r.level_after}`],
     ["등급", grUp ? `${r.grade_before}급 → ${r.grade_after}급` : `${r.grade_after}급`],
   ];
@@ -1506,7 +2143,7 @@ function progressRows(r) {
   return {
     lvUp, grUp, rows: [
       ["얻은 가능성", `+${Number(r.pot || 0).toLocaleString()}`],
-      ["얻은 재화", `+${Number(r.cur || 0).toLocaleString()}`],
+      ["얻은 메헨", `+${Number(r.cur || 0).toLocaleString()} Mh`],
       ["레벨", lvUp ? `Lv.${r.level_before} → Lv.${r.level_after} (스탯 포인트 +${r.points})` : `Lv.${r.level_after}`],
       ["등급", grUp ? `${r.grade_before}급 → ${r.grade_after}급` : `${r.grade_after}급`],
     ],
@@ -1570,7 +2207,7 @@ async function renderRegionalBoard(body, act) {
       statBox("예상 성공률", `${pc}%`, pc >= 60 ? "ok-text" : pc < 35 ? "bad-text" : null),
       statBox("공략 시간", `약 ${g.minutes}분 · ${g.zones}구역`),
       statBox("가능성", `+${Number(g.pot).toLocaleString()}`),
-      statBox("재화", `+${Number(g.cur).toLocaleString()}`));
+      statBox("메헨", `+${Number(g.cur).toLocaleString()} Mh`));
     note.textContent = `던전마다 장소와 테마가 다릅니다. 구역 ${g.zones}개. 구역마다 몬스터·보물·함정·휴식 같은 일이 생기고, 마지막 구역에서 보스를 만납니다. 구역을 지날 때마다 보상을 얻고, 보스를 쓰러뜨리면 던전이 안정화됩니다. 도중에 쓰러지면 그때까지의 보상만 받습니다.`
       + (g.reward_mult < 1 ? ` 지금은 ${rg.top_grade}급까지 들어갈 수 있어서, 이 등급의 보상은 ${Math.round(g.reward_mult * 100)}%만 받습니다.` : "");
   }
@@ -1663,7 +2300,7 @@ function renderRegionalRun(body, first) {
     stats.replaceChildren(
       h("div", { class: "dg-stat" }, h("small", {}, "구역"), h("b", {}, `${zone}`, h("span", { class: "hint", style: "font-size:13px;font-weight:600" }, ` / ${t.zones || "?"}`))),
       gauge("HP", hp, maxHp, "hp"), gauge("MP", mp, maxMp, "mp"),
-      h("div", { class: "dg-stat" }, h("small", {}, "모은 보상"), h("b", { style: "font-size:14px" }, `가능성 +${cur.pot || 0}`, h("br"), `재화 +${cur.cur || 0}`)));
+      h("div", { class: "dg-stat" }, h("small", {}, "모은 보상"), h("b", { style: "font-size:14px" }, `가능성 +${cur.pot || 0}`, h("br"), `메헨 +${cur.cur || 0} Mh`)));
   }
   function paint() {
     const nearBottom = list.scrollTop + list.clientHeight >= list.scrollHeight - 40;
@@ -1729,7 +2366,7 @@ function showRegionalReport(body, r) {
 
 /* ===== 무한 던전 · 탐색 ===== */
 const EX_MARK = {
-  start: ["◇", "출발"], empty: ["", "빈 곳"], seen: ["", "빈 곳"], cur: ["₩", "재화"], pot: ["✦", "가능성"],
+  start: ["◇", "출발"], empty: ["", "빈 곳"], seen: ["", "빈 곳"], cur: ["M", "메헨"], pot: ["✦", "가능성"],
   mat: ["◆", "재료"], item: ["✚", "소비 아이템"], gear: ["▲", "장비"], enc: ["!", "유한함"],
 };
 function exploreNotice() {
@@ -1767,7 +2404,7 @@ function renderExploreIdle(body, s, last, act, starring) {
       exploreGains(last), h("div", { style: "height:18px" }));
   }
   kids.push(
-    h("p", { style: "margin:0 0 8px" }, "보이지 않는 10×10 구역을 한 칸씩 걸으며 떨어진 재화와 아이템을 줍습니다."),
+    h("p", { style: "margin:0 0 8px" }, "보이지 않는 10×10 구역을 한 칸씩 걸으며 떨어진 메헨과 아이템을 줍습니다."),
     h("ul", { class: "hint", style: "margin:0 0 16px;padding-left:18px;line-height:1.7" },
       h("li", {}, `하루 3번 · 한 번에 ${5 + Math.floor(lv / 5)}칸 이동 (5레벨마다 1칸 늘어남)`),
       h("li", {}, "찾은 것은 그 자리에서 바로 받습니다. 이미 지나간 칸에는 아무것도 없습니다."),
@@ -1787,7 +2424,7 @@ function exploreGains(s) {
   const counts = {};
   for (const n of g.items || []) counts[n] = (counts[n] || 0) + 1;
   return h("div", { class: "report" },
-    h("div", { class: "kv" }, h("span", {}, "재화"), h("span", {}, `+${Number(g.cur).toLocaleString()}`)),
+    h("div", { class: "kv" }, h("span", {}, "메헨"), h("span", {}, `+${Number(g.cur).toLocaleString()} Mh`)),
     h("div", { class: "kv" }, h("span", {}, "가능성"), h("span", {}, `+${Number(g.pot).toLocaleString()}`)),
     h("div", { class: "kv" }, h("span", {}, "아이템"), h("span", {}, Object.keys(counts).length ? Object.entries(counts).map(([n, q]) => q > 1 ? `${n} ×${q}` : n).join(", ") : "없음")));
 }
@@ -2030,7 +2667,7 @@ async function renderInventory(pane, tab = "items") {
   const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
   const cur = h("strong", {}, "");
   pane.replaceChildren(
-    h("div", { class: "inv-head" }, h("h2", {}, "인벤토리"), h("span", { class: "hint" }, "재화 ", cur)),
+    h("div", { class: "inv-head" }, h("h2", {}, "인벤토리"), h("span", { class: "hint" }, "보유 ", cur)),
     h("div", { class: "tabs", style: "max-width:480px;margin-top:10px" },
       ...[["items", "보유"], ["shop", "상점"], ["craft", "조합"], ["trade", "거래소"]].map(([id, label]) =>
         h("button", { type: "button", class: tab === id ? "on" : null, onclick: () => renderInventory(pane, id) }, label))),
@@ -2038,7 +2675,7 @@ async function renderInventory(pane, tab = "items") {
   if (tab === "trade") return body.replaceChildren(soonBox("5단계에서 열립니다", "다른 헌터와 아이템을 사고팝니다."));
   const { data: inv, error } = await sb.rpc("get_inventory");
   if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
-  cur.textContent = Number(inv.currency).toLocaleString();
+  cur.textContent = fmtMh(inv.currency);
   const refresh = async () => { await loadAll(); renderHunter(); renderInventory(pane, tab); };
   async function act(call, okMsg) {
     const { error } = await call();
@@ -2076,7 +2713,7 @@ function renderOwned(body, inv, act, refresh) {
         onclick: () => act(() => sb.rpc("equip_gear", { p_gear_id: g.id }), "장착했습니다.") }, "장착"),
       g.enhance < 10 ? h("button", { class: "btn ghost small", type: "button", onclick: () => openEnhance(g.id, refresh) }, "강화") : null,
       g.equipped ? null : h("button", { class: "btn ghost small", type: "button",
-        onclick: () => confirm(`${josa(gearName(g), "을", "를")} ${g.sell_price} 재화에 팔까요?`)
+        onclick: () => confirm(`${josa(gearName(g), "을", "를")} ${g.sell_price} Mh에 팔까요?`)
           && act(() => sb.rpc("sell_gear", { p_gear_id: g.id }), "판매했습니다.") }, "판매")));
   const stackRow = x => h("div", { class: "item-row" },
     h("div", { class: "item-main" },
@@ -2087,7 +2724,7 @@ function renderOwned(body, inv, act, refresh) {
       h("button", { class: "btn ghost small", type: "button",
         onclick: () => act(() => sb.rpc("shop_sell", { p_code: x.code, p_qty: 1 }), "1개 팔았습니다.") }, "1개 판매"),
       x.qty > 1 ? h("button", { class: "btn ghost small", type: "button",
-        onclick: () => confirm(`${x.name} ${x.qty}개를 ${(x.qty * x.sell_price).toLocaleString()} 재화에 모두 팔까요?`)
+        onclick: () => confirm(`${x.name} ${x.qty}개를 ${(x.qty * x.sell_price).toLocaleString()} Mh에 모두 팔까요?`)
           && act(() => sb.rpc("shop_sell", { p_code: x.code, p_qty: x.qty }), "모두 팔았습니다.") }, "모두 판매") : null));
 
   const cons = inv.stacks.filter(x => x.kind === "consumable"), mats = inv.stacks.filter(x => x.kind === "material");
@@ -2122,7 +2759,7 @@ function renderShop(body, inv, act) {
             title: lowLv ? `${it.req_level}레벨부터 살 수 있습니다.` : null,
             onclick: () => {
               const n = Math.max(1, Math.floor(Number(qty.value) || 1));
-              if (n * it.price > inv.currency) return toast("재화가 부족합니다.");
+              if (n * it.price > inv.currency) return toast("메헨이 부족합니다.");
               act(() => sb.rpc("shop_buy", { p_code: it.code, p_qty: n }), `${it.name} ${n}개를 샀습니다.`);
             } }, lowLv ? `Lv.${it.req_level}` : "구매")));
     };
@@ -2239,8 +2876,8 @@ async function openEnhance(gearId, onDone, lastResult) {
       h("div", {}, h("div", { class: "hint" }, `+${g.enhance + 1}`), h("div", { style: "font-weight:700" }, fmtStats(g.next_stats)))),
     maxed ? null : h("div", { class: "report" },
       h("div", { class: "kv" }, h("span", {}, "성공률"), h("span", {}, `${Math.round(g.enhance_rate * 100)}%`)),
-      h("div", { class: "kv" }, h("span", {}, "재화"), h("span", { class: inv.currency < g.enhance_cost ? "result-fail" : null },
-        `${g.enhance_cost.toLocaleString()} (보유 ${Number(inv.currency).toLocaleString()})`)),
+      h("div", { class: "kv" }, h("span", {}, "메헨"), h("span", { class: inv.currency < g.enhance_cost ? "result-fail" : null },
+        `${g.enhance_cost.toLocaleString()} Mh (보유 ${Number(inv.currency).toLocaleString()} Mh)`)),
       h("div", { class: "kv" }, h("span", {}, "별가루"), h("span", { class: have < g.enhance_mats ? "result-fail" : null },
         `${g.enhance_mats}개 (보유 ${have}개)`)),
       g.enhance_dup ? h("div", { class: "kv" }, h("span", {}, "같은 장비"), h("span", { class: dups.length < 1 ? "result-fail" : null },
@@ -2318,7 +2955,7 @@ async function renderUnion(pane, offset = 0) {
       h("button", { type: "button", class: offset === 0 ? "on" : null, onclick: () => renderUnion(pane, 0) }, "이번 주"),
       h("button", { type: "button", class: offset === 1 ? "on" : null, onclick: () => renderUnion(pane, 1) }, "지난주 (확정)")),
     body,
-    h("p", { class: "hint", style: "margin-top:20px" }, "도감, 업적·타이틀, 길드는 3~5단계에서 열립니다."));
+    h("p", { class: "hint", style: "margin-top:20px" }, "코드네임을 누르면 헌터 정보를 보고 친구 신청을 할 수 있습니다. 도감, 업적·타이틀, 길드는 차례대로 열립니다."));
   const { data, error } = await sb.rpc("get_weekly_ranking", { p_offset: offset });
   if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
   const ws = new Date(`${data.week_start}T00:00:00+09:00`), we = new Date(ws.getTime() + 6 * 864e5);
@@ -2333,7 +2970,7 @@ async function renderUnion(pane, offset = 0) {
       h("thead", {}, h("tr", {}, h("th", {}, "순위"), h("th", {}, "헌터"), h("th", {}, "등급"), h("th", { style: "text-align:right" }, "최고 도달"))),
       h("tbody", {}, ...data.rows.map(r => h("tr", { class: r.me ? "me" : null },
         h("td", {}, h("span", { class: "rank-n" + (r.rank <= 3 ? " top" : "") }, String(r.rank))),
-        h("td", {}, r.codename),
+        h("td", {}, h("button", { type: "button", class: "hunter-link", onclick: () => openPublicHunter(r.codename) }, r.codename)),
         h("td", {}, `${r.grade}급 · Lv.${r.level}`),
         h("td", { style: "text-align:right;font-weight:700" }, `${r.best_station}역`))))));
 }
@@ -2405,6 +3042,8 @@ async function renderAdmin(pane) {
 
   pane.replaceChildren(
     h("h2", {}, "운영"),
+    h("p", { class: "panel-title", style: "margin:16px 0 8px" }, "신고 처리"),
+    adminReportsSection(),
     h("p", { class: "panel-title", style: "margin:16px 0 8px" }, "가능성 획득률"),
     h("p", { class: "hint", style: "margin:0 0 10px" }, "모든 콘텐츠에서 얻는 가능성에 곱해집니다. 레벨과 등급이 오르는 속도가 함께 바뀌며, 이미 받은 가능성에는 영향이 없습니다. (0.05~2)"),
     h("div", { style: "display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;max-width:360px" },
@@ -2643,7 +3282,8 @@ const DOCS = {
 <tbody>
 <tr><td>계정</td><td>이메일, 비밀번호, 사용한 초대코드</td><td>가입할 때 직접 입력</td><td>로그인, 본인 확인, 초대제 운영</td></tr>
 <tr><td>캐릭터</td><td>코드네임 · 포지션 · 활동 구역 · 아바타 색 · 프로필 이미지 · 캐릭터 소개와 공개 범위</td><td>캐릭터를 만들거나 고칠 때 직접 입력</td><td>프로필 표시, 게임 진행</td></tr>
-<tr><td>활동 기록</td><td>레벨 · 스탯 · 재화 · 아이템 · 장비, 무한 던전 · 지역 안정화 · 탐색 · 별의 무덤 기록과 로그, 조합 · 강화 기록, 주간 랭킹 기록, 홈 화면의 할 일 목록, 화면 설정(테마)</td><td>게임을 이용할 때 자동 저장</td><td>게임 진행, 보상 지급, 랭킹, 부정 이용 방지</td></tr>
+<tr><td>활동 기록</td><td>레벨 · 스탯 · 메헨(재화) · 아이템 · 장비, 무한 던전 · 지역 안정화 · 탐색 · 별의 무덤 기록과 로그, 조합 · 강화 기록, 주간 랭킹 기록, 홈 화면의 할 일 목록, 화면 설정(테마)</td><td>게임을 이용할 때 자동 저장</td><td>게임 진행, 보상 지급, 랭킹, 부정 이용 방지</td></tr>
+<tr><td>교류</td><td>친구 · 차단 목록, 1:1 메시지, 선물 기록(보낸 것 · 메시지 포함), SNS 글 · 댓글, 신고 내용과 처리 기록</td><td>교류 기능을 이용할 때 직접 작성 · 자동 저장</td><td>친구 · 메신저 · 선물 · SNS 제공, 신고 처리</td></tr>
 <tr><td>접속 기록</td><td>로그인 시각, 접속 IP 주소, 브라우저 정보</td><td>로그인 서비스(Supabase)가 자동 기록</td><td>보안, 부정 접속 확인</td></tr>
 <tr><td>브라우저 저장소</td><td>로그인 상태 유지용 정보(세션 토큰), 테마 설정</td><td>이용자 브라우저에 저장</td><td>다시 로그인하지 않아도 되도록, 화면 설정 유지</td></tr>
 </tbody>
@@ -2656,7 +3296,12 @@ const DOCS = {
 <tr><td>코드네임 · 등급 · 레벨 · 무한 던전 최고 기록</td><td>로그인한 헌터 전원 (주간 랭킹, 헌터 정보)</td></tr>
 <tr><td>캐릭터 소개</td><td>본인이 고른 공개 범위 (모든 헌터 / 친구만 / 나만 보기)</td></tr>
 <tr><td>지역 안정화 던전을 공략 중인 헌터의 코드네임</td><td>같은 활동 구역의 헌터</td></tr>
-<tr><td>재화 · 아이템 · 장비 · 전투 기록 · 할 일 목록</td><td>본인과 운영자</td></tr>
+<tr><td>SNS 글 · 댓글</td><td>로그인한 헌터 전원 (서로 차단한 사이에는 보이지 않음)</td></tr>
+<tr><td>1:1 메시지</td><td>대화한 두 사람. 신고된 대화는 신고 시점의 최근 메시지 100개를 운영자가 열람</td></tr>
+<tr><td>선물 기록</td><td>보낸 사람 · 받은 사람</td></tr>
+<tr><td>친구 · 차단 목록</td><td>본인 (친구 사이인지는 상대도 볼 수 있음)</td></tr>
+<tr><td>신고 내용</td><td>신고한 본인과 운영자 (신고당한 헌터에게 신고자를 알리지 않음)</td></tr>
+<tr><td>메헨 · 아이템 · 장비 · 전투 기록 · 할 일 목록</td><td>본인과 운영자</td></tr>
 <tr><td>이메일 · 접속 기록</td><td>본인과 운영자</td></tr>
 <tr><td>비밀번호</td><td><b>아무도 볼 수 없음.</b> 암호화(해시)되어 저장되며 운영자도 확인할 수 없습니다. 분실 시 ${contactHtml}으로 요청하면 운영자가 새 비밀번호로 재설정합니다.</td></tr>
 </tbody>
@@ -2682,6 +3327,7 @@ const DOCS = {
 <article class="card prose" id="p-rights">
 <h2>보관 · 삭제 · 문의</h2>
 <ul>
+<li><b>1:1 메시지:</b> 보낸 지 30일이 지나면 지워집니다. 대화한 사람 중 한 명이라도 '보관'한 메시지와 신고된 대화는 남습니다.</li>
 <li><b>보관 기간:</b> 게임이 운영되는 동안 보관하며, 서비스 종료 후 <b>${RETENTION_DAYS}일 이내</b>에 모든 계정과 기록을 삭제합니다.</li>
 <li><b>탈퇴:</b> 요청하면 해당 계정과 기록을 삭제합니다. 다만 다른 헌터의 기록과 얽힌 정보(지난 주간 랭킹 등)는 기록 보존을 위해 남을 수 있습니다.</li>
 <li><b>열람 · 정정 · 삭제 요청:</b> 헌터 정보 화면에서 대부분의 정보를 직접 확인하고 고칠 수 있으며, 그 밖의 요청은 ${contactHtml}으로 문의해 주세요.</li>
@@ -2803,15 +3449,17 @@ $("#btn-guide").onclick = () => info("가이드",
   h("p", {}, "· 복귀 후 '조금 더 진입'을 고르면 50% 확률로 더 깊이 들어가 1.5배 보상을 받고, 실패하면 이번 보상의 20%를 잃습니다."),
   h("p", {}, "· 레벨이 오를 때마다 스탯 포인트 1개를 받아 자유롭게 분배할 수 있습니다."),
   h("p", {}, "· 포지션: 시작할 때 메인 포지션을 고르고, 25레벨이 되면 서브 포지션을 한 번 고릅니다. 서브는 효과가 절반이고, 메인과 같은 포지션을 고르면 메인 효과가 1.5배가 됩니다."),
-  h("p", {}, "· 장비는 D~S 다섯 티어가 있고 무기·방어구·장신구 3칸에 끼웁니다. 착용 레벨은 D 1 · C 45 · B 60 · A 80 · S 110입니다. 재화와 별가루로 +10까지 강화하며, +6부터는 재료로 쓸 같은 장비 1개를 직접 고릅니다. 인벤토리의 조합에서 재료 2~3개를 섞어 새 아이템을 만들 수 있습니다. 던전에 소비 아이템을 최대 3종 챙겨 가면 쉬는 대신 먼저 씁니다."),
+  h("p", {}, "· 장비는 D~S 다섯 티어가 있고 무기·방어구·장신구 3칸에 끼웁니다. 착용 레벨은 D 1 · C 45 · B 60 · A 80 · S 110입니다. 메헨(Mh)과 별가루로 +10까지 강화하며, +6부터는 재료로 쓸 같은 장비 1개를 직접 고릅니다. 인벤토리의 조합에서 재료 2~3개를 섞어 새 아이템을 만들 수 있습니다. 던전에 소비 아이템을 최대 3종 챙겨 가면 쉬는 대신 먼저 씁니다."),
   h("p", {}, "· 레벨에 따라 등급이 오릅니다 (E 10 · D 20 · C 35 · B 50 · A 70 · S 100). 처음 받은 각성 등급이 더 높으면 그 레벨에 닿을 때까지 유지됩니다."),
   h("p", {}, "· 지역 안정화: 활동 구역의 던전을 공략합니다. 지금은 E급(5구역 · 평균 30분)과 D급(6구역 · 평균 40분)이 열려 있고, C급부터는 준비 중입니다. 구역마다 E·D급 던전이 5곳씩 있고, 장소와 테마가 제각각입니다. 마지막 구역은 보스이며, 보스는 테마 재료를 떨어뜨립니다. 구역마다 보상을 얻고, 도중에 쓰러지면 그때까지의 보상만 받습니다. 입장 레벨은 E 1 · D 10이고, 성공률은 내 전력으로 미리 알려 줍니다. 안정화한 던전은 30분 뒤 다른 테마로 다시 나타납니다. 더 높은 등급에 들어갈 수 있으면 낮은 등급 보상은 줄어듭니다."),
-  h("p", {}, "· 탐색: 무한 던전의 '탐색' 탭에서 하루 3번, 보이지 않는 10×10 구역을 걸으며 재화와 아이템을 줍습니다."),
+  h("p", {}, "· 탐색: 무한 던전의 '탐색' 탭에서 하루 3번, 보이지 않는 10×10 구역을 걸으며 메헨과 아이템을 줍습니다."),
   h("p", {}, "· 별의 무덤: 무한 던전의 '별의 무덤' 탭에서 하루 1번(탐색과 별도), 10×10 무덤을 걸으며 별가루·마석·별조각 사탕·은하수 이슬·가능성을 모읍니다. 내가 두 칸 움직일 때마다 별지기가 한 칸 다가오고, 마주치면 그 자리에서 끝납니다."),
   h("p", {}, "· 무한 던전·지역 안정화·탐색·별의 무덤은 한 번에 하나만 할 수 있습니다."),
+  h("p", {}, "· 교류: 코드네임으로 친구 신청을 보내고, 상대가 수락하면 친구가 됩니다(최대 30명). 친구와는 1:1 메시지(30일 보관, ☆를 누르면 계속 보관)와 선물(하루 10번, 메헨·아이템·장비)을 주고받을 수 있습니다. SNS에는 분류를 골라 글과 댓글을 남깁니다. 불편한 헌터는 차단하거나 신고할 수 있습니다."),
   h("p", { class: "hint" }, "콘텐츠가 열릴 때마다 가이드가 추가됩니다."));
 
 document.querySelectorAll(".js-logout").forEach(b => b.onclick = async () => {
+  stopSocial();
   await sb.auth.signOut();
   Object.assign(state, { user: null, profile: null, character: null, settings: null, avatarUrl: null });
   setAuthMode("login");
@@ -2840,6 +3488,11 @@ async function boot() {
   state.user = session.user;
   try { await loadAll(); }
   catch (er) { toast(koError(er)); return show("screen-auth"); }
+  if (state.profile?.banned_until && Date.parse(state.profile.banned_until) > Date.now()) {
+    $("#banned-msg").textContent = `${new Date(state.profile.banned_until).toLocaleString("ko-KR")}까지 이용이 정지된 계정입니다.`
+      + (state.profile.ban_reason ? ` (사유: ${state.profile.ban_reason})` : "");
+    return show("screen-banned");
+  }
   if (!state.profile?.invited) return show("screen-invite");
   if (!state.character) { setupCreate(); return show("screen-create"); }
   renderHunter();
