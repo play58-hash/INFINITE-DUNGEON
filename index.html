@@ -321,6 +321,11 @@ table.list.rank tr.me td { background: color-mix(in srgb, var(--primary) 10%, tr
 .t-item { color: var(--ok); } .t-gear { color: var(--tier4); } .t-enc { color: var(--danger); }
 .ex-c.t-enc { background: color-mix(in srgb, var(--danger) 14%, var(--bg)); }
 .ex-c.here { color: var(--on-primary); }
+.t-stardust { color: var(--tier5); } .t-keeper { color: var(--danger); }
+.ex-c.keeper { background: color-mix(in srgb, var(--danger) 22%, var(--surface)); color: var(--danger); font-size: 17px; }
+.ex-c.near { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--danger) 45%, transparent); }
+.ex-c.adj.near { box-shadow: inset 0 0 0 2px var(--danger); }
+.rg-theme { display: block; font-size: 12px; color: var(--text-dim); margin-top: 2px; line-height: 1.35; }
 .ex-pad { display: grid; grid-template-columns: repeat(3, 52px); grid-template-rows: repeat(2, 44px); gap: 6px; justify-content: center; margin: 12px 0; }
 .ex-pad button { font-size: 18px; padding: 0; }
 .ex-msg { min-height: 44px; margin: 0 0 10px; padding: 10px 12px; border-radius: 10px; background: var(--bg); border: 1px solid var(--border); font-size: 14px; }
@@ -1060,11 +1065,13 @@ async function renderDungeon(pane, tab = "battle") {
   pane.replaceChildren(
     h("h2", {}, "무한 던전"),
     h("p", { class: "hint", style: "margin:0 0 16px" }, "끝이 없는 던전의 역을 하나씩 공략합니다. 창을 닫아도 서버에서 계속 진행됩니다."),
-    h("div", { class: "tabs", style: "max-width:280px" },
+    h("div", { class: "tabs", style: "max-width:400px" },
       h("button", { type: "button", class: tab === "battle" ? "on" : null, onclick: () => renderDungeon(pane, "battle") }, "전투"),
-      h("button", { type: "button", class: tab === "explore" ? "on" : null, onclick: () => renderDungeon(pane, "explore") }, "탐색")),
+      h("button", { type: "button", class: tab === "explore" ? "on" : null, onclick: () => renderDungeon(pane, "explore") }, "탐색"),
+      h("button", { type: "button", class: tab === "star" ? "on" : null, onclick: () => renderDungeon(pane, "star") }, "별의 무덤")),
     body);
   if (tab === "explore") return renderExplore(body);
+  if (tab === "star") return renderStar(body);
   const { data, error } = await sb.rpc("get_battle_log");
   if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
   if (!data) {
@@ -1074,8 +1081,9 @@ async function renderDungeon(pane, tab = "battle") {
         h("p", { style: "margin:0 0 8px;font-weight:700" }, `지역 안정화 — ${act.target.grade}급 ${josa(act.target.place || `${act.target.slot}번 던전`, "을", "를")} 공략하고 있습니다.`),
         h("p", { class: "hint", style: "margin:0 0 10px" }, "공략이 끝나고 결과를 받은 뒤에 무한 던전에 진입하거나 탐색할 수 있습니다."),
         h("a", { class: "btn small", href: "#/regional" }, "지역 안정화로 가기")));
-    const { data: ex } = await sb.rpc("explore_state");
+    const [{ data: ex }, { data: st }] = await Promise.all([sb.rpc("explore_state"), sb.rpc("star_state")]);
     if (ex?.status === "running") return body.replaceChildren(exploreNotice());
+    if (st?.status === "running") return body.replaceChildren(starNotice());
     return renderDungeonIdle(body);
   }
   renderDungeonRun(body, data);
@@ -1284,7 +1292,7 @@ async function renderRegional(pane) {
   const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
   pane.replaceChildren(
     h("h2", {}, "지역 안정화"),
-    h("p", { class: "hint", style: "margin:0 0 16px" }, "활동 구역에 나타난 던전을 공략합니다. 공략 시간은 등급이 높을수록 길어집니다 (평균 E 30분 · D 40분 · C 50분 · B 60분 · A 75분). 같은 구역의 헌터들이 함께 쓰는 던전판이라, 누군가 공략 중이거나 안정화한 던전에는 들어갈 수 없습니다."),
+    h("p", { class: "hint", style: "margin:0 0 16px" }, "활동 구역에 나타난 던전을 공략합니다. 지금은 E급(평균 30분)과 D급(평균 40분) 던전이 열려 있고, C급부터는 준비 중입니다. 같은 구역의 헌터들이 함께 쓰는 던전판이라, 누군가 공략 중이거나 안정화한 던전에는 들어갈 수 없습니다."),
     body);
   const { data: act, error: e1 } = await sb.rpc("get_current_action");
   if (e1) return body.replaceChildren(h("p", { class: "error" }, koError(e1)));
@@ -1302,9 +1310,9 @@ async function renderRegionalBoard(body, act) {
   const offset = Date.parse(rg.now) - Date.now();
   if (!rgGrade || !rg.grades.find(g => g.grade === rgGrade)?.eligible) rgGrade = rg.top_grade || "E";
   let speed = 1, selected = null;
-  const { data: ex } = await sb.rpc("explore_state");
-  const exploring = ex?.status === "running";
-  const busyElsewhere = (act && act.kind !== "regional") || exploring;
+  const [{ data: ex }, { data: st }] = await Promise.all([sb.rpc("explore_state"), sb.rpc("star_state")]);
+  const exploring = ex?.status === "running", starring = st?.status === "running";
+  const busyElsewhere = (act && act.kind !== "regional") || exploring || starring;
 
   const info = h("div", { class: "rg-info" });
   const board = h("div", { class: "rg-board" });
@@ -1329,7 +1337,7 @@ async function renderRegionalBoard(body, act) {
       statBox("공략 시간", `약 ${g.minutes}분 · ${g.zones}구역`),
       statBox("가능성", `+${Number(g.pot).toLocaleString()}`),
       statBox("재화", `+${Number(g.cur).toLocaleString()}`));
-    note.textContent = `${g.theme} · 구역 ${g.zones}개. 구역마다 몬스터·보물·함정·휴식 같은 일이 생기고, 마지막 구역에서 보스를 만납니다. 구역을 지날 때마다 보상을 얻고, 보스를 쓰러뜨리면 던전이 안정화됩니다. 도중에 쓰러지면 그때까지의 보상만 받습니다.`
+    note.textContent = `던전마다 장소와 테마가 다릅니다. 구역 ${g.zones}개. 구역마다 몬스터·보물·함정·휴식 같은 일이 생기고, 마지막 구역에서 보스를 만납니다. 구역을 지날 때마다 보상을 얻고, 보스를 쓰러뜨리면 던전이 안정화됩니다. 도중에 쓰러지면 그때까지의 보상만 받습니다.`
       + (g.reward_mult < 1 ? ` 지금은 ${rg.top_grade}급까지 들어갈 수 있어서, 이 등급의 보상은 ${Math.round(g.reward_mult * 100)}%만 받습니다.` : "");
   }
   function paintBoard() {
@@ -1342,7 +1350,8 @@ async function renderRegionalBoard(body, act) {
         type: "button", class: `rg-cell ${d.state}${d.mine ? " mine" : ""}${selected === d.id ? " sel" : ""}`,
         disabled: d.state !== "open" || busyElsewhere, "aria-pressed": selected === d.id ? "true" : "false",
         onclick: () => { selected = d.id; paintBoard(); paintBtn(); },
-      }, h("b", {}, `${d.grade}-${d.slot}`), d.place ? h("span", { class: "rg-place" }, d.place) : null, h("small", {}, label));
+      }, h("b", {}, `${d.grade}-${d.slot}`), d.place ? h("span", { class: "rg-place" }, d.place) : null,
+        d.theme ? h("span", { class: "rg-theme" }, d.theme) : null, h("small", {}, label));
     }));
   }
   function paintBtn() {
@@ -1370,7 +1379,7 @@ async function renderRegionalBoard(body, act) {
       h("span", {}, `${REGIONS[rg.region] || rg.region} 구역 · Lv.${rg.level}`),
       h("button", { type: "button", class: "btn ghost small", onclick: () => renderRegionalBoard(body, act) }, "새로 고침")),
   ];
-  if (busyElsewhere) parts.push(exploring ? exploreNotice() : h("div", { class: "rg-notice" },
+  if (busyElsewhere) parts.push(exploring ? exploreNotice() : starring ? starNotice() : h("div", { class: "rg-notice" },
     h("p", { style: "margin:0 0 8px;font-weight:700" }, "무한 던전에 진입해 있어 지금은 공략할 수 없습니다."),
     h("a", { class: "btn small", href: "#/dungeon" }, "무한 던전으로 가기")));
   parts.push(tabs, info, board, note);
@@ -1407,6 +1416,7 @@ function renderRegionalRun(body, first) {
   body.replaceChildren(
     h("div", { class: "dg-head" },
       h("div", {}, h("strong", {}, t.place ? `${t.grade}급 · ${t.place}` : `${t.grade}급 던전 ${t.slot}번 공략`),
+        t.theme ? h("span", { class: "rg-theme" }, t.theme) : null,
         cur.speed > 1 ? h("span", { class: "badge", style: "margin-left:6px" }, `테스트 ${cur.speed}배`) : null),
       timeLeft),
     h("div", { class: "bar" }, bar),
@@ -1472,7 +1482,7 @@ function showRegionalReport(body, r) {
     h("h3", { class: "report-title" }, r.success
       ? (grUp ? `${r.grade_after}급으로 승급했습니다!` : lvUp ? "안정화 성공 · 레벨 업!" : "던전 안정화 성공")
       : "공략 실패"),
-    h("p", { class: "hint", style: "margin:0 0 12px" }, `${r.target.grade}급 · ${r.target.place || `${r.target.slot}번 던전`} · 예상 성공률 ${Math.round(r.prob * 100)}%`
+    h("p", { class: "hint", style: "margin:0 0 12px" }, `${r.target.grade}급 · ${r.target.place || `${r.target.slot}번 던전`}${r.target.theme ? ` · ${r.target.theme}` : ""} · 예상 성공률 ${Math.round(r.prob * 100)}%`
       + (r.mult < 1 ? ` · 보상 ${Math.round(r.mult * 100)}%` : "")
       + (r.success ? "" : " · 쓰러지기 전까지 클리어한 구역의 보상만 받습니다. 던전은 그대로 남습니다.")),
   ];
@@ -1498,17 +1508,17 @@ function exploreNotice() {
     } }, "탐색으로 가기"));
 }
 async function renderExplore(body) {
-  const [{ data, error }, { data: act }] = await Promise.all([sb.rpc("explore_state"), sb.rpc("get_current_action")]);
+  const [{ data, error }, { data: act }, { data: st }] = await Promise.all([sb.rpc("explore_state"), sb.rpc("get_current_action"), sb.rpc("star_state")]);
   if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
   if (data?.status === "running") return renderExploreRun(body, data);
-  renderExploreIdle(body, data, null, act);
+  renderExploreIdle(body, data, null, act, st?.status === "running");
 }
 
-function renderExploreIdle(body, s, last, act) {
+function renderExploreIdle(body, s, last, act, starring) {
   const lv = state.character?.level || 1;
   const err = h("div", { class: "error", role: "alert" });
   const left = s?.left_today ?? 0;
-  const btn = h("button", { class: "btn block", type: "button", disabled: left <= 0 || !!act }, left > 0 ? `탐색 시작 (오늘 ${left}회 남음)` : "오늘 탐색은 모두 마쳤습니다");
+  const btn = h("button", { class: "btn block", type: "button", disabled: left <= 0 || !!act || !!starring }, left > 0 ? `탐색 시작 (오늘 ${left}회 남음)` : "오늘 탐색은 모두 마쳤습니다");
   btn.onclick = async () => {
     err.textContent = "";
     busy(btn, true, "준비 중…");
@@ -1528,11 +1538,12 @@ function renderExploreIdle(body, s, last, act) {
       h("li", {}, `하루 3번 · 한 번에 ${5 + Math.floor(lv / 5)}칸 이동 (5레벨마다 1칸 늘어남)`),
       h("li", {}, "찾은 것은 그 자리에서 바로 받습니다. 이미 지나간 칸에는 아무것도 없습니다."),
       h("li", {}, "'유한함'과 마주치면 그 자리에서 탐색이 끝납니다."),
-      h("li", {}, "무한 던전·지역 안정화와 동시에 할 수 없습니다. 횟수는 매일 0시(한국 시간)에 다시 채워집니다.")));
+      h("li", {}, "무한 던전·지역 안정화·별의 무덤과 동시에 할 수 없습니다. 횟수는 매일 0시(한국 시간)에 다시 채워집니다.")));
   if (act) kids.push(h("div", { class: "rg-notice" },
     h("p", { style: "margin:0 0 8px;font-weight:700" }, act.kind === "regional"
       ? `지역 안정화 — ${act.target.grade}급 ${josa(act.target.place || `${act.target.slot}번 던전`, "을", "를")} 공략하고 있습니다.` : "무한 던전에 진입해 있습니다."),
     h("p", { class: "hint", style: "margin:0" }, "던전에서 돌아와 결과를 받은 뒤에 탐색할 수 있습니다.")));
+  if (starring) kids.push(starNotice());
   kids.push(err, btn);
   body.replaceChildren(...kids);
 }
@@ -1616,6 +1627,159 @@ function renderExploreRun(body, s) {
       msg, pad,
       h("p", { class: "hint", style: "margin:0 0 12px;text-align:center" }, "방향키나 W·A·S·D로도 움직일 수 있습니다."),
       h("p", { class: "panel-title", style: "margin:8px 0 6px" }, "이번 탐색에서 얻은 것"), gainBox, err, actions)));
+  stopDungeonTimers();
+  dgKeys = e => {
+    if (e.target.closest?.("input, textarea, select, dialog[open]")) return;
+    const map = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right", w: "up", s: "down", a: "left", d: "right" };
+    const d = map[e.key];
+    if (d) { e.preventDefault(); move(d); }
+  };
+  addEventListener("keydown", dgKeys);
+  paint();
+}
+
+/* ===== 무한 던전 · 별의 무덤 ===== */
+const ST_MARK = {
+  start: ["◇", "출발"], empty: ["", "빈 곳"], seen: ["", "빈 곳"], stardust: ["✧", "별가루"],
+  pot: ["✦", "가능성"], item: ["✚", "소비 아이템·마석"], keeper: ["◎", "별지기"],
+};
+function starNotice() {
+  return h("div", { class: "rg-notice" },
+    h("p", { style: "margin:0 0 8px;font-weight:700" }, "별의 무덤을 탐색하고 있습니다."),
+    h("p", { class: "hint", style: "margin:0 0 10px" }, "별의 무덤 탐색을 마치거나 그만둔 뒤에 다른 활동을 할 수 있습니다."),
+    h("button", { class: "btn small", type: "button", onclick: () => {
+      if (route() === "dungeon") return renderDungeon($("#main-pane"), "star");
+      nextDgTab = "star"; location.hash = "#/dungeon";
+    } }, "별의 무덤으로 가기"));
+}
+async function renderStar(body) {
+  const [{ data, error }, { data: act }, { data: ex }] = await Promise.all([sb.rpc("star_state"), sb.rpc("get_current_action"), sb.rpc("explore_state")]);
+  if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
+  if (data?.status === "running") return renderStarRun(body, data);
+  renderStarIdle(body, data, null, act, ex?.status === "running");
+}
+function starGains(s) {
+  const g = s.gained || { pot: 0, items: [] };
+  const counts = {};
+  for (const n of g.items || []) {
+    const m = /^(.*) ×(\d+)$/.exec(n);
+    if (m) counts[m[1]] = (counts[m[1]] || 0) + Number(m[2]); else counts[n] = (counts[n] || 0) + 1;
+  }
+  return h("div", { class: "report" },
+    h("div", { class: "kv" }, h("span", {}, "가능성"), h("span", {}, `+${Number(g.pot || 0).toLocaleString()}`)),
+    h("div", { class: "kv" }, h("span", {}, "아이템"), h("span", {}, Object.keys(counts).length ? Object.entries(counts).map(([n, q]) => q > 1 ? `${n} ×${q}` : n).join(", ") : "없음")));
+}
+function renderStarIdle(body, s, last, act, exploring) {
+  const lv = state.character?.level || 1;
+  const err = h("div", { class: "error", role: "alert" });
+  const done = !!s?.done_today;
+  const btn = h("button", { class: "btn block", type: "button", disabled: done || !!act || !!exploring },
+    done ? "오늘은 이미 다녀왔습니다" : "별의 무덤에 들어가기");
+  btn.onclick = async () => {
+    err.textContent = "";
+    busy(btn, true, "준비 중…");
+    const { data, error } = await sb.rpc("star_start");
+    busy(btn, false);
+    if (error) return (err.textContent = koError(error));
+    renderStarRun(body, data);
+  };
+  const kids = [];
+  if (last) {
+    kids.push(h("h3", { class: "report-title" }, last.end_reason === "keeper" ? "별지기에게 들켜 쫓겨났습니다" : last.end_reason === "quit" ? "별의 무덤을 떠났습니다" : "별의 무덤 탐색을 마쳤습니다"),
+      starGains(last), h("div", { style: "height:18px" }));
+  }
+  kids.push(
+    h("p", { style: "margin:0 0 8px" }, "잠든 별들이 묻힌 10×10 무덤을 걸으며 별가루와 아이템을 모읍니다. 무덤을 지키는 별지기에게 들키지 마세요."),
+    h("ul", { class: "hint", style: "margin:0 0 16px;padding-left:18px;line-height:1.7" },
+      h("li", {}, `하루 1번 · 한 번에 ${5 + Math.floor(lv / 5)}칸 이동 (5레벨마다 1칸 늘어남) · 탐색 3회와는 따로 셉니다`),
+      h("li", {}, "별가루, 맥동하는 마석, 별조각 사탕, 은하수 이슬, 가능성을 얻을 수 있습니다."),
+      h("li", {}, "별지기(◎)는 지도에 보이며, 내가 두 칸 움직일 때마다 한 칸씩 다가옵니다."),
+      h("li", {}, "별지기와 마주치면 이동이 남아 있어도 그 자리에서 끝납니다. 그때까지 얻은 것은 그대로 받습니다."),
+      h("li", {}, "무한 던전·지역 안정화·탐색과 동시에 할 수 없습니다. 매일 0시(한국 시간)에 다시 열립니다.")));
+  if (act) kids.push(h("div", { class: "rg-notice" },
+    h("p", { style: "margin:0 0 8px;font-weight:700" }, act.kind === "regional"
+      ? `지역 안정화 — ${act.target.grade}급 ${josa(act.target.place || `${act.target.slot}번 던전`, "을", "를")} 공략하고 있습니다.` : "무한 던전에 진입해 있습니다."),
+    h("p", { class: "hint", style: "margin:0" }, "던전에서 돌아와 결과를 받은 뒤에 들어갈 수 있습니다.")));
+  if (exploring) kids.push(exploreNotice());
+  kids.push(err, btn);
+  body.replaceChildren(...kids);
+}
+function renderStarRun(body, s) {
+  const grid = h("div", { class: "ex-grid", role: "grid", "aria-label": "별의 무덤 지도" });
+  const msg = h("p", { class: "ex-msg", "aria-live": "polite" }, "식어 버린 별들 사이로 들어섰다. 별지기의 기척이 느껴진다.");
+  const movesEl = h("b", {});
+  const keeperEl = h("b", {});
+  const gainBox = h("div", {});
+  const err = h("div", { class: "error", role: "alert" });
+  let moving = false;
+  const DIRS = { up: [0, -1, "↑", "위"], left: [-1, 0, "←", "왼쪽"], down: [0, 1, "↓", "아래"], right: [1, 0, "→", "오른쪽"] };
+  const padBtn = d => h("button", { type: "button", class: "btn ghost", "aria-label": `${DIRS[d][3]}로 이동`, onclick: () => move(d), "data-dir": d }, DIRS[d][2]);
+  const pad = h("div", { class: "ex-pad" }, h("span"), padBtn("up"), h("span"), padBtn("left"), padBtn("down"), padBtn("right"));
+  const run = () => s.status === "running";
+
+  function paint() {
+    const cells = [];
+    for (let y = 0; y < 10; y++) for (let x = 0; x < 10; x++) {
+      const k = `${x},${y}`, cell = s.revealed[k];
+      const here = x === s.x && y === s.y, keeper = x === s.kx && y === s.ky;
+      const near = !keeper && Math.abs(x - s.kx) + Math.abs(y - s.ky) === 1;
+      const dir = run() && Object.keys(DIRS).find(d => s.x + DIRS[d][0] === x && s.y + DIRS[d][1] === y);
+      const [mark, label] = cell ? (ST_MARK[cell.t] || ["", ""]) : ["", "모르는 곳"];
+      const name = here ? "현재 위치" : keeper ? "별지기" : label + (near ? " · 별지기 바로 옆" : "");
+      cells.push(h(dir ? "button" : "div", {
+        class: `ex-c${cell ? " rev t-" + cell.t : ""}${here ? " here" : ""}${keeper ? " keeper" : ""}${near ? " near" : ""}${dir ? " adj" : ""}`,
+        role: "gridcell", title: name, "aria-label": name,
+        type: dir ? "button" : null, onclick: dir ? () => move(dir) : null,
+      }, here ? "●" : keeper ? "◎" : mark));
+    }
+    grid.replaceChildren(...cells);
+    movesEl.textContent = `${s.moves_left}칸`;
+    keeperEl.textContent = run() ? (s.keeper_in === 1 ? "다음 걸음에 다가옴" : "두 걸음 뒤에 다가옴") : "—";
+    keeperEl.className = run() && s.keeper_in === 1 ? "bad-text" : "";
+    gainBox.replaceChildren(starGains(s));
+    pad.querySelectorAll("button").forEach(b => {
+      const [dx, dy] = DIRS[b.dataset.dir];
+      const nx = s.x + dx, ny = s.y + dy;
+      b.disabled = moving || !run() || nx < 0 || nx > 9 || ny < 0 || ny > 9;
+    });
+  }
+  async function move(dir) {
+    if (moving || !run()) return;
+    const [dx, dy] = DIRS[dir];
+    const nx = s.x + dx, ny = s.y + dy;
+    if (nx < 0 || nx > 9 || ny < 0 || ny > 9) return;
+    moving = true; err.textContent = ""; paint();
+    const { data, error } = await sb.rpc("star_move", { p_dir: dir });
+    moving = false;
+    if (error) { err.textContent = koError(error); return paint(); }
+    s = data;
+    msg.textContent = data.message + (data.level_up ? " — 레벨이 올랐다!" : "");
+    msg.className = `ex-msg${s.end_reason === "keeper" ? " bad-text" : ""}`;
+    paint();
+    if (data.cell?.t === "pot" || data.level_up) { await loadAll(); renderHunter(); }
+    if (!run()) {
+      stopDungeonTimers();
+      actions.replaceChildren(h("button", { class: "btn block", type: "button", onclick: () => renderStarIdle(body, s, s) }, "별의 무덤 나가기"));
+    }
+  }
+  const actions = h("div", { style: "margin-top:12px" },
+    h("button", { class: "btn ghost block", type: "button", onclick: quit }, "그만두고 나가기"));
+  async function quit() {
+    if (!confirm("별의 무덤을 떠날까요?\n지금까지 얻은 것은 그대로 받고, 남은 이동은 사라집니다. 오늘은 다시 들어갈 수 없습니다.")) return;
+    const { data, error } = await sb.rpc("star_quit");
+    if (error) return (err.textContent = koError(error));
+    stopDungeonTimers();
+    renderStarIdle(body, data, data);
+  }
+  body.replaceChildren(h("div", { class: "ex-wrap" },
+    h("div", {}, grid,
+      h("div", { class: "ex-legend" }, ...["stardust", "pot", "item", "keeper"].map(t => h("span", {}, h("b", { class: `t-${t}` }, ST_MARK[t][0]), " ", ST_MARK[t][1])))),
+    h("div", {},
+      h("div", { class: "kv", style: "border:0;padding:0 0 4px" }, h("span", {}, "남은 이동"), movesEl),
+      h("div", { class: "kv", style: "border:0;padding:0 0 8px" }, h("span", {}, "별지기"), keeperEl),
+      msg, pad,
+      h("p", { class: "hint", style: "margin:0 0 12px;text-align:center" }, "방향키나 W·A·S·D로도 움직일 수 있습니다."),
+      h("p", { class: "panel-title", style: "margin:8px 0 6px" }, "이번에 모은 것"), gainBox, err, actions)));
   stopDungeonTimers();
   dgKeys = e => {
     if (e.target.closest?.("input, textarea, select, dialog[open]")) return;
@@ -2128,8 +2292,10 @@ $("#btn-guide").onclick = () => info("가이드",
   h("p", {}, "· 포지션: 시작할 때 메인 포지션을 고르고, 25레벨이 되면 서브 포지션을 한 번 고릅니다. 서브는 효과가 절반이고, 메인과 같은 포지션을 고르면 메인 효과가 1.5배가 됩니다."),
   h("p", {}, "· 장비는 D~S 다섯 티어가 있고 무기·방어구·장신구 3칸에 끼웁니다. 착용 레벨은 D 1 · C 45 · B 60 · A 80 · S 110입니다. 재화와 별가루로 +10까지 강화하며, +6부터는 재료로 쓸 같은 장비 1개를 직접 고릅니다. 인벤토리의 조합에서 재료 2~3개를 섞어 새 아이템을 만들 수 있습니다. 던전에 소비 아이템을 최대 3종 챙겨 가면 쉬는 대신 먼저 씁니다."),
   h("p", {}, "· 레벨에 따라 등급이 오릅니다 (E 10 · D 20 · C 35 · B 50 · A 70 · S 100). 처음 받은 각성 등급이 더 높으면 그 레벨에 닿을 때까지 유지됩니다."),
-  h("p", {}, "· 지역 안정화: 활동 구역의 E~A급 던전을 공략합니다. E급 5구역부터 등급마다 1구역씩 늘고(평균 30~75분), 마지막 구역은 보스입니다. 구역마다 보상을 얻고, 도중에 쓰러지면 그때까지의 보상만 받습니다. 입장 레벨은 E 1 · D 10 · C 20 · B 35 · A 50이고, 성공률은 내 전력으로 미리 알려 줍니다. 안정화한 던전은 30분 뒤 다시 나타납니다. 더 높은 등급에 들어갈 수 있으면 낮은 등급 보상은 줄어듭니다."),
-  h("p", {}, "· 탐색: 무한 던전의 '탐색' 탭에서 하루 3번, 보이지 않는 10×10 구역을 걸으며 재화와 아이템을 줍습니다. 무한 던전·지역 안정화와 동시에 할 수 없습니다."),
+  h("p", {}, "· 지역 안정화: 활동 구역의 던전을 공략합니다. 지금은 E급(5구역 · 평균 30분)과 D급(6구역 · 평균 40분)이 열려 있고, C급부터는 준비 중입니다. 구역마다 E·D급 던전이 5곳씩 있고, 장소와 테마가 제각각입니다. 마지막 구역은 보스이며, 보스는 테마 재료를 떨어뜨립니다. 구역마다 보상을 얻고, 도중에 쓰러지면 그때까지의 보상만 받습니다. 입장 레벨은 E 1 · D 10이고, 성공률은 내 전력으로 미리 알려 줍니다. 안정화한 던전은 30분 뒤 다른 테마로 다시 나타납니다. 더 높은 등급에 들어갈 수 있으면 낮은 등급 보상은 줄어듭니다."),
+  h("p", {}, "· 탐색: 무한 던전의 '탐색' 탭에서 하루 3번, 보이지 않는 10×10 구역을 걸으며 재화와 아이템을 줍습니다."),
+  h("p", {}, "· 별의 무덤: 무한 던전의 '별의 무덤' 탭에서 하루 1번(탐색과 별도), 10×10 무덤을 걸으며 별가루·마석·별조각 사탕·은하수 이슬·가능성을 모읍니다. 내가 두 칸 움직일 때마다 별지기가 한 칸 다가오고, 마주치면 그 자리에서 끝납니다."),
+  h("p", {}, "· 무한 던전·지역 안정화·탐색·별의 무덤은 한 번에 하나만 할 수 있습니다."),
   h("p", { class: "hint" }, "콘텐츠가 열릴 때마다 가이드가 추가됩니다."));
 
 document.querySelectorAll(".js-logout").forEach(b => b.onclick = async () => {
