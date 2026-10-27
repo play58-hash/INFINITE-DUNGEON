@@ -285,6 +285,25 @@ table.list.rank tr.me td { background: color-mix(in srgb, var(--primary) 10%, tr
 .rg-cell.cleared { background: var(--surface-2); cursor: default; opacity: .75; }
 .rg-cell.sel { outline: 2px solid var(--primary); outline-offset: 1px; }
 .rg-cell:disabled { cursor: default; }
+.home-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.home-box { border: 1px solid var(--border); background: var(--bg); border-radius: 12px; padding: 14px 16px; }
+.home-box .panel-title { margin-bottom: 8px; }
+.home-big { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.home-act + .home-act { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.home-act .row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.home-count { display: flex; gap: 10px; }
+.home-count .dg-stat { flex: 1; }
+.todo-form { display: flex; gap: 8px; margin: 0 0 10px; }
+.todo-form .input { flex: 1; min-width: 0; }
+.todo-list { list-style: none; margin: 0; padding: 0; }
+.todo-list li { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.todo-list li:last-child { border-bottom: 0; }
+.todo-list label { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; cursor: pointer; word-break: keep-all; overflow-wrap: anywhere; }
+.todo-list input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--primary); flex: none; margin: 0; }
+.todo-list li.done label span { text-decoration: line-through; color: var(--text-dim); }
+.todo-del { border: 0; background: none; color: var(--text-dim); font-size: 18px; line-height: 1; padding: 4px 8px; border-radius: 6px; cursor: pointer; }
+.todo-del:hover { color: var(--danger); background: var(--surface-2); }
+@media (max-width: 720px) { .home-grid { grid-template-columns: 1fr; } }
 .rg-notice { border: 1px solid var(--border); background: var(--surface-2); border-radius: 10px; padding: 12px 14px; margin: 0 0 14px; font-size: 14px; }
 .ev-hp { margin-left: auto; flex: none; padding-left: 10px; font-style: normal; font-size: 12px; color: var(--text-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ev-foe span { color: color-mix(in srgb, var(--danger) 75%, var(--text)); }
@@ -557,7 +576,7 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
 <!-- ===== 4. 메인 ===== -->
 <div id="screen-app" class="app hidden">
   <header class="topbar">
-    <a href="#/dungeon" class="logo" aria-label="INFINITE DUNGEON 홈" style="text-decoration:none;color:var(--text)"><span class="mark" aria-hidden="true">all_inclusive</span>INFINITE <span class="word-b">DUNGEON</span></a>
+    <a href="#/home" class="logo" aria-label="INFINITE DUNGEON 홈" style="text-decoration:none;color:var(--text)"><span class="mark" aria-hidden="true">all_inclusive</span>INFINITE <span class="word-b">DUNGEON</span></a>
     <nav class="nav" id="nav"></nav>
     <div class="top-actions">
       <button class="btn ghost small" id="btn-theme" type="button" title="테마 바꾸기">테마</button>
@@ -719,6 +738,7 @@ const GRADE_TEXT = {
   S: "전 세계에 손꼽히는 각성입니다!",
 };
 const MENUS = [
+  { id: "home",      name: "홈",         ico: "⌂" },
   { id: "dungeon",   name: "무한 던전",   ico: "∞" },
   { id: "regional",  name: "지역 안정화", ico: "◎" },
   { id: "union",     name: "국제헌터연합", ico: "★" },
@@ -1017,7 +1037,7 @@ function renderHunter() {
 function route() {
   const r = (location.hash.match(/^#\/(\w+)/) || [])[1];
   const ids = MENUS.map(m => m.id).concat(state.profile?.is_admin ? ["admin"] : []);
-  return ids.includes(r) ? r : "dungeon";
+  return ids.includes(r) ? r : "home";
 }
 const SOON = {
   friends:   ["친구", "친구 추가, 목록, 1:1 메신저와 선물하기를 이용합니다.", "5단계"],
@@ -1028,6 +1048,7 @@ function renderMain() {
   const pane = $("#main-pane");
   stopDungeonTimers();
   if (r === "admin") return renderAdmin(pane);
+  if (r === "home") return renderHome(pane);
   if (r === "dungeon") { const t = nextDgTab || "battle"; nextDgTab = null; return renderDungeon(pane, t); }
   if (r === "regional") return renderRegional(pane);
   if (r === "union") return renderUnion(pane);
@@ -1040,6 +1061,130 @@ function renderMain() {
   );
 }
 addEventListener("hashchange", () => { if (state.character) renderMain(); });
+
+/* ===== 홈 ===== */
+async function renderHome(pane) {
+  const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
+  pane.replaceChildren(
+    h("h2", {}, "홈"),
+    h("p", { class: "hint", style: "margin:0 0 16px" }, "진행 중인 활동과 오늘 남은 횟수, 내 할 일을 한눈에 봅니다."),
+    body);
+  const { data: d, error } = await sb.rpc("get_home");
+  if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
+  const offset = Date.parse(d.now) - Date.now();
+  const nowS = () => Date.now() + offset;
+  const ticks = [];   // 1초마다 다시 그릴 남은 시간들
+  const goBtn = (label, href, tab, ghost) => h("a", { class: `btn small${ghost ? " ghost" : ""}`, href, onclick: tab ? () => { nextDgTab = tab; } : null }, label);
+
+  /* 진행 중 */
+  const actBox = h("div", { class: "home-box" }, h("p", { class: "panel-title" }, "진행 중"));
+  let any = false;
+  if (d.action) {
+    any = true;
+    const a = d.action, t = a.target || {};
+    const isRg = a.kind === "regional";
+    const title = isRg ? `지역 안정화 · ${t.grade}급 ${t.place || ""}${t.theme ? ` · ${t.theme}` : ""}` : "무한 던전";
+    const left = h("span", { class: "home-big" });
+    const bar = h("i", { style: "width:0%" });
+    const btnWrap = h("div", { style: "margin-top:10px" }, goBtn(isRg ? "공략 보기" : "던전 보기", isRg ? "#/regional" : "#/dungeon", isRg ? null : "battle", true));
+    const start = Date.parse(a.started_at), end = Date.parse(a.ends_at);
+    let doneShown = false;
+    ticks.push(() => {
+      const ms = end - nowS();
+      bar.style.width = Math.max(0, Math.min(100, (nowS() - start) / (end - start) * 100)) + "%";
+      if (ms > 0) left.textContent = fmtDur(ms);
+      else if (!doneShown) {
+        doneShown = true;
+        left.textContent = "복귀 완료";
+        left.className = "home-big ok-text";
+        btnWrap.replaceChildren(goBtn("결과 받으러 가기", isRg ? "#/regional" : "#/dungeon", isRg ? null : "battle"));
+      }
+    });
+    actBox.append(h("div", { class: "home-act" },
+      h("div", { class: "row" }, h("strong", {}, title), h("span", { class: "hint" }, `${fmtTime(a.ends_at)} 복귀`)),
+      h("div", { class: "row", style: "margin-top:4px" }, h("span", { class: "hint" }, "남은 시간"), left),
+      h("div", { class: "bar", style: "margin-top:8px" }, bar), btnWrap));
+  }
+  if (d.explore.running) {
+    any = true;
+    actBox.append(h("div", { class: "home-act" },
+      h("div", { class: "row" }, h("strong", {}, "탐색"), h("span", {}, `남은 이동 ${d.explore.moves_left}칸`)),
+      h("div", { style: "margin-top:10px" }, goBtn("이어서 탐색하기", "#/dungeon", "explore"))));
+  }
+  if (d.star.running) {
+    any = true;
+    actBox.append(h("div", { class: "home-act" },
+      h("div", { class: "row" }, h("strong", {}, "별의 무덤"), h("span", {}, `남은 이동 ${d.star.moves_left}칸`)),
+      h("div", { style: "margin-top:10px" }, goBtn("이어서 탐색하기", "#/dungeon", "star"))));
+  }
+  if (!any) actBox.append(
+    h("p", { style: "margin:0 0 10px" }, "지금 진행 중인 활동이 없습니다."),
+    h("div", { style: "display:flex;gap:8px;flex-wrap:wrap" },
+      goBtn("무한 던전 진입", "#/dungeon", "battle"), goBtn("지역 안정화", "#/regional", null, true)));
+
+  /* 오늘 남은 횟수 */
+  const reset = h("span", {});
+  ticks.push(() => { reset.textContent = fmtDur(Date.parse(d.reset_at) - nowS()); });
+  const countTile = (label, n, max, tab) => h("a", { class: "dg-stat", href: "#/dungeon", onclick: () => { nextDgTab = tab; }, style: "text-decoration:none;color:inherit" },
+    h("small", {}, label), h("b", { class: `home-big${n > 0 ? "" : " hint"}`, style: "display:block" }, `${n}`, h("span", { class: "hint", style: "font-size:14px;font-weight:600" }, ` / ${max}`)));
+  const countBox = h("div", { class: "home-box" },
+    h("p", { class: "panel-title" }, "오늘 남은 횟수"),
+    h("div", { class: "home-count" }, countTile("탐색", d.explore.left_today, 3, "explore"), countTile("별의 무덤", d.star.left_today, 1, "star")),
+    h("p", { class: "hint", style: "margin:10px 0 0" }, "다시 채워지기까지 ", reset, " · 매일 0시(한국 시간)"));
+
+  /* 할 일 */
+  const MAX = 10;
+  let todos = d.todos || [];
+  const todoTitle = h("p", { class: "panel-title" });
+  const list = h("ul", { class: "todo-list" });
+  const input = h("input", { class: "input", type: "text", maxlength: "60", "aria-label": "새 할 일" });
+  const addBtn = h("button", { class: "btn small", type: "submit" }, "추가");
+  const err = h("div", { class: "error", role: "alert" });
+  const clearBtn = h("button", { class: "btn ghost small", type: "button", style: "margin-top:10px" }, "완료한 일 지우기");
+  async function call(name, args) {
+    err.textContent = "";
+    const { data, error } = await sb.rpc(name, args);
+    if (error) { err.textContent = koError(error); return false; }
+    todos = data; paintTodos(); return true;
+  }
+  function paintTodos() {
+    todoTitle.textContent = `할 일 ${todos.length} / ${MAX}`;
+    const full = todos.length >= MAX;
+    input.disabled = addBtn.disabled = full;
+    input.placeholder = full ? "10개가 꽉 찼습니다. 다 한 일을 지워 주세요." : "할 일을 적어 주세요 (60자까지)";
+    list.replaceChildren(...(todos.length ? todos.map(t => {
+      const cb = h("input", { type: "checkbox" });
+      cb.checked = t.done;
+      cb.onchange = () => call("todo_toggle", { p_id: t.id });
+      return h("li", { class: t.done ? "done" : null },
+        h("label", {}, cb, h("span", {}, t.body)),
+        h("button", { class: "todo-del", type: "button", "aria-label": `${t.body} 지우기`, title: "지우기", onclick: () => call("todo_delete", { p_id: t.id }) }, "×"));
+    }) : [h("li", { class: "hint" }, "아직 적어 둔 할 일이 없습니다.")]));
+    clearBtn.hidden = !todos.some(t => t.done);
+  }
+  const form = h("form", { class: "todo-form" }, input, addBtn);
+  form.onsubmit = async e => {
+    e.preventDefault();
+    const v = input.value.trim();
+    if (!v) return;
+    busy(addBtn, true, "…");
+    const ok = await call("todo_add", { p_body: v });
+    busy(addBtn, false);
+    if (ok) input.value = "";
+    paintTodos(); input.focus();
+  };
+  clearBtn.onclick = () => call("todo_clear_done");
+  const todoBox = h("div", { class: "home-box", style: "margin-top:14px" }, todoTitle, form, err, list, clearBtn);
+  paintTodos();
+
+  body.replaceChildren(h("div", { class: "home-grid" }, actBox, countBox), todoBox);
+  const tick = () => {
+    ticks.forEach(f => f());
+    if (Date.parse(d.reset_at) <= nowS()) { stopDungeonTimers(); renderHome(pane); }   // 0시가 지나면 횟수 새로 고침
+  };
+  tick();
+  dgTimer = setInterval(tick, 1000);
+}
 
 /* ===== 무한 던전 ===== */
 let dgTimer = null, dgPoll = null;
