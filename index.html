@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Staatliches&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=all_inclusive&display=block">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&display=swap">
 <style>
 /* ===== 테마 색 (주색 #3300FF · 보조색 #7D42DB · 바탕 #FFFFFF) ===== */
 :root {
@@ -27,6 +27,8 @@
   --ok: #1E8A5A;
   --radius: 12px;
   --shadow: 0 1px 2px rgba(23,19,42,.06), 0 4px 16px rgba(23,19,42,.06);
+  --page-top: #E4DAFB;     /* 연한 보라 → 바탕(흰색) */
+  --page-bottom: #FFFFFF;
 }
 :root[data-theme="dark"] {
   --bg: #0F0D18;
@@ -39,6 +41,8 @@
   --danger: #FF7A93;
   --ok: #5FD39B;
   --shadow: 0 1px 2px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.3);
+  --page-top: #0F0D18;     /* 바탕 → 어두운 보라 */
+  --page-bottom: #2A1652;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]):not([data-theme="dark"]) {
@@ -46,14 +50,16 @@
     --text: #EEEAFB; --text-dim: #A49DC2; --accent-text: #B9A2FF;
     --danger: #FF7A93; --ok: #5FD39B;
     --shadow: 0 1px 2px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.3);
+    --page-top: #0F0D18; --page-bottom: #2A1652;
   }
 }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
+html { background: var(--page-bottom); }
 body {
-  background: var(--bg); color: var(--text);
-  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  background: linear-gradient(180deg, var(--page-top) 0%, var(--page-bottom) 100%) fixed; color: var(--text);
+  font-family: "IBM Plex Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   font-size: 15px; line-height: 1.55;
 }
 button, input, select, textarea { font: inherit; color: inherit; }
@@ -97,14 +103,13 @@ textarea.input { min-height: 88px; resize: vertical; }
   padding: 32px 16px;
   background:
     radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb, var(--primary) 18%, transparent), transparent 60%),
-    radial-gradient(900px 500px at 110% 110%, color-mix(in srgb, var(--secondary) 20%, transparent), transparent 60%),
-    var(--bg);
+    radial-gradient(900px 500px at 110% 110%, color-mix(in srgb, var(--secondary) 20%, transparent), transparent 60%);
 }
 .gate-box { width: 100%; max-width: 440px; }
 .gate-box.wide { max-width: 640px; }
 .logo {
   display: inline-flex; align-items: center; gap: 6px; margin: 0 0 4px;
-  font-family: "Staatliches", "Pretendard Variable", sans-serif; font-weight: 400;
+  font-family: "Staatliches", "IBM Plex Sans KR", sans-serif; font-weight: 400;
   font-size: 34px; letter-spacing: .04em; line-height: 1;
 }
 .logo .word-b { color: var(--accent-text); }
@@ -171,7 +176,7 @@ textarea.input { min-height: 88px; resize: vertical; }
 .topbar {
   position: sticky; top: 0; z-index: 10;
   display: flex; align-items: center; gap: 8px; padding: 0 20px; height: 60px;
-  background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px);
+  background: color-mix(in srgb, var(--page-top) 85%, transparent); backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--border);
 }
 .topbar .logo { font-size: 24px; margin: 0 16px 0 0; white-space: nowrap; }
@@ -739,7 +744,7 @@ function josa(word, withB, withoutB) {   // 받침에 맞는 조사
 const soonBox = (title, desc) => h("div", { class: "soon" },
   h("p", { style: "margin:0 0 4px;font-weight:700" }, title), h("p", { style: "margin:0" }, desc));
 const GRADE_ORDER = "FEDCBAS";
-const GRADE_LEVEL = { E: 10, D: 20, C: 30, B: 40, A: 50, S: 60 };   // 이 레벨에 닿으면 승급
+const GRADE_LEVEL = { E: 10, D: 20, C: 35, B: 50, A: 70, S: 100 };   // 이 레벨에 닿으면 승급
 function nextPromotion(grade) {
   const next = GRADE_ORDER[GRADE_ORDER.indexOf(grade) + 1];
   return next ? `Lv.${GRADE_LEVEL[next]}에 ${next}급` : "최고 등급";
@@ -806,7 +811,7 @@ function applyTheme(theme) {
   const btn = $("#btn-theme");
   if (btn) btn.textContent = { light: "밝은 테마", dark: "어두운 테마", system: "기기 설정" }[theme] || "테마";
 }
-try { applyTheme(localStorage.getItem("id-theme") || "system"); } catch { applyTheme("system"); }
+try { applyTheme(localStorage.getItem("id-theme") || "dark"); } catch { applyTheme("dark"); }
 
 /* ===== 사진: 가운데를 1:1로 잘라 256px WebP로 변환 ===== */
 async function squareImage(file) {
@@ -2069,7 +2074,7 @@ $("#e-save").onclick = async () => {
 /* ===== 테마 버튼 (기기 설정 → 밝게 → 어둡게) ===== */
 $("#btn-theme").onclick = async () => {
   const order = ["system", "light", "dark"];
-  const next = order[(order.indexOf(state.settings?.theme || "system") + 1) % 3];
+  const next = order[(order.indexOf(state.settings?.theme || "dark") + 1) % 3];
   applyTheme(next);
   if (state.settings) state.settings.theme = next;
   await sb.from("settings").update({ theme: next, updated_at: new Date().toISOString() }).eq("user_id", state.user.id);
@@ -2121,9 +2126,9 @@ $("#btn-guide").onclick = () => info("가이드",
   h("p", {}, "· 복귀 후 '조금 더 진입'을 고르면 50% 확률로 더 깊이 들어가 1.5배 보상을 받고, 실패하면 이번 보상의 20%를 잃습니다."),
   h("p", {}, "· 레벨이 오를 때마다 스탯 포인트 1개를 받아 자유롭게 분배할 수 있습니다."),
   h("p", {}, "· 포지션: 시작할 때 메인 포지션을 고르고, 25레벨이 되면 서브 포지션을 한 번 고릅니다. 서브는 효과가 절반이고, 메인과 같은 포지션을 고르면 메인 효과가 1.5배가 됩니다."),
-  h("p", {}, "· 장비는 D~S 다섯 티어가 있고 무기·방어구·장신구 3칸에 끼웁니다. 재화와 별가루로 +10까지 강화하며, +6부터는 재료로 쓸 같은 장비 1개를 직접 고릅니다. 인벤토리의 조합에서 재료 2~3개를 섞어 새 아이템을 만들 수 있습니다. 던전에 소비 아이템을 최대 3종 챙겨 가면 쉬는 대신 먼저 씁니다."),
-  h("p", {}, "· 10레벨마다 등급이 오릅니다 (E 10 · D 20 · C 30 · B 40 · A 50 · S 60). 처음 받은 각성 등급이 더 높으면 그 레벨에 닿을 때까지 유지됩니다."),
-  h("p", {}, "· 지역 안정화: 활동 구역의 E~A급 던전을 공략합니다. E급 5구역부터 등급마다 1구역씩 늘고(평균 30~75분), 마지막 구역은 보스입니다. 구역마다 보상을 얻고, 도중에 쓰러지면 그때까지의 보상만 받습니다. 입장 레벨은 E 1 · D 10 · C 20 · B 30 · A 40이고, 성공률은 내 전력으로 미리 알려 줍니다. 안정화한 던전은 30분 뒤 다시 나타납니다. 더 높은 등급에 들어갈 수 있으면 낮은 등급 보상은 줄어듭니다."),
+  h("p", {}, "· 장비는 D~S 다섯 티어가 있고 무기·방어구·장신구 3칸에 끼웁니다. 착용 레벨은 D 1 · C 45 · B 60 · A 80 · S 110입니다. 재화와 별가루로 +10까지 강화하며, +6부터는 재료로 쓸 같은 장비 1개를 직접 고릅니다. 인벤토리의 조합에서 재료 2~3개를 섞어 새 아이템을 만들 수 있습니다. 던전에 소비 아이템을 최대 3종 챙겨 가면 쉬는 대신 먼저 씁니다."),
+  h("p", {}, "· 레벨에 따라 등급이 오릅니다 (E 10 · D 20 · C 35 · B 50 · A 70 · S 100). 처음 받은 각성 등급이 더 높으면 그 레벨에 닿을 때까지 유지됩니다."),
+  h("p", {}, "· 지역 안정화: 활동 구역의 E~A급 던전을 공략합니다. E급 5구역부터 등급마다 1구역씩 늘고(평균 30~75분), 마지막 구역은 보스입니다. 구역마다 보상을 얻고, 도중에 쓰러지면 그때까지의 보상만 받습니다. 입장 레벨은 E 1 · D 10 · C 20 · B 35 · A 50이고, 성공률은 내 전력으로 미리 알려 줍니다. 안정화한 던전은 30분 뒤 다시 나타납니다. 더 높은 등급에 들어갈 수 있으면 낮은 등급 보상은 줄어듭니다."),
   h("p", {}, "· 탐색: 무한 던전의 '탐색' 탭에서 하루 3번, 보이지 않는 10×10 구역을 걸으며 재화와 아이템을 줍습니다. 무한 던전·지역 안정화와 동시에 할 수 없습니다."),
   h("p", { class: "hint" }, "콘텐츠가 열릴 때마다 가이드가 추가됩니다."));
 
