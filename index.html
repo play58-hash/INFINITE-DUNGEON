@@ -304,6 +304,63 @@ table.list.rank tr.me td { background: color-mix(in srgb, var(--primary) 10%, tr
 .todo-del { border: 0; background: none; color: var(--text-dim); font-size: 18px; line-height: 1; padding: 4px 8px; border-radius: 6px; cursor: pointer; }
 .todo-del:hover { color: var(--danger); background: var(--surface-2); }
 @media (max-width: 720px) { .home-grid { grid-template-columns: 1fr; } }
+/* 소개 · 개인정보 페이지 */
+html.doc-open, html.doc-open body { overflow: hidden; }
+.doc-view { position: fixed; inset: 0; z-index: 60; overflow-y: auto; overscroll-behavior: contain;
+  background: var(--page-bottom) linear-gradient(180deg, var(--page-top) 0%, var(--page-bottom) 100%) no-repeat fixed; }
+.doc-top { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 16px; padding: 12px 20px;
+  background: color-mix(in srgb, var(--page-top) 85%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
+.doc-top .logo { font-size: 22px; margin: 0; white-space: nowrap; }
+.doc-switch { display: flex; gap: 4px; flex: 1; }
+.doc-switch a { padding: 6px 12px; border-radius: 8px; text-decoration: none; color: var(--text-dim); font-weight: 700; font-size: 14px; }
+.doc-switch a.on { color: var(--accent-text); background: var(--surface-2); }
+.doc-wrap { max-width: 900px; margin: 0 auto; padding: 24px 20px 64px; }
+.doc-wrap.with-toc { max-width: 1120px; display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 20px; align-items: start; }
+.doc-toc { position: sticky; top: 76px; padding: 10px; display: flex; flex-direction: column; gap: 2px; }
+.doc-toc button { text-align: left; border: 0; background: none; padding: 8px 10px; border-radius: 8px; color: var(--text-dim); font-weight: 600; cursor: pointer; }
+.doc-toc button:hover { background: var(--surface-2); color: var(--text); }
+.doc-body { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.doc-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.doc-head h1 { margin: 0; font-size: 26px; }
+.doc-body .card { padding: 22px 24px; scroll-margin-top: 80px; }
+.prose { line-height: 1.75; word-break: keep-all; overflow-wrap: anywhere; }
+.prose h2 { font-size: 20px; margin: 0 0 12px; }
+.prose h3 { font-size: 16px; margin: 22px 0 8px; }
+.prose > :first-child { margin-top: 0; }
+.prose > :last-child { margin-bottom: 0; }
+.prose p { margin: 0 0 10px; }
+.prose ul { margin: 0 0 10px; padding-left: 20px; }
+.prose li { margin: 4px 0; }
+.prose a { color: var(--accent-text); }
+.table-scroll { overflow-x: auto; margin: 0 0 12px; }
+.prose table { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.6; min-width: 520px; }
+.prose th, .prose td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top; }
+.prose th { background: var(--surface-2); font-weight: 700; white-space: nowrap; }
+.about-hero { text-align: center; padding: 28px 0 8px; }
+.about-kicker { font-family: "Staatliches", sans-serif; letter-spacing: .12em; color: var(--accent-text); margin: 0 0 6px; font-size: 18px; }
+.about-hero h1 { margin: 0 0 14px; font-size: clamp(24px, 4vw, 34px); line-height: 1.35; word-break: keep-all; }
+.about-quote { margin: 0; font-style: italic; font-size: 18px; color: var(--text-dim); }
+.about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.about-grid h3 { margin-top: 0; color: var(--accent-text); }
+.about-note { font-size: 14px; color: var(--text-dim); }
+.about-end { text-align: center; font-weight: 700; font-size: 17px; margin: 12px 0 0; }
+.gate-links { display: flex; justify-content: center; gap: 8px; margin-top: 16px; font-size: 13px; color: var(--text-dim); }
+.gate-links a { color: var(--text-dim); }
+.gate-links a:hover { color: var(--accent-text); }
+@media (max-width: 720px) {
+  .doc-top { flex-wrap: wrap; gap: 8px 12px; padding: 10px 16px; }
+  .doc-top .logo { font-size: 18px; flex: 1; }
+  .doc-switch { order: 3; flex-basis: 100%; }
+  .doc-wrap, .doc-wrap.with-toc { display: block; padding: 16px 16px 48px; }
+  .doc-toc { position: static; margin-bottom: 16px; flex-direction: row; flex-wrap: wrap; }
+  .doc-body .card { padding: 18px 16px; scroll-margin-top: 120px; }
+  .about-grid { grid-template-columns: 1fr; }
+}
+.pw-wrap { position: relative; }
+.pw-wrap .input { padding-right: 64px; }
+.pw-eye { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: 0; background: none;
+  color: var(--text-dim); font-size: 13px; font-weight: 700; padding: 6px 8px; border-radius: 6px; cursor: pointer; }
+.pw-eye:hover { color: var(--accent-text); background: var(--surface-2); }
 .rg-notice { border: 1px solid var(--border); background: var(--surface-2); border-radius: 10px; padding: 12px 14px; margin: 0 0 14px; font-size: 14px; }
 .ev-hp { margin-left: auto; flex: none; padding-left: 10px; font-style: normal; font-size: 12px; color: var(--text-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ev-foe span { color: color-mix(in srgb, var(--danger) 75%, var(--text)); }
@@ -459,6 +516,7 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
 </style>
 </head>
 <body>
+<div id="doc-view" class="doc-view hidden" role="region" aria-label="안내 문서"></div>
 
 <!-- ===== 1. 로그인 / 가입 ===== -->
 <section id="screen-auth" class="gate hidden">
@@ -482,6 +540,7 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
         </div>
         <div id="auth-error" class="error" role="alert"></div>
         <button id="auth-submit" class="btn block" type="submit">로그인</button>
+        <p id="forgot-hint" class="hint" style="margin:12px 0 0;text-align:center;font-size:13px;word-break:keep-all">비밀번호를 잊었다면 <a href="https://forms.gle/MZJSdr1iEbZKQcPT6" target="_blank" rel="noopener">문의 폼</a>으로 알려 주세요. 운영자가 임시 비밀번호로 바꿔 드립니다.</p>
       </form>
     </div>
   </div>
@@ -599,7 +658,8 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
   </div>
 
   <footer class="footer">
-    <button type="button" id="btn-legal">개인정보·저작권</button>
+    <button type="button" id="btn-about">소개</button>
+    <button type="button" id="btn-legal">개인정보 수집 및 이용</button>
     <button type="button" id="btn-guide">가이드</button>
   </footer>
 
@@ -648,6 +708,13 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
         <option value="friends">친구만</option>
         <option value="private">나만 보기</option>
       </select>
+    </div>
+    <div class="field">
+      <label>계정</label>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span class="hint" id="e-email"></span>
+        <button id="e-password" type="button" class="btn ghost small">비밀번호 변경</button>
+      </div>
     </div>
     <div id="edit-error" class="error" role="alert"></div>
   </div>
@@ -887,13 +954,34 @@ function regionOptions(select, current) {
 
 /* ===== 1. 로그인 / 가입 ===== */
 let authMode = "login";
+/* 비밀번호 칸 옆 '보기' 버튼 — 누르면 가림이 풀리고, 다시 누르면 가려진다 */
+function pwToggle(input) {
+  const wrap = h("div", { class: "pw-wrap" });
+  input.replaceWith(wrap);
+  const btn = h("button", { type: "button", class: "pw-eye", "aria-pressed": "false", "aria-label": "비밀번호 보기" }, "보기");
+  btn.onclick = () => {
+    const show = input.type === "password";
+    input.type = show ? "text" : "password";
+    btn.textContent = show ? "숨기기" : "보기";
+    btn.setAttribute("aria-pressed", String(show));
+    btn.setAttribute("aria-label", show ? "비밀번호 숨기기" : "비밀번호 보기");
+    input.focus();
+  };
+  wrap.append(input, btn);
+  return wrap;
+}
+pwToggle($("#auth-pass"));
 function setAuthMode(mode) {
   authMode = mode;
   $("#tab-login").classList.toggle("on", mode === "login");
   $("#tab-signup").classList.toggle("on", mode === "signup");
   $("#auth-submit").textContent = mode === "login" ? "로그인" : "가입하기";
   $("#auth-pass").autocomplete = mode === "login" ? "current-password" : "new-password";
+  $("#auth-pass").type = "password";   // 화면이 바뀔 때마다 다시 가린다
+  const eye = $("#auth-pass").nextElementSibling;
+  if (eye) { eye.textContent = "보기"; eye.setAttribute("aria-pressed", "false"); eye.setAttribute("aria-label", "비밀번호 보기"); }
   $("#pass-hint").classList.toggle("hidden", mode === "login");
+  $("#forgot-hint").classList.toggle("hidden", mode !== "login");
   $("#auth-error").textContent = "";
 }
 $("#tab-login").onclick = () => setAuthMode("login");
@@ -1060,7 +1148,7 @@ function renderMain() {
     h("div", { class: "soon" }, h("p", { style: "margin:0 0 4px;font-weight:700" }, `${stage}에서 열립니다`), h("p", { style: "margin:0" }, "지금은 헌터 등록과 정보 관리까지 이용할 수 있습니다.")),
   );
 }
-addEventListener("hashchange", () => { if (state.character) renderMain(); });
+addEventListener("hashchange", () => { if (syncDoc()) return; if (state.character) renderMain(); });
 
 /* ===== 홈 ===== */
 async function renderHome(pane) {
@@ -2294,6 +2382,26 @@ async function renderAdmin(pane) {
     toast(`가능성 획득률을 ×${Number(rate.value)}로 바꿨습니다.`);
   };
   sb.rpc("get_game_settings").then(({ data }) => { if (data) rate.value = data.potential_rate; });
+  // 비밀번호 재설정
+  const who = h("input", { class: "input", id: "adm-who", autocomplete: "off", placeholder: "이메일 또는 코드네임" });
+  const pwOut = h("div", { role: "status" });
+  const pwBtn = h("button", { class: "btn", type: "button" }, "임시 비밀번호 만들기");
+  pwBtn.onclick = async () => {
+    pwOut.replaceChildren();
+    const v = who.value.trim();
+    if (!v) return pwOut.replaceChildren(h("p", { class: "error" }, "이메일이나 코드네임을 적어 주세요."));
+    if (!confirm(`${v} 헌터의 비밀번호를 임시 비밀번호로 바꿀까요?\n지금 쓰던 비밀번호는 더 이상 쓸 수 없고, 다른 기기의 로그인도 풀립니다.`)) return;
+    busy(pwBtn, true, "만드는 중…");
+    const { data, error } = await sb.rpc("admin_reset_password", { p_who: v });
+    busy(pwBtn, false);
+    if (error) return pwOut.replaceChildren(h("p", { class: "error" }, koError(error)));
+    who.value = "";
+    pwOut.replaceChildren(h("div", { class: "rg-notice", style: "margin:10px 0 0" },
+      h("p", { style: "margin:0 0 6px;font-weight:700" }, `${data.codename || "(캐릭터 없음)"} · ${data.email}`),
+      h("p", { style: "margin:0 0 8px" }, "임시 비밀번호: ", h("code", { class: "c", style: "font-size:16px" }, data.password), " ",
+        h("button", { class: "btn ghost small", type: "button", onclick: () => navigator.clipboard?.writeText(data.password).then(() => toast("복사했습니다.")) }, "복사")),
+      h("p", { class: "hint", style: "margin:0" }, "이 화면을 벗어나면 다시 볼 수 없습니다. 헌터에게 전해 주고, 로그인한 뒤 헌터 정보 → 비밀번호 변경에서 바꾸도록 안내해 주세요.")));
+  };
 
   pane.replaceChildren(
     h("h2", {}, "운영"),
@@ -2308,7 +2416,12 @@ async function renderAdmin(pane) {
       h("div", { class: "field", style: "margin:0" }, h("label", { for: "adm-count" }, "개수 (1~20)"), count),
       h("div", { class: "field", style: "margin:0" }, h("label", { for: "adm-days" }, "유효 기간 (일)"), days),
       btn),
-    out, list);
+    out, list,
+    h("p", { class: "panel-title", style: "margin:24px 0 8px" }, "비밀번호 재설정"),
+    h("p", { class: "hint", style: "margin:0 0 10px" }, "비밀번호를 잊은 헌터의 비밀번호를 임시 비밀번호로 바꿉니다. 원래 비밀번호는 운영자도 볼 수 없습니다."),
+    h("div", { style: "display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;max-width:480px" },
+      h("div", { class: "field", style: "margin:0" }, h("label", { for: "adm-who" }, "이메일 또는 코드네임"), who), pwBtn),
+    pwOut);
   loadCodes();
 }
 
@@ -2320,6 +2433,7 @@ function openHunter() {
   $("#e-codename").value = p.codename;
   $("#e-bio").value = p.bio || "";
   $("#e-vis").value = p.bio_visibility;
+  $("#e-email").textContent = state.user?.email || "";
   regionOptions($("#e-region"), p.region);
   $("#e-title-line").textContent = `${p.codename} · ${c.grade}급 Lv.${c.level}`;
   const pos = POSITIONS[c.main_position];
@@ -2351,6 +2465,41 @@ $("#e-photo").onchange = async e => {
 };
 $("#e-photo-clear").onclick = () => { edit.photo = null; edit.clearPhoto = true; renderEditAvatar(); };
 $("#e-cancel").onclick = () => $("#dlg-hunter").close();
+$("#e-password").onclick = () => { $("#dlg-hunter").close(); openPassword(); };
+function openPassword() {
+  const field = (id, label, ac) => {
+    const input = h("input", { id, class: "input", type: "password", autocomplete: ac, minlength: "8" });
+    const f = h("div", { class: "field" }, h("label", { for: id }, label), input);
+    pwToggle(input);
+    return [f, input];
+  };
+  const [f1, cur] = field("pw-cur", "현재 비밀번호", "current-password");
+  const [f2, nw] = field("pw-new", "새 비밀번호 (8자 이상)", "new-password");
+  const [f3, nw2] = field("pw-new2", "새 비밀번호 확인", "new-password");
+  const err = h("div", { class: "error", role: "alert" });
+  const go = h("button", { class: "btn block", type: "submit" }, "비밀번호 바꾸기");
+  const form = h("form", { novalidate: true },
+    h("p", { class: "hint", style: "margin:0 0 12px" }, "운영자에게 받은 임시 비밀번호로 로그인했다면, 여기서 내 비밀번호로 바꿔 주세요."),
+    f1, f2, f3, err, go);
+  form.onsubmit = async e => {
+    e.preventDefault();
+    err.textContent = "";
+    if (!cur.value) return (err.textContent = "현재 비밀번호를 적어 주세요.");
+    if (nw.value.length < 8) return (err.textContent = "새 비밀번호는 8자 이상이어야 합니다.");
+    if (nw.value !== nw2.value) return (err.textContent = "새 비밀번호 두 칸이 서로 다릅니다.");
+    if (nw.value === cur.value) return (err.textContent = "지금 비밀번호와 다른 비밀번호를 정해 주세요.");
+    busy(go, true, "바꾸는 중…");
+    const chk = await sb.auth.signInWithPassword({ email: state.user.email, password: cur.value });   // 본인 확인
+    if (chk.error) { busy(go, false); return (err.textContent = "현재 비밀번호가 맞지 않습니다."); }
+    const { error } = await sb.auth.updateUser({ password: nw.value });
+    busy(go, false);
+    if (error) return (err.textContent = koError(error));
+    $("#dlg-info").close();
+    toast("비밀번호를 바꿨습니다.");
+  };
+  info("비밀번호 변경", form);
+  cur.focus();
+}
 $("#e-save").onclick = async () => {
   const err = $("#edit-error"), btn = $("#e-save");
   err.textContent = "";
@@ -2424,10 +2573,228 @@ function info(title, ...body) {
   $("#info-body").replaceChildren(...body);
   $("#dlg-info").showModal();
 }
-$("#btn-legal").onclick = () => info("개인정보·저작권",
-  h("p", {}, "수집하는 정보: 이메일, 코드네임, 프로필 사진, 캐릭터 소개, 게임 기록."),
-  h("p", {}, "이용 목적: 로그인과 게임 진행에만 사용하며 외부에 제공하지 않습니다."),
-  h("p", { class: "hint" }, "정식 처리방침과 음원·이미지 출처는 6단계에서 이 자리에 정리됩니다."));
+/* ===== 소개 · 개인정보 (로그인 없이 볼 수 있는 페이지) ===== */
+// 문구를 바꾸려면 아래 HTML을 직접 고치세요.
+const POLICY_UPDATED = "2026.10.28";      // 개인정보 안내 최종 수정일
+const RETENTION_DAYS = 30;                // 서비스 종료 후 데이터 삭제까지 기간
+const CONTACT_FORM = "https://forms.gle/MZJSdr1iEbZKQcPT6";   // 문의 폼
+
+const contactHtml = `<a href="${CONTACT_FORM}" target="_blank" rel="noopener">문의 폼</a>`;
+const LOGO_HTML = `<span class="mark" aria-hidden="true">all_inclusive</span>INFINITE <span class="word-b">DUNGEON</span>`;
+
+const DOCS = {
+  about: {
+    title: "소개",
+    html: `
+<header class="about-hero">
+  <p class="about-kicker">INFINITE DUNGEON</p>
+  <h1>별이 사라진 세계, 가능성을 품은 사람들</h1>
+  <p class="about-quote">“지하철에 끝나지 않는 던전이 있다.”</p>
+</header>
+<article class="card prose">
+<p><b><i>INFINITE DUNGEON</i></b>은 일본 도시전설 「키사라기 역」을 모티브로 한, 지하철에 존재하는 '무한 던전(Infinite dungeon)'이 존재하는 현대 판타지 세계관의 2126년을 배경으로 하고 있습니다.</p>
+<p>어느 역이든 1번 출구로 진입하여 승강장에서 어떤 물건을 떨어뜨리고 줍는 행동을 3번 반복하면 약 45%의 확률로 무한 던전으로 진입하는 지하철이 진입하며, 이를 타고 종착역이 존재하지 않는 무한의 선로를 내달리게 됩니다.</p>
+<p>각 역은 하나의 던전이며, 한 역을 공략한 후에는 기관실로 돌아와 퇴장하거나 휴식을 취한 뒤 다음 역으로 나아갈 수 있는 특성 때문에 헌터들 사이에서 누가 더 깊이 들어갔느냐를 비교하는 랭킹 또한 존재합니다.</p>
+<p>이러한 특징을 기반으로 <b><i>INFINITE DUNGEON</i></b>은 다음 콘텐츠를 제공합니다.</p>
+</article>
+<div class="about-grid">
+  <section class="card prose">
+    <h3>특별한 조작 없이 즐길 수 있는 방치형 게임</h3>
+    <p>무한 던전은 6~12시간, 지역 안정화는 30~60분, 전략 수립은 5분~180분으로 다양한 단위의 시간을 설정하여 캐릭터를 육성하고, 성장하여 더 높은 단계의 던전을 도전하는 방치형 게임입니다.</p>
+    <p>이외에도 클릭 또는 방향키 사용으로 보상을 습득하는 탐색을 통해 간단한 조작으로도 재미를 얻을 수 있습니다.</p>
+  </section>
+  <section class="card prose">
+    <h3>수집과 조합</h3>
+    <p>이렇게 던전 및 공략을 통해 얻을 수 있는 지역, 던전, 몬스터, 아이템, 타이틀 등 다양한 수집 요소와, 다양한 재료를 조합해 새로운 아이템을 만드는 요소를 포함하고 있어 도전 정신을 발휘할 수 있습니다.</p>
+  </section>
+  <section class="card prose">
+    <h3>1인 플레이를 기본으로, 다른 유저와 소통</h3>
+    <p>기본적으로 혼자서도 즐길 수 있지만 친구, 파티, 길드를 통해 함께 이야기를 나누고 던전을 공략할 수 있는 협력 콘텐츠가 존재합니다.</p>
+    <p>또한 매주 무한 던전에서 얼마나 많은 역을 공략했냐에 따라 순위를 보여주는 랭킹 콘텐츠도 존재하니, 원한다면 다른 유저와 경쟁할 수 있습니다.</p>
+  </section>
+  <section class="card prose">
+    <h3>설정과 스토리로 즐기는 현대 판타지 세계관</h3>
+    <p>본 게임은 2025년에 엔딩을 맺은 동일명의 자캐 커뮤니티를 기반으로 스핀오프 세계관을 가지고 있습니다. 어째서 무한 던전이 존재하는지, 던전에서 만날 몬스터들은 어떤 이야기를 가지고 있는지, 앞으로 차차 풀리게 될 스토리를 기대해주세요.</p>
+    <p>확률을 기반으로 각성 등급이 F~S급까지 정해지지만 모두 동일 레벨에서 시작하여 레벨에 따라 승급하여 낮은 등급으로도 S급에 도달할 수 있으며, 캐릭터의 설정에 따라 포지션 선택 등 유저 캐릭터의 고유 설정을 최대한 살릴 수 있도록 기획하였습니다.</p>
+  </section>
+</div>
+<article class="card prose about-note">
+<p>본 게임은 1인 바이브 코딩 개발로 제작되었습니다. 코드와 시스템 밸런스 초안은 AI 챗봇을 사용하였으나, 기획 및 설정, 스크립트 등은 최대한 운영자의 손으로 검토하고 수정하고 있습니다.</p>
+<p>하나의 취미로, 후원 및 수익 창출 예정이 없으며, 외부 소스는 모두 오픈 소스를 사용하였습니다.</p>
+<p>로그인과 계정 관리를 위한 이메일 및 접속 기록 외 다른 개인 정보는 수집하지 않습니다. 관련하여 자세한 사항은 홈페이지 내 <a href="#/privacy">[개인정보 수집 및 이용]</a> 메뉴에서 확인 부탁드립니다.</p>
+</article>
+<p class="about-end">무한한 가능성은 언제나 여러분 곁에 있습니다.</p>`,
+  },
+  privacy: {
+    title: "개인정보 수집 및 이용",
+    toc: [["p-privacy", "개인정보 수집 · 이용"], ["p-third", "외부 서비스"], ["p-rights", "보관 · 삭제 · 문의"], ["p-credits", "저작권 · 출처"]],
+    html: () => `
+<div class="doc-head"><h1>개인정보 수집 및 이용</h1><span class="hint">최종 수정 ${POLICY_UPDATED}</span></div>
+
+<article class="card prose" id="p-privacy">
+<h2>개인정보 수집 · 이용 안내</h2>
+<p>INFINITE DUNGEON(이하 "게임")은 게임 운영에 꼭 필요한 정보만 수집합니다.
+<b>실명, 전화번호, 생년월일, 주소 등 현실의 개인을 식별할 수 있는 정보는 수집하지 않습니다.</b>
+이메일은 로그인과 계정 관리에만 쓰며, 다른 헌터에게 보이지 않습니다.</p>
+
+<h3>수집하는 정보</h3>
+<div class="table-scroll"><table>
+<thead><tr><th>구분</th><th>항목</th><th>수집 방법</th><th>이용 목적</th></tr></thead>
+<tbody>
+<tr><td>계정</td><td>이메일, 비밀번호, 사용한 초대코드</td><td>가입할 때 직접 입력</td><td>로그인, 본인 확인, 초대제 운영</td></tr>
+<tr><td>캐릭터</td><td>코드네임 · 포지션 · 활동 구역 · 아바타 색 · 프로필 이미지 · 캐릭터 소개와 공개 범위</td><td>캐릭터를 만들거나 고칠 때 직접 입력</td><td>프로필 표시, 게임 진행</td></tr>
+<tr><td>활동 기록</td><td>레벨 · 스탯 · 재화 · 아이템 · 장비, 무한 던전 · 지역 안정화 · 탐색 · 별의 무덤 기록과 로그, 조합 · 강화 기록, 주간 랭킹 기록, 홈 화면의 할 일 목록, 화면 설정(테마)</td><td>게임을 이용할 때 자동 저장</td><td>게임 진행, 보상 지급, 랭킹, 부정 이용 방지</td></tr>
+<tr><td>접속 기록</td><td>로그인 시각, 접속 IP 주소, 브라우저 정보</td><td>로그인 서비스(Supabase)가 자동 기록</td><td>보안, 부정 접속 확인</td></tr>
+<tr><td>브라우저 저장소</td><td>로그인 상태 유지용 정보(세션 토큰), 테마 설정</td><td>이용자 브라우저에 저장</td><td>다시 로그인하지 않아도 되도록, 화면 설정 유지</td></tr>
+</tbody>
+</table></div>
+
+<h3>누가 볼 수 있나요</h3>
+<div class="table-scroll"><table>
+<thead><tr><th>정보</th><th>공개 범위</th></tr></thead>
+<tbody>
+<tr><td>코드네임 · 등급 · 레벨 · 무한 던전 최고 기록</td><td>로그인한 헌터 전원 (주간 랭킹, 헌터 정보)</td></tr>
+<tr><td>캐릭터 소개</td><td>본인이 고른 공개 범위 (모든 헌터 / 친구만 / 나만 보기)</td></tr>
+<tr><td>지역 안정화 던전을 공략 중인 헌터의 코드네임</td><td>같은 활동 구역의 헌터</td></tr>
+<tr><td>재화 · 아이템 · 장비 · 전투 기록 · 할 일 목록</td><td>본인과 운영자</td></tr>
+<tr><td>이메일 · 접속 기록</td><td>본인과 운영자</td></tr>
+<tr><td>비밀번호</td><td><b>아무도 볼 수 없음.</b> 암호화(해시)되어 저장되며 운영자도 확인할 수 없습니다. 분실 시 ${contactHtml}으로 요청하면 운영자가 새 비밀번호로 재설정합니다.</td></tr>
+</tbody>
+</table></div>
+<p>운영자는 위 정보를 게임 운영 목적으로만 사용하며, 외부에 판매하거나 제공하지 않습니다.</p>
+<p>헌터가 게임에 올린 글 · 그림 · 채팅은 AI 학습이나 AI 서비스에 사용되지 않습니다. 게임은 이 내용을 어떤 AI에도 보내지 않습니다.</p>
+</article>
+
+<article class="card prose" id="p-third">
+<h2>외부 서비스</h2>
+<p>이 게임은 아래 서비스를 이용해 운영됩니다. 각 서비스는 화면을 보여 주는 과정에서 접속 IP 주소 등 기술적인 정보를 처리할 수 있으며, 각 회사의 개인정보 처리방침을 따릅니다.</p>
+<div class="table-scroll"><table>
+<thead><tr><th>서비스</th><th>역할</th><th>처리하는 정보</th></tr></thead>
+<tbody>
+<tr><td>Supabase</td><td>로그인, 데이터베이스, 프로필 이미지 저장</td><td>위 표의 계정 · 캐릭터 · 활동 · 접속 기록 전부</td></tr>
+<tr><td>GitHub Pages</td><td>게임 화면 파일 제공</td><td>접속 IP 주소, 브라우저 정보</td></tr>
+<tr><td>jsDelivr</td><td>프로그램 라이브러리 전송(CDN)</td><td>접속 IP 주소, 브라우저 정보</td></tr>
+<tr><td>Google Fonts</td><td>글꼴 · 로고 아이콘 전송</td><td>접속 IP 주소, 브라우저 정보</td></tr>
+</tbody>
+</table></div>
+</article>
+
+<article class="card prose" id="p-rights">
+<h2>보관 · 삭제 · 문의</h2>
+<ul>
+<li><b>보관 기간:</b> 게임이 운영되는 동안 보관하며, 서비스 종료 후 <b>${RETENTION_DAYS}일 이내</b>에 모든 계정과 기록을 삭제합니다.</li>
+<li><b>탈퇴:</b> 요청하면 해당 계정과 기록을 삭제합니다. 다만 다른 헌터의 기록과 얽힌 정보(지난 주간 랭킹 등)는 기록 보존을 위해 남을 수 있습니다.</li>
+<li><b>열람 · 정정 · 삭제 요청:</b> 헌터 정보 화면에서 대부분의 정보를 직접 확인하고 고칠 수 있으며, 그 밖의 요청은 ${contactHtml}으로 문의해 주세요.</li>
+<li>가입하여 게임을 이용하는 것은 이 안내에 동의한 것으로 봅니다.</li>
+</ul>
+</article>
+
+<article class="card prose" id="p-credits">
+<h2>저작권 · 출처</h2>
+
+<h3>게임 콘텐츠</h3>
+<ul>
+<li>세계관, 설정, 게임 규칙, 몬스터 · 아이템 · 던전 문구 등 게임 고유 콘텐츠의 권리는 <b>운영자</b>에게 있습니다.</li>
+<li>캐릭터 설정, 프로필 이미지, 캐릭터 소개의 권리는 <b>각 작성자(헌터)</b>에게 있습니다. 게임은 이를 게임 안에서 보여 주는 용도로만 사용합니다.</li>
+<li>게임의 글과 그림을 무단으로 복제하거나 외부에 재배포하지 말아 주세요.</li>
+</ul>
+
+<h3>이미지를 올릴 때 지켜 주세요</h3>
+<p>프로필 이미지 등 게임에 올리는 모든 자료는 아래 기준을 따라야 합니다.</p>
+<div class="table-scroll"><table>
+<thead><tr><th>올릴 수 있는 것</th><th>올릴 수 없는 것</th></tr></thead>
+<tbody><tr>
+<td>· 직접 그리거나 만든 창작물<br>· 사용 허락을 받은 커미션 · 지인 그림 (아래 참고)<br>· 상업 이용 · 재배포가 허용된 무료 소스 (출처 표기 조건이 있으면 함께 표기)<br>· 직접 만든 픽크루 등 메이커 이미지 (해당 메이커가 이런 사용을 허용한 경우)</td>
+<td>· 인터넷 검색 · SNS · 핀터레스트 등에서 가져온 남의 그림 · 사진<br>· 만화 · 애니메이션 · 게임 등 다른 작품의 캐릭터 이미지나 그 일부를 오려 낸 것<br>· 연예인 등 실존 인물의 사진<br>· 작가가 허락하지 않은 용도로 쓰는 커미션 그림<br>· 남의 그림을 따라 그린 트레이스 그림</td>
+</tr></tbody>
+</table></div>
+<ul>
+<li><b>커미션 그림:</b> 작가마다 허락하는 범위가 다릅니다. 게임 프로필로 써도 되는지, 작가 표기가 필요한지 미리 확인하고, 필요하면 캐릭터 소개에 작가명을 적어 주세요.</li>
+<li>권리를 침해한 자료는 운영자가 예고 없이 내릴 수 있습니다. 자신의 저작물이 허락 없이 올라온 것을 발견하면 ${contactHtml}으로 알려 주세요. 확인 후 바로 조치합니다.</li>
+<li>올린 자료로 생기는 저작권 문제의 책임은 올린 사람에게 있습니다.</li>
+</ul>
+
+<h3>사용한 글꼴 · 아이콘</h3>
+<div class="table-scroll"><table>
+<thead><tr><th>이름</th><th>제작</th><th>라이선스</th><th>사용처</th></tr></thead>
+<tbody>
+<tr><td>IBM Plex Sans KR</td><td>IBM</td><td>SIL Open Font License 1.1</td><td>본문</td></tr>
+<tr><td>Staatliches</td><td>Brian LaRossa · Erica Carras</td><td>SIL Open Font License 1.1</td><td>로고 글자</td></tr>
+<tr><td>Material Symbols</td><td>Google</td><td>Apache License 2.0</td><td>로고 · 파비콘의 무한(∞) 기호</td></tr>
+</tbody>
+</table></div>
+
+<h3>사용한 오픈소스 라이브러리</h3>
+<div class="table-scroll"><table>
+<thead><tr><th>이름</th><th>라이선스</th><th>사용처</th></tr></thead>
+<tbody>
+<tr><td>supabase-js</td><td>MIT License</td><td>로그인 · 데이터 주고받기</td></tr>
+</tbody>
+</table></div>
+
+<h3>그림 · 기호</h3>
+<ul>
+<li>지도와 메뉴에 쓰인 기호(◆ ✦ ◎ ★ 등)는 유니코드 문자이며, 화면의 그라데이션과 게이지는 CSS 코드로 그린 것입니다. <b>외부 이미지 소스는 사용하지 않았습니다.</b></li>
+<li>지역 안정화의 도시 이름은 실제 지명이며, 던전 테마와 몬스터는 게임 속 창작입니다.</li>
+<li>프로필 이미지는 헌터가 직접 올린 것입니다.</li>
+</ul>
+</article>`,
+  },
+};
+
+let docReturn = null;   // 문서를 닫으면 돌아갈 주소
+const docRoute = () => (location.hash.match(/^#\/(about|privacy)\b/) || [])[1] || null;
+function openDoc(id) {
+  if (!docRoute()) docReturn = location.hash || "";
+  location.hash = `#/${id}`;
+}
+function closeDoc() {
+  const back = docReturn ?? (state.character ? "#/home" : "");
+  docReturn = null;
+  if (back) location.hash = back;
+  else { history.pushState(null, "", location.pathname + location.search); syncDoc(); }
+}
+function syncDoc() {
+  const id = docRoute();
+  const view = $("#doc-view");
+  if (!id) {
+    if (!view.classList.contains("hidden")) { view.classList.add("hidden"); document.documentElement.classList.remove("doc-open"); document.title = "INFINITE DUNGEON"; }
+    return false;
+  }
+  const d = DOCS[id];
+  const html = typeof d.html === "function" ? d.html() : d.html;
+  const body = h("div", { class: "doc-body" });
+  body.innerHTML = html;   // 위에 적어 둔 고정 문구만 넣는다 (사용자 입력 없음)
+  // 문서 안의 #/privacy 같은 링크는 같은 창에서 문서를 바꾼다
+  body.querySelectorAll('a[href^="#/"]').forEach(a => a.onclick = e => { e.preventDefault(); location.hash = a.getAttribute("href"); });
+  const toc = d.toc ? h("nav", { class: "card doc-toc", "aria-label": "목차" },
+    ...d.toc.map(([sid, label]) => h("button", { type: "button", onclick: () => body.querySelector("#" + sid)?.scrollIntoView({ behavior: "smooth", block: "start" }) }, label))) : null;
+  const logoEl = h("div", { class: "logo" });
+  logoEl.innerHTML = LOGO_HTML;
+  const tabs = h("div", { class: "doc-switch" },
+    ...Object.entries(DOCS).map(([k, v]) => h("a", { href: `#/${k}`, class: k === id ? "on" : null }, v.title)));
+  view.replaceChildren(
+    h("header", { class: "doc-top" },
+      logoEl,
+      tabs,
+      h("button", { class: "btn ghost small", type: "button", onclick: closeDoc }, state.character ? "게임으로 돌아가기" : "닫기")),
+    h("div", { class: `doc-wrap${toc ? " with-toc" : ""}` }, toc, body));
+  view.classList.remove("hidden");
+  document.documentElement.classList.add("doc-open");
+  view.scrollTop = 0;
+  document.title = `${d.title} · INFINITE DUNGEON`;
+  return true;
+}
+// 로그인 전 화면(로그인 · 초대코드 · 캐릭터 생성)에도 소개 · 개인정보 링크를 단다
+document.querySelectorAll(".gate-box").forEach(box => box.append(
+  h("nav", { class: "gate-links" },
+    h("a", { href: "#/about", onclick: e => { e.preventDefault(); openDoc("about"); } }, "소개"),
+    h("span", { "aria-hidden": "true" }, "·"),
+    h("a", { href: "#/privacy", onclick: e => { e.preventDefault(); openDoc("privacy"); } }, "개인정보 수집 및 이용"))));
+$("#btn-about").onclick = () => openDoc("about");
+$("#btn-legal").onclick = () => openDoc("privacy");
+addEventListener("keydown", e => { if (e.key === "Escape" && docRoute() && !document.querySelector("dialog[open]")) closeDoc(); });
+
 $("#btn-guide").onclick = () => info("가이드",
   h("p", {}, "INFINITE DUNGEON은 방치형 게임입니다. 무한 던전에 6~12시간 진입해 두고, 돌아와 결과를 받으세요."),
   h("p", {}, "· HP·MP가 부족해지면 쉬면서 회복하고 다시 나아갑니다. 깊은 역일수록 오래 걸려서, 진입 시간이 길수록 더 깊이 내려갑니다."),
@@ -2467,6 +2834,7 @@ async function loadAll() {
 }
 
 async function boot() {
+  syncDoc();   // #/about · #/privacy 로 바로 들어와도 로그인 없이 보인다
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { setAuthMode("login"); return show("screen-auth"); }
   state.user = session.user;
@@ -2477,6 +2845,7 @@ async function boot() {
   renderHunter();
   renderMain();
   show("screen-app");
+  if (docRoute()) syncDoc();   // 로그인 확인 뒤 '게임으로 돌아가기' 버튼으로 다시 그림
 }
 boot();
 </script>
