@@ -55,10 +55,11 @@
 }
 
 * { box-sizing: border-box; }
-html, body { margin: 0; height: 100%; }
-html { background: var(--page-bottom); }
+html, body { margin: 0; min-height: 100%; }
+/* 그라데이션은 html(캔버스 전체)에 깔아야 화면보다 긴 페이지에서도 끊기지 않는다 */
+html { background: var(--page-bottom) linear-gradient(180deg, var(--page-top) 0%, var(--page-bottom) 100%) no-repeat fixed; }
 body {
-  background: linear-gradient(180deg, var(--page-top) 0%, var(--page-bottom) 100%) fixed; color: var(--text);
+  background: transparent; color: var(--text);
   font-family: "IBM Plex Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   font-size: 15px; line-height: 1.55;
 }
@@ -99,7 +100,7 @@ textarea.input { min-height: 88px; resize: vertical; }
 
 /* ===== 시작 화면 (로그인·초대코드·캐릭터 생성) ===== */
 .gate {
-  min-height: 100%; display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; min-height: 100dvh; display: flex; align-items: center; justify-content: center;
   padding: 32px 16px;
   background:
     radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb, var(--primary) 18%, transparent), transparent 60%),
@@ -172,7 +173,7 @@ textarea.input { min-height: 88px; resize: vertical; }
 .avatar.lg { width: 96px; height: 96px; font-size: 38px; border-radius: 20px; }
 
 /* ===== 메인 화면 ===== */
-.app { min-height: 100%; display: grid; grid-template-rows: auto 1fr auto; }
+.app { min-height: 100vh; min-height: 100dvh; display: grid; grid-template-rows: auto 1fr auto; }
 .topbar {
   position: sticky; top: 0; z-index: 10;
   display: flex; align-items: center; gap: 8px; padding: 0 20px; height: 60px;
