@@ -250,6 +250,24 @@ code.c { font-family: ui-monospace, Menlo, monospace; background: var(--surface-
 .ev-boss span { color: var(--danger); font-weight: 700; }
 .ev-enter.ev-boss span { color: var(--danger); }
 .ev-down { color: var(--danger); font-weight: 700; }
+.ev-pdown { color: var(--danger); font-weight: 600; }
+.pt-bars { display: grid; gap: 7px; margin: 0 0 14px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); }
+.pt-bar { display: grid; grid-template-columns: minmax(64px, 120px) 1fr auto; align-items: center; gap: 10px; font-size: 13px; }
+.pt-bar .gauge { margin: 0; height: 7px; background: var(--surface); }
+.pt-bar.down { opacity: .5; }
+.pt-bar .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pt-bar .hint { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pt-box { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin: 0 0 14px; }
+.pt-box .fr-row { padding: 6px 0; }
+.pt-mrow { flex-wrap: wrap; }
+.pt-mrow .fr-main { flex: 1 1 140px; }
+.pt-acts { display: flex; gap: 6px; flex-wrap: wrap; }
+@media (max-width: 600px) {
+  .pt-acts { width: 100%; padding-left: 44px; }
+  .soc-tabs .wide { display: none; }
+}
+.rank-party { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.rank-party small { color: var(--text-dim); }
 .ev-return { color: var(--accent-text); font-weight: 700; }
 .dg-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
 .dg-note { margin: 0; font-weight: 700; }
@@ -294,6 +312,16 @@ table.list.rank tr.me td { background: color-mix(in srgb, var(--primary) 10%, tr
 .home-act .row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .home-count { display: flex; gap: 10px; }
 .home-count .dg-stat { flex: 1; }
+.quest-list { list-style: none; margin: 0; padding: 0; }
+.quest-list li { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.quest-list li:last-child { border-bottom: 0; }
+.quest-list li.done b { color: var(--text-dim); }
+.an-stats { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.an-row { display: grid; grid-template-columns: 36px 1fr auto; gap: 8px; align-items: center; font-size: 12px; }
+.an-row .gauge { margin: 0; }
+.an-row .gauge i { background: linear-gradient(90deg, var(--primary), var(--secondary)); }
+.an-k { font-weight: 800; }
+.an-v { color: var(--text-dim); white-space: nowrap; }
 .todo-form { display: flex; gap: 8px; margin: 0 0 10px; }
 .todo-form .input { flex: 1; min-width: 0; }
 .todo-list { list-style: none; margin: 0; padding: 0; }
@@ -755,7 +783,7 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
       </aside>
       <main class="card main-pane" id="main-pane"></main>
       <aside class="side right">
-        <div class="card"><p class="panel-title">파티</p><p class="hint" style="margin:0">곧 열립니다.</p></div>
+        <div class="card" id="side-party"><p class="panel-title">파티</p><p class="hint" style="margin:0">불러오는 중…</p></div>
         <div class="card" id="side-sns"><p class="panel-title">SNS</p><p class="hint" style="margin:0">불러오는 중…</p></div>
       </aside>
     </div>
@@ -1297,7 +1325,7 @@ async function refreshSocial() {
 }
 function paintSocialBadge() {
   const s = social.summary || {};
-  const n = (s.friend_requests || 0) + (s.gifts || 0) + (s.unread || 0);
+  const n = (s.friend_requests || 0) + (s.gifts || 0) + (s.unread || 0) + (s.party_invites || 0);
   document.querySelectorAll('[data-menu="friends"]').forEach(a => {
     a.querySelector(".nbadge")?.remove();
     if (n > 0) a.append(h("span", { class: "nbadge", "aria-label": `새 소식 ${n}개` }, n > 99 ? "99+" : String(n)));
@@ -1310,8 +1338,8 @@ function paintSocialBadge() {
 function startSocial() {
   stopSocial();
   refreshSocial();
-  refreshSideSns();
-  social.poll = setInterval(() => { refreshSocial(); refreshSideSns(); }, 60000);
+  refreshSideSns(); refreshSideParty();
+  social.poll = setInterval(() => { refreshSocial(); refreshSideSns(); refreshSideParty(); }, 60000);
   // 새 메시지는 실시간으로 받는다
   social.chan = sb.channel("dm-" + state.user.id)
     .on("postgres_changes", { event: "INSERT", schema: "public", table: "dm_messages", filter: `recipient=eq.${state.user.id}` }, payload => {
@@ -1343,6 +1371,143 @@ async function refreshSideSns() {
     h("a", { class: "btn ghost small block", href: "#/friends", onclick: () => { nextSocialTab = "sns"; } }, "SNS 열기"));
 }
 
+/* ===== 파티 ===== */
+async function getParty() {
+  const { data, error } = await sb.rpc("party_state");
+  if (error) { toast(koError(error)); return null; }
+  return data;
+}
+async function partyRun(name, args, okMsg) {
+  const { data, error } = await sb.rpc(name, args);
+  if (error) { toast(koError(error)); return null; }
+  if (okMsg) toast(okMsg);
+  refreshSocial(); refreshSideParty();
+  return data ?? true;
+}
+const goParty = () => { nextSocialTab = "party"; route() === "friends" ? renderSocial($("#main-pane"), "party") : (location.hash = "#/friends"); };
+const posName = m => POSITIONS[m.position]?.name || m.position || "";
+
+// 파티원 HP 막대 (전투 화면)
+function partyBars(list) {
+  return h("div", { class: "pt-bars", "aria-label": "파티원 상태" }, ...(list || []).map(m => h("div", { class: `pt-bar${m.down ? " down" : ""}` },
+    h("span", { class: "nm" }, m.n),
+    h("div", { class: "gauge hp" }, h("i", { style: `width:${m.down ? 0 : Math.max(0, Math.min(100, m.hp / m.mhp * 100))}%` })),
+    h("span", { class: "hint" }, m.down ? "쓰러짐" : `HP ${m.hp}/${m.mhp} · MP ${m.mp}`))));
+}
+const lastParty = (events, start) => [...(events || [])].reverse().find(e => e.party)?.party || start;
+
+// 다른 화면에서 쓰는 파티 요약 (파티원과 하는 일)
+function partyRoster(p) {
+  return h("div", { class: "pt-box" },
+    h("div", { class: "kv", style: "border:0;padding:0 0 4px" }, h("b", {}, `파티 ${p.size}명`),
+      h("span", { class: "hint" }, `몬스터 ×${Number(p.scale).toFixed(2).replace(/\.?0+$/, "")}`)),
+    ...p.members.map(m => h("div", { class: "fr-row" }, miniAvatar(m, 28),
+      h("div", { class: "fr-main" }, h("div", {}, h("b", {}, m.codename), m.leader ? h("span", { class: "badge", style: "margin-left:6px" }, "파티장") : null),
+        h("div", { class: "hint" }, `Lv.${m.level} · ${posName(m)} · ${m.activity || "대기 중"}`)))),
+    p.gap_ok ? null : h("p", { class: "error", style: "margin:6px 0 0" }, `레벨 차이가 ${p.gap}이라 공략할 수 없습니다. (25 미만이어야 함)`));
+}
+function partyWaitNotice(p, what) {
+  const ld = p.members.find(m => m.leader);
+  return h("div", {},
+    h("div", { class: "rg-notice" },
+      h("p", { style: "margin:0 0 6px;font-weight:700" }, `파티에 있습니다 — 파티장 ${ld?.codename}님이 출발하면 ${what}에 함께 들어갑니다.`),
+      h("p", { class: "hint", style: "margin:0 0 10px" }, "파티에 있는 동안에는 혼자 무한 던전·지역 안정화에 들어갈 수 없습니다. 탐색·별의 무덤·전력 분석은 따로 할 수 있지만, 하는 동안에는 파티가 출발할 수 없습니다."),
+      h("button", { class: "btn ghost small", type: "button", onclick: goParty }, "파티 보기")),
+    partyRoster(p));
+}
+
+async function renderParty(body, pane) {
+  const d = await getParty();
+  if (!d) return body.replaceChildren(h("p", { class: "error" }, "파티 정보를 불러오지 못했습니다."));
+  const p = d.party;
+  const reload = () => renderSocial(pane, "party");
+  const parts = [];
+
+  if (d.invites.length) parts.push(h("div", { class: "fr-sec" }, h("p", { class: "panel-title" }, `받은 파티 초대 ${d.invites.length}`),
+    ...d.invites.map(iv => h("div", { class: "fr-row" }, miniAvatar(iv.from),
+      h("div", { class: "fr-main" }, hunterLink(iv.from), h("div", { class: "hint" }, `${hunterSub(iv.from)} · 지금 ${iv.size}명 · ${fmtWhen(iv.at)}`)),
+      h("button", { class: "btn small", type: "button", onclick: async () => { if (await partyRun("party_respond", { p_id: iv.id, p_accept: true }, "파티에 들어갔습니다.")) reload(); } }, "수락"),
+      h("button", { class: "btn ghost small", type: "button", onclick: async () => { if (await partyRun("party_respond", { p_id: iv.id, p_accept: false })) reload(); } }, "거절")))));
+
+  const inv = h("input", { class: "input", maxlength: "12", placeholder: "코드네임", "aria-label": "파티에 초대할 코드네임" });
+  const invBtn = h("button", { class: "btn small", type: "submit" }, "초대");
+  const invForm = h("form", { class: "todo-form" }, inv, invBtn);
+  invForm.onsubmit = async e => {
+    e.preventDefault();
+    if (!inv.value.trim()) return;
+    busy(invBtn, true, "…");
+    const r = await partyRun("party_invite", { p_codename: inv.value.trim() }, "파티 초대를 보냈습니다.");
+    busy(invBtn, false);
+    if (r) reload();
+  };
+
+  if (!p) {
+    parts.push(h("div", { class: "fr-sec" },
+      h("p", { class: "panel-title" }, "내 파티"),
+      h("p", { class: "hint", style: "margin:0 0 10px" }, "아직 파티가 없습니다. 코드네임으로 헌터를 초대하면 파티가 만들어지고, 내가 파티장이 됩니다. 헌터 정보 창의 '파티 초대'로도 부를 수 있습니다."),
+      invForm));
+  } else {
+    const ld = p.leader_is_me;
+    parts.push(h("div", { class: "fr-sec" },
+      h("p", { class: "panel-title" }, `내 파티 ${p.size} / ${p.max}`,
+        h("span", { class: "hint", style: "font-weight:500" }, ` · 몬스터 세기 ×${Number(p.scale).toFixed(3).replace(/\.?0+$/, "")}`)),
+      p.busy ? h("div", { class: "rg-notice" }, h("b", {}, "파티가 던전에 들어가 있습니다."), " 모두 결과를 받을 때까지 파티를 바꿀 수 없습니다.") : null,
+      p.gap_ok ? null : h("p", { class: "error", style: "margin:0 0 8px" }, `파티원 레벨 차이가 ${p.gap}입니다. 25 이상이면 파티는 유지되지만 공략할 수 없습니다.`),
+      ...p.members.map(m => {
+        const right = [];
+        if (ld && !m.me && !p.busy) right.push(
+          h("button", { class: "btn ghost small", type: "button", onclick: async () => { if (confirm(`${m.codename}님에게 파티장을 넘길까요?`) && await partyRun("party_promote", { p_codename: m.codename }, "파티장을 넘겼습니다.")) reload(); } }, "파티장 넘기기"),
+          h("button", { class: "btn ghost small", type: "button", onclick: async () => { if (confirm(`${m.codename}님을 파티에서 내보낼까요?`) && await partyRun("party_kick", { p_codename: m.codename }, "파티에서 내보냈습니다.")) reload(); } }, "내보내기"));
+        return h("div", { class: "fr-row pt-mrow" }, miniAvatar(m),
+          h("div", { class: "fr-main" }, h("div", {}, m.me ? h("b", {}, m.codename) : hunterLink(m), m.leader ? h("span", { class: "badge", style: "margin-left:6px" }, "파티장") : null),
+            h("div", { class: "hint" }, `${hunterSub(m)} · ${posName(m)}${m.sub_position ? ` / ${POSITIONS[m.sub_position]?.name || m.sub_position}` : ""} · ${m.activity || "대기 중"}`)),
+          right.length ? h("div", { class: "pt-acts" }, ...right) : null);
+      }),
+      p.invited.length ? h("div", { style: "margin-top:8px" }, h("p", { class: "panel-title" }, "보낸 초대 (하루 동안 유효)"),
+        ...p.invited.map(iv => h("div", { class: "fr-row" }, miniAvatar(iv), h("div", { class: "fr-main" }, hunterLink(iv), h("div", { class: "hint" }, hunterSub(iv))),
+          ld ? h("button", { class: "btn ghost small", type: "button", onclick: async () => { if (await partyRun("party_cancel_invite", { p_id: iv.id }, "초대를 취소했습니다.")) reload(); } }, "취소") : null))) : null,
+      ld && p.size + p.invited.length < p.max ? h("div", { style: "margin-top:10px" }, invForm) : null,
+      h("div", { style: "display:flex;gap:8px;flex-wrap:wrap;margin-top:12px" },
+        h("a", { class: "btn small", href: "#/dungeon" }, "무한 던전"),
+        h("a", { class: "btn small", href: "#/regional" }, "지역 안정화"),
+        h("button", { class: "btn ghost small", type: "button", disabled: p.busy, onclick: async () => {
+          if (!confirm(ld && p.size > 1 ? "파티에서 나갈까요? 파티장은 가장 먼저 들어온 파티원에게 넘어갑니다." : "파티에서 나갈까요?")) return;
+          if (await partyRun("party_leave", {}, "파티에서 나왔습니다.")) reload();
+        } }, p.size > 1 ? "파티 나가기" : "파티 해산"))));
+  }
+
+  parts.push(h("div", { class: "rg-notice", style: "margin-top:16px" },
+    h("p", { style: "margin:0 0 6px;font-weight:700" }, "파티 규칙"),
+    h("ul", { class: "hint", style: "margin:0;padding-left:18px;line-height:1.7" },
+      h("li", {}, "1~5명. 파티는 해산하기 전까지 유지되고, 같은 파티는 언제나 같은 활동을 합니다."),
+      h("li", {}, "파티장이 출발을 누르면 모두 함께 들어갑니다. 파티원 중 누가 다른 활동(무한 던전·지역 안정화·탐색·별의 무덤) 중이거나 결과를 받지 않았으면 출발할 수 없습니다."),
+      h("li", {}, "몬스터의 HP·공격력은 들어간 인원에 비례해 강해지고, 보상(가능성·메헨·아이템)은 모두 똑같이 받습니다."),
+      h("li", {}, "한 명이 쓰러져도 나머지가 계속 공략합니다. 무한 던전의 복귀는 파티장만 정할 수 있고, '조금 더 진입'은 없습니다."),
+      h("li", {}, "뱅가드·힐러·서포터의 능력은 파티원 1명에게 쓰입니다. 뱅가드는 가장 위태로운 동료의 공격을 대신 받고, 힐러는 가장 다친 동료를 치유하며, 서포터 A는 가장 강한 동료를 강화하고 서포터 B는 가장 약한 동료가 받는 피해를 줄입니다."),
+      h("li", {}, "최고·최저 레벨 차이가 25 이상이면 파티는 만들 수 있지만 공략할 수 없습니다."),
+      h("li", {}, "지역 안정화는 파티장의 활동 구역 던전을, 파티원 모두가 입장 레벨을 넘어야 들어갈 수 있습니다. 보상 비율은 가장 높은 레벨을 기준으로 합니다."),
+      h("li", {}, "파티 무한 던전 기록은 국제헌터연합의 '파티' 랭킹에 파티장 이름으로 오릅니다."))));
+  body.replaceChildren(...parts);
+}
+
+/* 오른쪽 파티 칸 (PC) */
+async function refreshSideParty() {
+  const box = $("#side-party");
+  if (!box || !state.character) return;
+  const { data } = await sb.rpc("party_state");
+  const p = data?.party, n = data?.invites?.length || 0;
+  if (!p && !n) return box.replaceChildren(h("p", { class: "panel-title" }, "파티"),
+    h("p", { class: "hint", style: "margin:0 0 10px" }, "파티가 없습니다. 헌터를 초대하면 파티가 만들어집니다."),
+    h("button", { class: "btn ghost small block", type: "button", onclick: goParty }, "파티 만들기"));
+  box.replaceChildren(
+    h("p", { class: "panel-title" }, p ? `파티 ${p.size}/${p.max}` : "파티"),
+    p ? h("ul", { class: "side-feed" }, ...p.members.map(m => h("li", {},
+      h("div", { class: "side-feed-head" }, h("b", {}, m.codename), m.leader ? h("span", { class: "cat-chip" }, "파티장") : null, h("span", { class: "hint" }, `Lv.${m.level}`)),
+      h("p", { class: "hint", style: "margin:2px 0 0" }, m.activity || "대기 중")))) : null,
+    n ? h("p", { class: "hint", style: "margin:0 0 10px" }, `받은 파티 초대 ${n}개`) : null,
+    h("button", { class: "btn ghost small block", type: "button", onclick: goParty }, p ? "파티 관리" : "초대 보기"));
+}
+
 /* ===== 교류 화면 ===== */
 let nextSocialTab = null, socialTab = "friends", chatWith = null;
 async function renderSocial(pane, tab) {
@@ -1354,12 +1519,14 @@ async function renderSocial(pane, tab) {
     label, n > 0 ? h("span", { class: "nbadge" }, String(n)) : null);
   pane.replaceChildren(
     h("h2", {}, "교류"),
-    h("p", { class: "hint", style: "margin:0 0 16px" }, "친구와 메시지·선물을 주고받고, SNS에서 다른 헌터들과 이야기를 나눕니다."),
-    h("div", { class: "tabs", style: "max-width:420px" },
-      tabBtn("friends", "친구 · 메시지", (s.friend_requests || 0) + (s.unread || 0)),
+    h("p", { class: "hint", style: "margin:0 0 16px" }, "친구와 메시지·선물을 주고받고, 파티를 꾸려 함께 던전에 들어가고, SNS에서 다른 헌터들과 이야기를 나눕니다."),
+    h("div", { class: "tabs soc-tabs", style: "max-width:540px" },
+      tabBtn("friends", h("span", {}, "친구", h("span", { class: "wide" }, " · 메시지")), (s.friend_requests || 0) + (s.unread || 0)),
+      tabBtn("party", "파티", s.party_invites || 0),
       tabBtn("gifts", "선물함", s.gifts || 0),
       tabBtn("sns", "SNS", 0)),
     body);
+  if (socialTab === "party") return renderParty(body, pane);
   if (socialTab === "gifts") return renderGifts(body);
   if (socialTab === "sns") return renderSns(body);
   return renderFriends(body, pane);
@@ -1700,6 +1867,7 @@ async function openPublicHunter(codename) {
       h("button", { class: "btn ghost small", type: "button", onclick: () => { $("#dlg-info").close(); openGift(p.codename); } }, "선물"));
     else if (p.pending) btns.push(h("span", { class: "badge" }, "친구 신청 중"));
     else if (!p.blocked) btns.push(h("button", { class: "btn small", type: "button", onclick: () => run("friend_request", { p_codename: p.codename }, d => d?.result === "accepted" ? "친구가 되었습니다." : "친구 신청을 보냈습니다.") }, "친구 신청"));
+    if (!p.blocked) btns.push(h("button", { class: "btn ghost small", type: "button", onclick: () => run("party_invite", { p_codename: p.codename }, "파티 초대를 보냈습니다. 상대가 수락하면 함께합니다.").then(refreshSideParty) }, "파티 초대"));
     btns.push(p.blocked
       ? h("button", { class: "btn ghost small", type: "button", onclick: () => run("block_user", { p_codename: p.codename, p_block: false }, "차단을 풀었습니다.") }, "차단 해제")
       : h("button", { class: "btn ghost small", type: "button", onclick: () => confirm(`${p.codename}님을 차단할까요?`) && run("block_user", { p_codename: p.codename, p_block: true }, "차단했습니다.") }, "차단"),
@@ -1902,7 +2070,113 @@ async function renderHome(pane) {
   const todoBox = h("div", { class: "home-box", style: "margin-top:14px" }, todoTitle, form, err, list, clearBtn);
   paintTodos();
 
-  body.replaceChildren(h("div", { class: "home-grid" }, actBox, countBox), todoBox);
+  /* 일일 퀘스트 */
+  const questBox = h("div", { class: "home-box" }, h("p", { class: "panel-title" }, "일일 퀘스트"), h("p", { class: "hint" }, "불러오는 중…"));
+  async function paintQuests() {
+    const { data: qs, error } = await sb.rpc("daily_quests");
+    if (error) return questBox.replaceChildren(h("p", { class: "panel-title" }, "일일 퀘스트"), h("p", { class: "error" }, koError(error)));
+    questBox.replaceChildren(h("p", { class: "panel-title" }, `일일 퀘스트 ${qs.filter(q => q.claimed).length} / ${qs.length}`),
+      h("ul", { class: "quest-list" }, ...qs.map(q => {
+        let right;
+        if (q.claimed) right = h("span", { class: "badge" }, "받음");
+        else if (q.done) {
+          right = h("button", { class: "btn small", type: "button" }, "받기");
+          right.onclick = async () => {
+            busy(right, true, "…");
+            const { data, error } = await sb.rpc("quest_claim", { p_code: q.code });
+            if (error) { busy(right, false); return toast(koError(error)); }
+            toast(`가능성 +${data.pot}` + (data.level_after > data.level_before ? " — 레벨이 올랐습니다!" : ""));
+            await loadAll(); renderHunter(); paintQuests();
+          };
+        } else right = h("span", { class: "hint" }, "진행 전");
+        return h("li", { class: q.claimed ? "done" : null },
+          h("div", { class: "fr-main" }, h("b", {}, q.name), h("div", { class: "hint" }, `${q.desc} · 가능성 +${q.reward}`)), right);
+      })),
+      h("p", { class: "hint", style: "margin:8px 0 0;font-size:12px" }, "보상은 레벨 × 15 (획득률 적용) · 매일 0시(한국 시간)에 새로 시작합니다."));
+  }
+
+  /* 전력 분석 */
+  const STAT_KO = { hp: "HP", mp: "MP", atk: "ATK", def: "DEF", luk: "LUK" };
+  const anBox = h("div", { class: "home-box" }, h("p", { class: "panel-title" }, "전력 분석"), h("p", { class: "hint" }, "불러오는 중…"));
+  let anTick = null;
+  async function paintAnalysis() {
+    const { data: a, error } = await sb.rpc("analysis_state");
+    if (error) return anBox.replaceChildren(h("p", { class: "panel-title" }, "전력 분석"), h("p", { class: "error" }, koError(error)));
+    const off = Date.parse(a.now) - Date.now();
+    const kids = [h("p", { class: "panel-title" }, "전력 분석")];
+    const finish = async (name, okMsg) => {
+      const { data: r, error } = await sb.rpc(name);
+      if (error) return toast(koError(error));
+      const parts = [];
+      if (r.stat_gain > 0) parts.push(`${STAT_KO[r.stat]} +${r.stat_gain} (${r.stage_after}단계)`);
+      if (r.pot > 0) parts.push(`가능성 +${r.pot}`);
+      toast(parts.length ? parts.join(" · ") : `${okMsg} (${r.credited}분 반영)`);
+      await loadAll(); renderHunter(); paintAnalysis(); paintQuests();
+    };
+    if (a.running) {
+      const ru = a.running, start = Date.parse(ru.started_at), end = Date.parse(ru.ends_at);
+      const left = h("b", { class: "home-big" }), bar = h("i", { style: "width:0%" });
+      const btns = h("div", { style: "display:flex;gap:8px;margin-top:10px" });
+      let shownDone = false;
+      anTick = () => {
+        const now = Date.now() + off;
+        bar.style.width = Math.min(100, (now - start) / (end - start) * 100) + "%";
+        if (now < end) left.textContent = fmtDur(end - now);
+        else if (!shownDone) {
+          shownDone = true; left.textContent = "분석 완료"; left.className = "home-big ok-text";
+          btns.replaceChildren(h("button", { class: "btn small", type: "button", onclick: () => finish("analysis_claim", "분석을 마쳤습니다") }, "결과 받기"));
+        }
+      };
+      btns.append(h("button", { class: "btn ghost small", type: "button", onclick: () =>
+        confirm("분석을 그만둘까요? 지금까지 지난 시간만큼(5분 단위로 내림)만 반영되고, 일일 퀘스트 '자기 계발'은 완료되지 않습니다.") && finish("analysis_cancel", "분석을 그만두었습니다") }, "그만두기"));
+      kids.push(h("div", { class: "home-act" },
+        h("div", { class: "row" }, h("strong", {}, `${STAT_KO[ru.stat]} 분석 · ${ru.minutes}분`), ru.speed > 1 ? h("span", { class: "badge" }, `테스트 ${ru.speed}배`) : h("span", { class: "hint" }, `${fmtTime(ru.ends_at)} 완료`)),
+        h("div", { class: "row", style: "margin-top:4px" }, h("span", { class: "hint" }, "남은 시간"), left),
+        h("div", { class: "bar", style: "margin-top:8px" }, bar), btns));
+      anTick();
+    } else {
+      anTick = null;
+      let pick = "hp", mins = 60, speed = 1;
+      const chips = h("div", { class: "cat-row" });
+      const paintChips = () => chips.replaceChildren(...STAT_ORDER.map(k => h("button", { type: "button", class: `cat-chip big${pick === k ? " on" : ""}`, "aria-pressed": pick === k ? "true" : "false", onclick: () => { pick = k; paintChips(); } }, STAT_KO[k])));
+      const val = h("strong", {}, "60분");
+      const range = h("input", { type: "range", min: "5", max: "180", step: "5", value: "60", class: "range", "aria-label": "분석 시간" });
+      range.oninput = () => { mins = Number(range.value); val.textContent = mins >= 60 ? `${Math.floor(mins / 60)}시간${mins % 60 ? ` ${mins % 60}분` : ""}` : `${mins}분`; };
+      const go = h("button", { class: "btn small block", type: "button" }, "분석 시작");
+      go.onclick = async () => {
+        busy(go, true, "…");
+        const { error } = await sb.rpc("analysis_start", { p_stat: pick, p_minutes: mins, p_speed: speed });
+        busy(go, false);
+        if (error) return toast(koError(error));
+        paintAnalysis();
+      };
+      paintChips();
+      kids.push(chips,
+        h("div", { class: "kv", style: "border:0;padding:4px 0 0" }, h("span", {}, "분석 시간"), val), range,
+        h("div", { class: "range-scale" }, h("span", {}, "5분"), h("span", {}, "180분")));
+      if (state.profile?.is_admin) {
+        const sel = h("select", { class: "input", "aria-label": "운영자 테스트 속도", style: "min-height:36px;margin-bottom:8px" },
+          h("option", { value: "1" }, "실시간"), h("option", { value: "60" }, "테스트 60배"), h("option", { value: "360" }, "테스트 360배"));
+        sel.onchange = () => { speed = Number(sel.value); };
+        kids.push(sel);
+      }
+      kids.push(go);
+    }
+    const hrs = m => { const h_ = m / 60; return h_ >= 10 ? `${Math.round(h_)}시간` : `${Math.round(h_ * 10) / 10}시간`; };
+    kids.push(h("div", { class: "an-stats" }, ...a.stats.map(s => {
+      const pct = s.stage >= 10 ? 100 : (s.minutes - s.stage_from) / (s.next_at - s.stage_from) * 100;
+      return h("div", { class: "an-row" },
+        h("span", { class: "an-k" }, STAT_KO[s.stat]),
+        h("div", { class: "gauge" }, h("i", { style: `width:${Math.max(0, Math.min(100, pct))}%` })),
+        h("span", { class: "an-v" }, s.stage >= 10 ? "10단계 · 가능성" : `${s.stage}/10 · 다음 ${hrs(s.next_at - s.minutes)}`));
+    })),
+      h("p", { class: "hint", style: "margin:6px 0 0;font-size:12px" }, "고른 스탯에 분석 시간이 쌓이고, 단계마다 그 스탯이 영구로 +1 오릅니다. 10단계를 마친 스탯은 5분마다 가능성 5를 얻습니다. 다른 활동과 동시에 할 수 있습니다."));
+    anBox.replaceChildren(...kids);
+  }
+  ticks.push(() => anTick && anTick());
+
+  body.replaceChildren(h("div", { class: "home-grid" }, actBox, countBox), h("div", { class: "home-grid", style: "margin-top:14px" }, questBox, anBox), todoBox);
+  paintQuests(); paintAnalysis();
   const tick = () => {
     ticks.forEach(f => f());
     if (Date.parse(d.reset_at) <= nowS()) { stopDungeonTimers(); renderHome(pane); }   // 0시가 지나면 횟수 새로 고침
@@ -1924,6 +2198,11 @@ function fmtDur(ms) {
   const hh = Math.floor(ms / 3600000), mm = Math.floor(ms % 3600000 / 60000), ss = Math.floor(ms % 60000 / 1000);
   return hh ? `${hh}시간 ${mm}분` : mm ? `${mm}분 ${ss}초` : `${ss}초`;
 }
+const PARTY_REASON = {
+  time: "정한 시간이 다 되어 파티가 복귀했습니다.",
+  wall: "다음 역의 적이 너무 강해 파티가 복귀했습니다.",
+  hp: "파티 전원이 쓰러져 국제헌터연합에 구조되었습니다.",
+};
 const REASON = {
   time: "정한 시간이 다 되어 복귀했습니다.",
   wall: "다음 역의 적이 너무 강해 복귀했습니다.",
@@ -1963,21 +2242,26 @@ async function renderDungeon(pane, tab = "battle") {
 async function renderDungeonIdle(body) {
   let hours = 6, speed = 1;
   const supplies = {};
+  const pd = await getParty();
+  const pt = pd?.party?.size >= 2 ? pd.party : null;
+  if (pt && !pt.leader_is_me) return body.replaceChildren(partyWaitNotice(pt, "무한 던전"));
   const val = h("strong", {}, "6시간");
   const range = h("input", { type: "range", min: "6", max: "12", step: "1", value: "6", class: "range", "aria-label": "진입 시간" });
   range.oninput = () => { hours = Number(range.value); val.textContent = `${hours}시간`; };
   const err = h("div", { class: "error", role: "alert" });
-  const btn = h("button", { class: "btn block", type: "button" }, "무한 던전 진입");
+  const btn = h("button", { class: "btn block", type: "button", disabled: pt && !pt.gap_ok }, pt ? `파티 ${pt.size}명으로 무한 던전 진입` : "무한 던전 진입");
   btn.onclick = async () => {
     err.textContent = "";
     busy(btn, true, "진입 중…");
     const chosen = Object.fromEntries(Object.entries(supplies).filter(([, n]) => n > 0));
-    const { error } = await sb.rpc("start_infinite", { p_hours: hours, p_speed: speed, p_supplies: chosen });
+    const { error } = await sb.rpc(pt ? "start_party_infinite" : "start_infinite", { p_hours: hours, p_speed: speed, p_supplies: chosen });
     busy(btn, false);
     if (error) return (err.textContent = koError(error));
     renderDungeon($("#main-pane"));
   };
   const parts = [
+    pt ? partyRoster(pt) : null,
+    pt ? h("p", { class: "hint", style: "margin:-6px 0 14px" }, "파티장이 출발하면 모두 함께 들어갑니다. 몬스터는 들어간 인원에 비례해 강해지고, 보상은 모두 똑같이 받습니다. 복귀는 파티장만 정할 수 있고 '조금 더 진입'은 없습니다.") : null,
     h("div", { class: "kv", style: "border:0" }, h("span", {}, "진입 시간"), val),
     range,
     h("div", { class: "range-scale" }, h("span", {}, "6시간"), h("span", {}, "12시간")),
@@ -2003,7 +2287,9 @@ async function renderDungeonIdle(body) {
             h("span", { class: "alloc-val", style: "min-width:28px" }, String(n)),
             h("button", { type: "button", class: "btn ghost small", disabled: !canAdd, "aria-label": `${x.name} 더하기`, onclick: () => { supplies[x.code] = n + 1; paintSupplies(); } }, "+")));
       }),
-      h("p", { class: "hint", style: "margin:4px 0 16px" }, "HP·MP가 부족해지면 쉬기 전에 챙긴 보급품을 먼저 씁니다. 남은 것은 복귀할 때 돌려받습니다."));
+      h("p", { class: "hint", style: "margin:4px 0 16px" }, pt
+        ? "파티장이 챙긴 보급품을 파티가 함께 씁니다. HP·MP가 부족해진 파티원에게 먼저 쓰고, 남은 것은 파티장이 돌려받습니다."
+        : "HP·MP가 부족해지면 쉬기 전에 챙긴 보급품을 먼저 씁니다. 남은 것은 복귀할 때 돌려받습니다."));
   }
   paintSupplies();
   parts.push(supBox);
@@ -2017,7 +2303,7 @@ async function renderDungeonIdle(body) {
     parts.push(h("div", { class: "field" }, h("label", { for: "dg-speed" }, "운영자 테스트 속도"), sel));
   }
   parts.push(err, btn);
-  body.replaceChildren(...parts);
+  body.replaceChildren(...parts.filter(Boolean));
 }
 
 function renderDungeonRun(body, first) {
@@ -2030,14 +2316,17 @@ function renderDungeonRun(body, first) {
   const actions = h("div", { class: "dg-actions" });
   const err = h("div", { class: "error", role: "alert" });
   let cur = first, shown = 0;
+  const pty = first.party;
+  const ptBox = h("div", {});
 
   body.replaceChildren(
     h("div", { class: "dg-head" },
       h("div", {}, h("strong", {}, `${cur.hours}시간 진입`),
+        pty ? h("span", { class: "badge", style: "margin-left:6px" }, `파티 ${pty.size}명 · 파티장 ${pty.leader}`) : null,
         cur.speed > 1 ? h("span", { class: "badge", style: "margin-left:6px" }, `테스트 ${cur.speed}배`) : null),
       timeLeft),
     h("div", { class: "bar" }, bar),
-    stats, list, err, actions);
+    stats, ptBox, list, err, actions);
 
   const statBox = (k, v) => h("div", { class: "dg-stat" }, h("small", {}, k), h("b", {}, v));
   function paintStats() {
@@ -2045,6 +2334,7 @@ function renderDungeonRun(body, first) {
       statBox("도달", `${cur.reached}역`),
       statBox("가능성", `+${Math.round(cur.pot * cur.grade_mult).toLocaleString()}`),
       statBox("메헨", `+${Number(cur.cur).toLocaleString()} Mh`));
+    if (pty) ptBox.replaceChildren(partyBars(lastParty(cur.events, pty.start)));
   }
   function paintLog() {
     const nearBottom = list.scrollTop + list.clientHeight >= list.scrollHeight - 40;
@@ -2055,12 +2345,14 @@ function renderDungeonRun(body, first) {
   }
   function paintActions() {
     if (!cur.returned) {
-      actions.replaceChildren(h("button", { class: "btn ghost", type: "button", onclick: retreat }, "지금 복귀하기"));
+      actions.replaceChildren(pty && !pty.leader_is_me
+        ? h("p", { class: "hint", style: "margin:0" }, `파티로 들어와 있습니다. 복귀는 파티장 ${pty.leader}님이 정합니다.`)
+        : h("button", { class: "btn ghost", type: "button", onclick: retreat }, pty ? "파티 모두 지금 복귀하기" : "지금 복귀하기"));
       return;
     }
     const kids = [h("p", { class: "dg-note" }, cur.retreated
-      ? "스스로 복귀했습니다. 지금까지 공략한 역의 보상을 받을 수 있습니다."
-      : "던전에서 돌아왔습니다. 결과를 받아 주세요.")];
+      ? (pty ? "파티장이 복귀를 선택했습니다. 지금까지 공략한 역의 보상을 받을 수 있습니다." : "스스로 복귀했습니다. 지금까지 공략한 역의 보상을 받을 수 있습니다.")
+      : pty ? "파티가 던전에서 돌아왔습니다. 파티원마다 각자 결과를 받습니다." : "던전에서 돌아왔습니다. 결과를 받아 주세요.")];
     if (cur.can_push) kids.push(
       h("button", { class: "btn ghost", type: "button", onclick: () => claim(true) }, "조금 더 진입 (성공 50%)"),
       h("p", { class: "hint", style: "margin:0" }, "성공하면 기력을 되찾아 몇 역을 더 공략하고 추가분 보상 1.5배, 실패하면 레기온에 구조되어 이번 보상의 20%를 잃습니다."));
@@ -2080,7 +2372,7 @@ function renderDungeonRun(body, first) {
     if (!cur.returned) dgPoll = setTimeout(poll, pollDelay());
   }
   async function retreat() {
-    if (!confirm("지금 복귀할까요?\n지금까지 공략한 역의 보상만 받고, '조금 더 진입'은 할 수 없습니다.")) return;
+    if (!confirm(pty ? "파티 모두 지금 복귀할까요?\n지금까지 공략한 역의 보상만 받습니다." : "지금 복귀할까요?\n지금까지 공략한 역의 보상만 받고, '조금 더 진입'은 할 수 없습니다.")) return;
     const { error } = await sb.rpc("retreat_infinite");
     if (error) return (err.textContent = koError(error));
     clearTimeout(dgPoll);
@@ -2118,7 +2410,8 @@ function showReport(body, r) {
   ];
   const kids = [
     h("h3", { class: "report-title" }, grUp ? `${r.grade_after}급으로 승급했습니다!` : lvUp ? "레벨이 올랐습니다!" : "던전 결과"),
-    h("p", { class: "hint", style: "margin:0 0 12px" }, r.retreated ? "스스로 복귀했습니다." : (REASON[r.reason] || "")),
+    h("p", { class: "hint", style: "margin:0 0 12px" }, (r.party ? "파티 공략 · 파티원 모두 같은 보상을 받았습니다. " : "")
+      + (r.retreated ? (r.party ? "파티장이 복귀를 선택했습니다." : "스스로 복귀했습니다.") : (r.party ? (PARTY_REASON[r.reason] || "") : (REASON[r.reason] || "")))),
     h("div", { class: "report" }, ...rows.map(([k, v]) => h("div", { class: "kv" }, h("span", {}, k), h("span", {}, v)))),
   ];
   if (r.push?.tried) kids.push(
@@ -2179,11 +2472,17 @@ async function renderRegionalBoard(body, act) {
   const { data: rg, error } = await sb.rpc("get_regional");
   if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
   const offset = Date.parse(rg.now) - Date.now();
-  if (!rgGrade || !rg.grades.find(g => g.grade === rgGrade)?.eligible) rgGrade = rg.top_grade || "E";
+  const pt = rg.party, ptMember = !!pt && !pt.leader_is_me;
+  if (pt) {   // 파티: 성공률·입장·보상은 파티 기준
+    rg.grades = rg.grades.map(g => ({ ...g, ...(pt.grades?.[g.grade] || {}) }));
+    rg.top_grade = pt.top_grade || rg.top_grade;
+  }
+  if (!rgGrade || !rg.grades.find(g => g.grade === rgGrade)?.eligible)
+    rgGrade = rg.grades.find(g => g.grade === rg.top_grade && g.eligible)?.grade || [...rg.grades].reverse().find(g => g.eligible)?.grade || "E";
   let speed = 1, selected = null;
   const [{ data: ex }, { data: st }] = await Promise.all([sb.rpc("explore_state"), sb.rpc("star_state")]);
   const exploring = ex?.status === "running", starring = st?.status === "running";
-  const busyElsewhere = (act && act.kind !== "regional") || exploring || starring;
+  const busyElsewhere = (act && act.kind !== "regional") || exploring || starring || ptMember || (pt && !pt.gap_ok);
 
   const info = h("div", { class: "rg-info" });
   const board = h("div", { class: "rg-board" });
@@ -2229,14 +2528,14 @@ async function renderRegionalBoard(body, act) {
     const d = rg.dungeons.find(x => x.id === selected);
     const g = rg.grades.find(x => x.grade === rgGrade);
     btn.disabled = !d || busyElsewhere;
-    btn.textContent = d ? `${d.place || `${d.grade}-${d.slot}`} 공략 시작 (예상 성공 ${Math.round(g.success * 100)}%)` : "공략할 던전을 고르세요";
+    btn.textContent = d ? `${pt ? `파티 ${pt.size}명으로 ` : ""}${d.place || `${d.grade}-${d.slot}`} 공략 시작 (예상 성공 ${Math.round(g.success * 100)}%)` : "공략할 던전을 고르세요";
   }
   function paintAll() { paintTabs(); paintInfo(); paintBoard(); paintBtn(); }
 
   btn.onclick = async () => {
     err.textContent = "";
     busy(btn, true, "진입 중…");
-    const { error } = await sb.rpc("start_regional", { p_dungeon_id: selected, p_speed: speed });
+    const { error } = await sb.rpc(pt ? "start_party_regional" : "start_regional", { p_dungeon_id: selected, p_speed: speed });
     busy(btn, false);
     if (error) {
       err.textContent = koError(error);
@@ -2247,10 +2546,14 @@ async function renderRegionalBoard(body, act) {
 
   const parts = [
     h("div", { class: "kv", style: "border:0;padding:0 0 10px" },
-      h("span", {}, `${REGIONS[rg.region] || rg.region} 구역 · Lv.${rg.level}`),
+      h("span", {}, pt ? `${REGIONS[rg.region] || rg.region} 구역 (파티장 ${pt.leader}님의 활동 구역)` : `${REGIONS[rg.region] || rg.region} 구역 · Lv.${rg.level}`),
       h("button", { type: "button", class: "btn ghost small", onclick: () => renderRegionalBoard(body, act) }, "새로 고침")),
   ];
-  if (busyElsewhere) parts.push(exploring ? exploreNotice() : starring ? starNotice() : h("div", { class: "rg-notice" },
+  if (pt && !(act && act.kind !== "regional") && !exploring && !starring) {
+    const ps = await getParty();
+    if (ps?.party) parts.push(ptMember ? partyWaitNotice(ps.party, "지역 안정화") : partyRoster(ps.party));
+    if (!ptMember) parts.push(h("p", { class: "hint", style: "margin:-6px 0 14px" }, "파티원 모두가 입장 레벨을 넘어야 들어갈 수 있습니다. 몬스터는 들어간 인원에 비례해 강해지고, 한 명이 쓰러져도 나머지가 계속합니다. 보상은 모두 같고, 보상 비율은 가장 높은 레벨을 기준으로 합니다."));
+  } else if (busyElsewhere) parts.push(exploring ? exploreNotice() : starring ? starNotice() : h("div", { class: "rg-notice" },
     h("p", { style: "margin:0 0 8px;font-weight:700" }, "무한 던전에 진입해 있어 지금은 공략할 수 없습니다."),
     h("a", { class: "btn small", href: "#/dungeon" }, "무한 던전으로 가기")));
   parts.push(tabs, info, board, note);
@@ -2281,6 +2584,7 @@ function renderRegionalRun(body, first) {
   let cur = first, shown = 0;
   const stats = h("div", { class: "dg-stats rg-run-stats" });
   const maxHp = t.max_hp || 100, maxMp = t.max_mp || 30;
+  const ptBox = h("div", {});
   const gauge = (label, v, max, cls) => h("div", { class: "dg-stat" },
     h("small", {}, label), h("b", {}, `${v}`, h("span", { class: "hint", style: "font-size:13px;font-weight:600" }, ` / ${max}`)),
     h("div", { class: `gauge ${cls}` }, h("i", { style: `width:${Math.max(0, Math.min(100, v / max * 100))}%` })));
@@ -2288,25 +2592,31 @@ function renderRegionalRun(body, first) {
     h("div", { class: "dg-head" },
       h("div", {}, h("strong", {}, t.place ? `${t.grade}급 · ${t.place}` : `${t.grade}급 던전 ${t.slot}번 공략`),
         t.theme ? h("span", { class: "rg-theme" }, t.theme) : null,
+        t.party ? h("span", { class: "badge", style: "margin-left:6px" }, `파티 ${t.party.names.length}명 · 파티장 ${t.party.leader}`) : null,
         cur.speed > 1 ? h("span", { class: "badge", style: "margin-left:6px" }, `테스트 ${cur.speed}배`) : null),
       timeLeft),
     h("div", { class: "bar" }, bar),
-    stats, list, err, actions);
+    stats, ptBox, list, err, actions);
 
   function paintStats() {
     const last = [...cur.events].reverse().find(e => e.hp != null);
     const zone = Math.max(0, ...cur.events.map(e => e.zone || 0));
     const hp = last ? last.hp : maxHp, mp = last ? last.mp : maxMp;
-    stats.replaceChildren(
-      h("div", { class: "dg-stat" }, h("small", {}, "구역"), h("b", {}, `${zone}`, h("span", { class: "hint", style: "font-size:13px;font-weight:600" }, ` / ${t.zones || "?"}`))),
-      gauge("HP", hp, maxHp, "hp"), gauge("MP", mp, maxMp, "mp"),
-      h("div", { class: "dg-stat" }, h("small", {}, "모은 보상"), h("b", { style: "font-size:14px" }, `가능성 +${cur.pot || 0}`, h("br"), `메헨 +${cur.cur || 0} Mh`)));
+    const zoneBox = h("div", { class: "dg-stat" }, h("small", {}, "구역"), h("b", {}, `${zone}`, h("span", { class: "hint", style: "font-size:13px;font-weight:600" }, ` / ${t.zones || "?"}`)));
+    const rewardBox = h("div", { class: "dg-stat" }, h("small", {}, "모은 보상"), h("b", { style: "font-size:14px" }, `가능성 +${cur.pot || 0}`, h("br"), `메헨 +${cur.cur || 0} Mh`));
+    if (t.party) {
+      stats.style.gridTemplateColumns = "repeat(2, 1fr)";
+      stats.replaceChildren(zoneBox, rewardBox);
+      ptBox.replaceChildren(partyBars(lastParty(cur.events, t.party.start)));
+      return;
+    }
+    stats.replaceChildren(zoneBox, gauge("HP", hp, maxHp, "hp"), gauge("MP", mp, maxMp, "mp"), rewardBox);
   }
   function paint() {
     const nearBottom = list.scrollTop + list.clientHeight >= list.scrollHeight - 40;
     for (const e of cur.events.slice(shown))
       list.append(h("li", { class: `ev ev-${e.type}${e.boss ? " ev-boss" : ""}` }, h("time", {}, fmtTime(e.at)), h("span", {}, e.text),
-        e.hp != null && e.type !== "reward" ? h("em", { class: "ev-hp" }, `HP ${e.hp}/${maxHp} · MP ${e.mp}/${maxMp}`) : null));
+        e.hp != null && e.type !== "reward" && !t.party ? h("em",{ class: "ev-hp" }, `HP ${e.hp}/${maxHp} · MP ${e.mp}/${maxMp}`) : null));
     shown = cur.events.length;
     if (nearBottom) list.scrollTop = list.scrollHeight;
     paintStats();
@@ -2354,6 +2664,7 @@ function showRegionalReport(body, r) {
       ? (grUp ? `${r.grade_after}급으로 승급했습니다!` : lvUp ? "안정화 성공 · 레벨 업!" : "던전 안정화 성공")
       : "공략 실패"),
     h("p", { class: "hint", style: "margin:0 0 12px" }, `${r.target.grade}급 · ${r.target.place || `${r.target.slot}번 던전`}${r.target.theme ? ` · ${r.target.theme}` : ""} · 예상 성공률 ${Math.round(r.prob * 100)}%`
+      + (r.target.party ? ` · 파티 ${r.target.party.names.length}명 (모두 같은 보상)` : "")
       + (r.mult < 1 ? ` · 보상 ${Math.round(r.mult * 100)}%` : "")
       + (r.success ? "" : " · 쓰러지기 전까지 클리어한 구역의 보상만 받습니다. 던전은 그대로 남습니다.")),
   ];
@@ -2946,32 +3257,48 @@ function openStats() {
 }
 
 /* ===== 국제헌터연합: 주간 랭킹 ===== */
-async function renderUnion(pane, offset = 0) {
+let unionMode = "solo";
+async function renderUnion(pane, offset = 0, mode = unionMode) {
+  unionMode = mode;
   const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
   pane.replaceChildren(
     h("h2", {}, "국제헌터연합"),
-    h("p", { class: "hint", style: "margin:0 0 16px" }, "무한 던전 주간 랭킹은 매주 월요일 0시(한국 시간)에 새로 시작합니다. 같은 역이면 먼저 도달한 헌터가 앞섭니다."),
-    h("div", { class: "tabs", style: "max-width:320px" },
-      h("button", { type: "button", class: offset === 0 ? "on" : null, onclick: () => renderUnion(pane, 0) }, "이번 주"),
-      h("button", { type: "button", class: offset === 1 ? "on" : null, onclick: () => renderUnion(pane, 1) }, "지난주 (확정)")),
+    h("p", { class: "hint", style: "margin:0 0 16px" }, "무한 던전 주간 랭킹은 매주 월요일 0시(한국 시간)에 새로 시작합니다. 같은 역이면 먼저 도달한 쪽이 앞섭니다. 혼자 세운 기록과 파티로 세운 기록은 따로 겨룹니다."),
+    h("div", { style: "display:flex;gap:10px;flex-wrap:wrap" },
+      h("div", { class: "tabs", style: "max-width:220px;flex:1 1 180px" },
+        h("button", { type: "button", class: mode === "solo" ? "on" : null, onclick: () => renderUnion(pane, offset, "solo") }, "개인"),
+        h("button", { type: "button", class: mode === "party" ? "on" : null, onclick: () => renderUnion(pane, offset, "party") }, "파티")),
+      h("div", { class: "tabs", style: "max-width:320px;flex:1 1 240px" },
+        h("button", { type: "button", class: offset === 0 ? "on" : null, onclick: () => renderUnion(pane, 0, mode) }, "이번 주"),
+        h("button", { type: "button", class: offset === 1 ? "on" : null, onclick: () => renderUnion(pane, 1, mode) }, "지난주 (확정)"))),
     body,
-    h("p", { class: "hint", style: "margin-top:20px" }, "코드네임을 누르면 헌터 정보를 보고 친구 신청을 할 수 있습니다. 도감, 업적·타이틀, 길드는 차례대로 열립니다."));
-  const { data, error } = await sb.rpc("get_weekly_ranking", { p_offset: offset });
+    h("p", { class: "hint", style: "margin-top:20px" }, mode === "party"
+      ? "파티 기록은 파티장 이름으로 오릅니다. 파티장 이름을 누르면 함께한 파티원을 볼 수 있습니다."
+      : "코드네임을 누르면 헌터 정보를 보고 친구 신청을 할 수 있습니다. 도감, 업적·타이틀, 길드는 차례대로 열립니다."));
+  const { data, error } = await sb.rpc(mode === "party" ? "get_party_ranking" : "get_weekly_ranking", { p_offset: offset });
   if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
   const ws = new Date(`${data.week_start}T00:00:00+09:00`), we = new Date(ws.getTime() + 6 * 864e5);
   const span = `${ws.getMonth() + 1}월 ${ws.getDate()}일 ~ ${we.getMonth() + 1}월 ${we.getDate()}일`;
   if (!data.rows.length) {
     return body.replaceChildren(h("p", { class: "hint", style: "margin:0 0 8px" }, span),
-      h("div", { class: "soon" }, offset === 0 ? "아직 기록이 없습니다. 무한 던전에서 첫 기록을 세워 보세요." : "지난주 기록이 없습니다."));
+      h("div", { class: "soon" }, offset === 0
+        ? (mode === "party" ? "아직 파티 기록이 없습니다. 파티를 꾸려 무한 던전에 들어가 보세요." : "아직 기록이 없습니다. 무한 던전에서 첫 기록을 세워 보세요.")
+        : "지난주 기록이 없습니다."));
   }
+  const showMembers = r => info(`${r.codename}님의 파티`,
+    h("p", { class: "hint", style: "margin:0 0 10px" }, `${r.best_station}역 도달 · 파티원 ${r.members.length}명 (현재 등급·레벨)`),
+    ...r.members.map(m => h("div", { class: "fr-row" },
+      h("div", { class: "fr-main" }, h("div", {}, h("button", { type: "button", class: "hunter-link", onclick: () => openPublicHunter(m.codename) }, m.codename),
+        m.leader ? h("span", { class: "badge", style: "margin-left:6px" }, "파티장") : null),
+        h("div", { class: "hint" }, m.grade ? `${m.grade}급 · Lv.${m.level}` : "")))));
   body.replaceChildren(
     h("p", { class: "hint", style: "margin:0 0 8px" }, span),
     h("table", { class: "list rank" },
-      h("thead", {}, h("tr", {}, h("th", {}, "순위"), h("th", {}, "헌터"), h("th", {}, "등급"), h("th", { style: "text-align:right" }, "최고 도달"))),
+      h("thead", {}, h("tr", {}, h("th", {}, "순위"), h("th", {}, mode === "party" ? "파티장" : "헌터"), h("th", {}, mode === "party" ? "파티" : "등급"), h("th", { style: "text-align:right" }, "최고 도달"))),
       h("tbody", {}, ...data.rows.map(r => h("tr", { class: r.me ? "me" : null },
         h("td", {}, h("span", { class: "rank-n" + (r.rank <= 3 ? " top" : "") }, String(r.rank))),
-        h("td", {}, h("button", { type: "button", class: "hunter-link", onclick: () => openPublicHunter(r.codename) }, r.codename)),
-        h("td", {}, `${r.grade}급 · Lv.${r.level}`),
+        h("td", {}, h("button", { type: "button", class: "hunter-link", onclick: () => mode === "party" ? showMembers(r) : openPublicHunter(r.codename) }, r.codename)),
+        h("td", {}, mode === "party" ? h("span", { class: "rank-party" }, `${r.members.length}명`, h("small", {}, r.members.filter(m => !m.leader).map(m => m.codename).join(", "))) : `${r.grade}급 · Lv.${r.level}`),
         h("td", { style: "text-align:right;font-weight:700" }, `${r.best_station}역`))))));
 }
 
@@ -3283,7 +3610,7 @@ const DOCS = {
 <tr><td>계정</td><td>이메일, 비밀번호, 사용한 초대코드</td><td>가입할 때 직접 입력</td><td>로그인, 본인 확인, 초대제 운영</td></tr>
 <tr><td>캐릭터</td><td>코드네임 · 포지션 · 활동 구역 · 아바타 색 · 프로필 이미지 · 캐릭터 소개와 공개 범위</td><td>캐릭터를 만들거나 고칠 때 직접 입력</td><td>프로필 표시, 게임 진행</td></tr>
 <tr><td>활동 기록</td><td>레벨 · 스탯 · 메헨(재화) · 아이템 · 장비, 무한 던전 · 지역 안정화 · 탐색 · 별의 무덤 기록과 로그, 조합 · 강화 기록, 주간 랭킹 기록, 홈 화면의 할 일 목록, 화면 설정(테마)</td><td>게임을 이용할 때 자동 저장</td><td>게임 진행, 보상 지급, 랭킹, 부정 이용 방지</td></tr>
-<tr><td>교류</td><td>친구 · 차단 목록, 1:1 메시지, 선물 기록(보낸 것 · 메시지 포함), SNS 글 · 댓글, 신고 내용과 처리 기록</td><td>교류 기능을 이용할 때 직접 작성 · 자동 저장</td><td>친구 · 메신저 · 선물 · SNS 제공, 신고 처리</td></tr>
+<tr><td>교류</td><td>친구 · 차단 목록, 1:1 메시지, 선물 기록(보낸 것 · 메시지 포함), 파티 구성 · 초대 기록과 파티 랭킹 기록, SNS 글 · 댓글, 신고 내용과 처리 기록</td><td>교류 기능을 이용할 때 직접 작성 · 자동 저장</td><td>친구 · 메신저 · 선물 · 파티 · SNS 제공, 신고 처리</td></tr>
 <tr><td>접속 기록</td><td>로그인 시각, 접속 IP 주소, 브라우저 정보</td><td>로그인 서비스(Supabase)가 자동 기록</td><td>보안, 부정 접속 확인</td></tr>
 <tr><td>브라우저 저장소</td><td>로그인 상태 유지용 정보(세션 토큰), 테마 설정</td><td>이용자 브라우저에 저장</td><td>다시 로그인하지 않아도 되도록, 화면 설정 유지</td></tr>
 </tbody>
@@ -3455,7 +3782,10 @@ $("#btn-guide").onclick = () => info("가이드",
   h("p", {}, "· 탐색: 무한 던전의 '탐색' 탭에서 하루 3번, 보이지 않는 10×10 구역을 걸으며 메헨과 아이템을 줍습니다."),
   h("p", {}, "· 별의 무덤: 무한 던전의 '별의 무덤' 탭에서 하루 1번(탐색과 별도), 10×10 무덤을 걸으며 별가루·마석·별조각 사탕·은하수 이슬·가능성을 모읍니다. 내가 두 칸 움직일 때마다 별지기가 한 칸 다가오고, 마주치면 그 자리에서 끝납니다."),
   h("p", {}, "· 무한 던전·지역 안정화·탐색·별의 무덤은 한 번에 하나만 할 수 있습니다."),
+  h("p", {}, "· 일일 퀘스트: 홈에서 확인합니다. 지역 안정화 1회, 탐색 1회, 전력 분석 1회를 마치면 각각 가능성(레벨 × 15)을 받습니다. 매일 0시(한국 시간)에 새로 시작합니다."),
+  h("p", {}, "· 전력 분석: 홈에서 스탯 하나를 골라 5~180분 동안 분석합니다. 다른 활동과 동시에 할 수 있고, 분석한 시간이 스탯마다 쌓여 단계(최대 10단계)가 오를 때마다 그 스탯이 영구로 +1 됩니다. 10단계를 마친 스탯은 분석할 때 가능성을 얻습니다."),
   h("p", {}, "· 교류: 코드네임으로 친구 신청을 보내고, 상대가 수락하면 친구가 됩니다(최대 30명). 친구와는 1:1 메시지(30일 보관, ☆를 누르면 계속 보관)와 선물(하루 10번, 메헨·아이템·장비)을 주고받을 수 있습니다. SNS에는 분류를 골라 글과 댓글을 남깁니다. 불편한 헌터는 차단하거나 신고할 수 있습니다."),
+  h("p", {}, "· 파티: 교류 → 파티 탭이나 헌터 정보 창에서 코드네임으로 초대하면 파티가 만들어지고 내가 파티장이 됩니다(1~5명, 해산하기 전까지 유지). 같은 파티는 언제나 같은 활동을 하며, 파티장이 출발을 누르면 무한 던전이나 지역 안정화에 모두 함께 들어갑니다. 파티원 중 누가 다른 활동 중이거나 결과를 받지 않았으면 출발할 수 없고, 최고·최저 레벨 차이가 25 이상이면 공략할 수 없습니다. 몬스터는 들어간 인원에 비례해 강해지고, 한 명이 쓰러져도 나머지가 계속하며, 보상은 모두 똑같이 받습니다. 뱅가드·힐러·서포터의 능력은 동료 1명에게 쓰입니다. 파티 무한 던전 기록은 국제헌터연합의 파티 랭킹에 파티장 이름으로 오릅니다."),
   h("p", { class: "hint" }, "콘텐츠가 열릴 때마다 가이드가 추가됩니다."));
 
 document.querySelectorAll(".js-logout").forEach(b => b.onclick = async () => {
