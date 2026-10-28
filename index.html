@@ -259,6 +259,12 @@ code.c { font-family: ui-monospace, Menlo, monospace; background: var(--surface-
 .pt-bar .hint { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .pt-box { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin: 0 0 14px; }
 .pt-box .fr-row { padding: 6px 0; }
+.title-line { line-height: 1.35; overflow-wrap: anywhere; }
+.title-line .tt { font-weight: 600; color: var(--accent-text); }
+.grade-line { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+.title-pick { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: end; margin-top: 8px; }
+.title-pick label { font-size: 12px; color: var(--text-dim); display: block; margin-bottom: 4px; }
+@media (max-width: 600px) { .title-pick { grid-template-columns: 1fr 1fr; } .title-pick .btn { grid-column: 1 / -1; } }
 .pt-mrow { flex-wrap: wrap; }
 .pt-mrow .fr-main { flex: 1 1 140px; }
 .pt-acts { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -476,6 +482,8 @@ button.cat-chip { cursor: pointer; font-family: inherit; }
   .soc-grid { grid-template-columns: 1fr; }
   .soc-grid.chatting .fr-list { display: none; }
   .soc-grid:not(.chatting) .chat { display: none; }
+  .soc-grid.guild-grid .chat { display: flex; order: -1; }
+  .soc-grid.guild-grid .chat-log { height: max(240px, calc(100dvh - 520px)); }
   .chat-back { display: inline-flex; }
   .chat-log { height: max(260px, calc(100dvh - 430px)); }
   .chat-head .avatar.mini { display: none; }
@@ -595,6 +603,38 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
   background: var(--text); color: var(--bg); padding: 10px 18px; border-radius: 10px;
   font-weight: 700; z-index: 100; box-shadow: var(--shadow);
 }
+
+/* ===== 배경음악 ===== */
+.bgm { padding: 14px 16px; }
+.bgm-row { display: flex; align-items: center; gap: 10px; }
+.bgm-play { width: 38px; height: 38px; flex: none; border-radius: 50%; border: 0; background: var(--primary); color: var(--on-primary); font-size: 15px; cursor: pointer; display: grid; place-items: center; }
+.bgm-play:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
+.bgm-now { flex: 1; min-width: 0; }
+.bgm-now b { display: block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bgm-now small, .bgm-now a { font-size: 12px; color: var(--text-dim); }
+.bgm-vol { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 12px; color: var(--text-dim); }
+.bgm-vol input { flex: 1; accent-color: var(--primary); }
+.bgm select.input { margin-top: 10px; min-height: 36px; font-size: 13px; padding: 6px 10px; }
+.bgm-yt { display: flex; gap: 6px; margin-top: 8px; }
+.bgm-yt .input { min-height: 36px; font-size: 13px; padding: 6px 10px; }
+.bgm-ytbox { margin-top: 10px; border-radius: 8px; overflow: hidden; background: #000; transition: height .2s; height: 200px; }
+.bgm-ytbox.off { height: 0; margin-top: 0; }
+.bgm-ytbox iframe { display: block; width: 100%; height: 200px; border: 0; }
+.bgm-note { font-size: 12px; color: var(--text-dim); margin: 8px 0 0; }
+.bgm-eq { display: inline-flex; gap: 2px; align-items: flex-end; height: 10px; margin-left: 6px; vertical-align: middle; }
+.bgm-eq i { width: 2px; background: var(--accent-text); animation: eq 1s ease-in-out infinite; }
+.bgm-eq i:nth-child(2) { animation-delay: .2s; } .bgm-eq i:nth-child(3) { animation-delay: .4s; }
+@keyframes eq { 0%, 100% { height: 3px; } 50% { height: 10px; } }
+@media (prefers-reduced-motion: reduce) { .bgm-eq i { animation: none; height: 8px; } }
+#bgm-mobile-slot .bgm { border-radius: 0; border-left: 0; border-right: 0; border-top: 0; box-shadow: none; padding: 8px 16px;
+  display: grid; grid-template-columns: minmax(0, 1fr) 150px; gap: 6px 10px; align-items: center; }
+#bgm-mobile-slot .bgm > .panel-title, #bgm-mobile-slot .bgm-note:empty { display: none; }
+#bgm-mobile-slot .bgm .bgm-play { width: 32px; height: 32px; font-size: 13px; }
+#bgm-mobile-slot .bgm select.input { margin: 0; min-height: 32px; grid-row: 1; grid-column: 2; }
+#bgm-mobile-slot .bgm .bgm-row { grid-row: 1; grid-column: 1; }
+#bgm-mobile-slot .bgm .bgm-vol { margin: 0; grid-column: 1 / -1; }
+#bgm-mobile-slot .bgm .bgm-yt, #bgm-mobile-slot .bgm .bgm-ytbox, #bgm-mobile-slot .bgm .bgm-note { grid-column: 1 / -1; margin: 0; }
+#bgm-mobile-slot .bgm .bgm-note { font-size: 11px; }
 
 /* ===== 모바일 하단 탭 ===== */
 .tabbar { display: none; }
@@ -777,9 +817,11 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
 
   <div>
     <div class="mobile-summary" id="mobile-summary"></div>
+    <div id="bgm-mobile-slot"></div>
     <div class="layout">
       <aside class="side left">
         <div class="card" id="hunter-card"></div>
+        <div id="bgm-side-slot"><div class="card bgm" id="bgm" aria-label="배경음악"></div></div>
       </aside>
       <main class="card main-pane" id="main-pane"></main>
       <aside class="side right">
@@ -805,12 +847,13 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
     <div class="hunter-head">
       <div id="e-avatar" class="avatar lg"></div>
       <div>
-        <div class="codename" id="e-title-line"></div>
+        <div id="e-title-line"></div>
+        <div class="grade-line" id="e-grade-line"></div>
         <div class="hint" id="e-position"></div>
         <div class="hint" id="e-start-grade"></div>
-        <div class="hint">장착 타이틀: 없음</div>
       </div>
     </div>
+    <div class="field" id="e-titles"></div>
     <div id="e-stats" style="margin-bottom:16px"></div>
     <div class="field">
       <label for="e-codename">코드네임</label>
@@ -1213,6 +1256,48 @@ function renderNav() {
     h("a", { href: `#/${m.id}`, "data-menu": m.id, class: cur === m.id ? "on" : null }, m.id === "dungeon" ? h("span", { class: "ico sym", "aria-hidden": "true" }, "all_inclusive") : h("span", { class: "ico", "aria-hidden": "true" }, m.ico), m.name.replace("국제헌터연합", "연합").replace("지역 안정화", "안정화"))));
   paintSocialBadge();
 }
+// 프로필 표시: 앞말 · 코드네임 · 뒷말 한 줄 (등급·레벨은 아래 줄에 작게)
+function titleLine(t, codename) {
+  return h("div", { class: "codename title-line" },
+    t?.front ? h("span", { class: "tt" }, t.front + " ") : null,
+    h("span", { class: "cn" }, codename),
+    t?.back ? h("span", { class: "tt" }, " " + t.back) : null);
+}
+// 헌터 정보 창: 타이틀 바꾸기 (가진 조각만)
+function paintTitlePicker() {
+  const box = $("#e-titles"), t = state.titles;
+  if (!box) return;
+  if (!t) return box.replaceChildren();
+  const owned = t.owned || [];
+  const sel = (part, cur, id, label) => h("div", {}, h("label", { for: id }, label),
+    h("select", { class: "input", id },
+      h("option", { value: "" }, "(비움)"),
+      ...owned.filter(x => x.part === part).map(x => h("option", { value: x.code, selected: x.code === cur ? "" : null, title: x.cond }, x.name))));
+  const f = sel("front", t.front, "e-title-front", "앞말"), b = sel("back", t.back, "e-title-back", "뒷말");
+  const save = h("button", { class: "btn small", type: "button" }, "타이틀 장착");
+  const preview = h("div", { class: "hint", style: "margin-top:6px" });
+  const nameOf = code => owned.find(x => x.code === code)?.name;
+  const paintPreview = () => preview.replaceChildren("미리 보기: ",
+    titleLine({ front: nameOf(f.querySelector("select").value), back: nameOf(b.querySelector("select").value) }, state.profile.codename));
+  f.querySelector("select").onchange = b.querySelector("select").onchange = paintPreview;
+  save.onclick = async () => {
+    busy(save, true, "…");
+    const { data, error } = await sb.rpc("set_title", { p_front: f.querySelector("select").value || null, p_back: b.querySelector("select").value || null });
+    busy(save, false);
+    if (error) return toast(koError(error));
+    state.titles = data;
+    toast("타이틀을 바꿨습니다.");
+    renderHunter();
+    $("#e-title-line").replaceChildren(titleLine(state.titles.line, state.profile.codename));
+  };
+  box.replaceChildren(
+    h("label", {}, `타이틀 (가진 조각 ${owned.length} / ${t.total})`),
+    h("div", { class: "title-pick" }, f, b, save), preview,
+    h("details", { style: "margin-top:6px" }, h("summary", { class: "hint", style: "cursor:pointer" }, "가진 조각과 얻은 조건"),
+      h("ul", { class: "hint", style: "margin:6px 0 0;padding-left:18px;line-height:1.7" },
+        ...owned.map(x => h("li", {}, h("b", {}, x.name), ` (${x.part === "front" ? "앞말" : "뒷말"}) — ${x.cond}`)))));
+  paintPreview();
+}
 function renderHunter() {
   const p = state.profile, c = state.character;
   const need = needFor(c.level);
@@ -1223,7 +1308,7 @@ function renderHunter() {
 
   $("#hunter-card").replaceChildren(
     h("div", { class: "hunter-head" }, av,
-      h("div", {}, h("div", { class: "hello" }, "안녕하세요,"), h("div", { class: "codename" }, `${p.codename} 헌터`))),
+      h("div", { style: "min-width:0" }, titleLine(state.titles?.line, p.codename), h("div", { class: "grade-line" }, `${c.grade}급 · Lv.${c.level}`))),
     h("div", { class: "kv" }, h("span", {}, "활동 구역"), h("span", {}, REGIONS[p.region])),
     h("div", { class: "kv" }, h("span", {}, "레벨 · 등급"), h("span", {}, `Lv.${c.level} · `, h("span", { class: "badge" }, `${c.grade}급`))),
     h("div", { class: "kv" }, h("span", {}, "다음 승급"), h("span", {}, nextPromotion(c.grade))),
@@ -1270,6 +1355,7 @@ function renderMain() {
   stopDungeonTimers();
   social.onDm = null;
   if (!social.poll && state.user) startSocial();
+  if (r !== "dungeon") bgmPage(r);
   if (r === "admin") return renderAdmin(pane);
   if (r === "home") return renderHome(pane);
   if (r === "friends") return renderSocial(pane);
@@ -1297,7 +1383,7 @@ const fmtWhen = iso => {
   if (d.toDateString() === now.toDateString()) return fmtTime(iso);
   return `${d.getMonth() + 1}/${d.getDate()} ${fmtTime(iso)}`;
 };
-const social = { summary: {}, chan: null, poll: null, onDm: null };
+const social = { summary: {}, chan: null, poll: null, onDm: null, gchan: null, gid: null, onGuild: null };
 
 // 다른 헌터 프로필 사진: 주소를 한 번만 받아 두고 다시 쓴다
 const avatarCache = new Map();
@@ -1322,10 +1408,26 @@ async function refreshSocial() {
   if (!data) return;
   social.summary = data;
   paintSocialBadge();
+  watchGuild(data.guild_id || null);
+}
+// 길드 채팅 실시간 수신 (길드가 바뀌면 다시 연결)
+function watchGuild(gid) {
+  if (social.gid === gid) return;
+  if (social.gchan) { sb.removeChannel(social.gchan); social.gchan = null; }
+  social.gid = gid;
+  if (!gid) return;
+  social.gchan = sb.channel("guild-" + gid)
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "guild_messages", filter: `guild_id=eq.${gid}` }, payload => {
+      if (social.onGuild && social.onGuild(payload.new)) return;
+      if (payload.new.sender === state.user.id) return;
+      social.summary.guild_unread = (social.summary.guild_unread || 0) + 1;
+      paintSocialBadge();
+    })
+    .subscribe();
 }
 function paintSocialBadge() {
   const s = social.summary || {};
-  const n = (s.friend_requests || 0) + (s.gifts || 0) + (s.unread || 0) + (s.party_invites || 0);
+  const n = (s.friend_requests || 0) + (s.gifts || 0) + (s.unread || 0) + (s.party_invites || 0) + (s.guild_invites || 0) + (s.guild_unread || 0);
   document.querySelectorAll('[data-menu="friends"]').forEach(a => {
     a.querySelector(".nbadge")?.remove();
     if (n > 0) a.append(h("span", { class: "nbadge", "aria-label": `새 소식 ${n}개` }, n > 99 ? "99+" : String(n)));
@@ -1353,7 +1455,8 @@ function startSocial() {
 function stopSocial() {
   clearInterval(social.poll); social.poll = null;
   if (social.chan) { sb.removeChannel(social.chan); social.chan = null; }
-  social.onDm = null;
+  watchGuild(null);
+  social.onDm = null; social.onGuild = null;
 }
 
 /* 오른쪽 SNS 칸 (PC) */
@@ -1524,11 +1627,11 @@ async function renderSocial(pane, tab) {
       tabBtn("friends", h("span", {}, "친구", h("span", { class: "wide" }, " · 메시지")), (s.friend_requests || 0) + (s.unread || 0)),
       tabBtn("party", "파티", s.party_invites || 0),
       tabBtn("gifts", "선물함", s.gifts || 0),
-      tabBtn("sns", "SNS", 0)),
+      tabBtn("sns", "SNS", (s.guild_invites || 0) + (s.guild_unread || 0))),
     body);
   if (socialTab === "party") return renderParty(body, pane);
   if (socialTab === "gifts") return renderGifts(body);
-  if (socialTab === "sns") return renderSns(body);
+  if (socialTab === "sns") return renderSnsWrap(body, pane);
   return renderFriends(body, pane);
 }
 
@@ -1761,6 +1864,159 @@ async function renderGifts(body) {
 
 /* SNS */
 let snsCat = null;
+/* SNS 탭: 전체 SNS · 길드 */
+let snsView = "all";
+function renderSnsWrap(body, pane) {
+  const s = social.summary || {};
+  const sub = h("div", {});
+  const gN = (s.guild_invites || 0) + (s.guild_unread || 0);
+  const btn = (id, label, n) => h("button", { type: "button", class: `cat-chip big${snsView === id ? " on" : ""}`, "aria-pressed": snsView === id ? "true" : "false",
+    onclick: () => { snsView = id; renderSnsWrap(body, pane); } }, label, n > 0 ? h("span", { class: "nbadge" }, String(n)) : null);
+  body.replaceChildren(h("div", { class: "cat-row", style: "margin-bottom:14px" }, btn("all", "전체 SNS", 0), btn("guild", "길드", gN)), sub);
+  return snsView === "guild" ? renderGuild(sub, () => renderSnsWrap(body, pane)) : renderSns(sub);
+}
+
+async function guildRun(name, args, okMsg) {
+  const { data, error } = await sb.rpc(name, args);
+  if (error) { toast(koError(error)); return null; }
+  if (okMsg) toast(okMsg);
+  refreshSocial();
+  return data ?? true;
+}
+
+async function renderGuild(body, reload) {
+  body.replaceChildren(h("p", { class: "hint" }, "불러오는 중…"));
+  const { data: d, error } = await sb.rpc("guild_state");
+  if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
+  const g = d.guild;
+  const invList = d.invites.length ? h("div", { class: "fr-sec" }, h("p", { class: "panel-title" }, `받은 길드 초대 ${d.invites.length}`),
+    ...d.invites.map(iv => h("div", { class: "fr-row" }, miniAvatar(iv.from),
+      h("div", { class: "fr-main" }, h("b", {}, iv.guild), h("div", { class: "hint" }, `${iv.from.codename}님의 초대 · ${iv.size}/20명${iv.intro ? ` · ${iv.intro}` : ""}`)),
+      h("button", { class: "btn small", type: "button", onclick: async () => { if (await guildRun("guild_respond", { p_id: iv.id, p_accept: true }, `${iv.guild} 길드에 들어갔습니다.`)) reload(); } }, "수락"),
+      h("button", { class: "btn ghost small", type: "button", onclick: async () => { if (await guildRun("guild_respond", { p_id: iv.id, p_accept: false })) reload(); } }, "거절")))) : null;
+
+  if (!g) {
+    const name = h("input", { class: "input", id: "gd-name", maxlength: "12", placeholder: "2~12자" });
+    const intro = h("input", { class: "input", id: "gd-intro", maxlength: "100", placeholder: "한 줄 소개 (선택, 100자까지)" });
+    const err = h("div", { class: "error", role: "alert" });
+    const can = d.level >= d.min_level, rich = d.currency >= d.cost;
+    const go = h("button", { class: "btn block", type: "button", disabled: !can || !rich }, `${d.cost.toLocaleString()} Mh로 길드 만들기`);
+    go.onclick = async () => {
+      err.textContent = "";
+      if (!confirm(`'${name.value.trim()}' 길드를 만들까요? ${d.cost.toLocaleString()} Mh가 들고, 돌려받을 수 없습니다.`)) return;
+      busy(go, true, "만드는 중…");
+      const { error } = await sb.rpc("guild_create", { p_name: name.value, p_intro: intro.value || null });
+      busy(go, false);
+      if (error) return (err.textContent = koError(error));
+      toast("길드를 만들었습니다.");
+      await loadAll(); renderHunter(); refreshSocial();
+      reload();
+    };
+    return body.replaceChildren(...[invList,
+      h("div", { class: "fr-sec" },
+        h("p", { class: "panel-title" }, "길드 만들기"),
+        h("p", { class: "hint", style: "margin:0 0 12px" }, `길드는 최대 ${d.max}명이 함께하는 모임으로, 길드원끼리만 보이는 길드 채팅을 씁니다. ${d.min_level}레벨 이상이면 ${d.cost.toLocaleString()} Mh로 만들 수 있고, 다른 길드의 초대를 받아 들어갈 수도 있습니다. 한 번에 한 길드에만 있을 수 있습니다.`),
+        h("div", { class: "field" }, h("label", { for: "gd-name" }, "길드 이름"), name),
+        h("div", { class: "field" }, h("label", { for: "gd-intro" }, "소개"), intro),
+        !can ? h("p", { class: "hint", style: "margin:0 0 10px" }, `지금 Lv.${d.level} — ${d.min_level}레벨부터 만들 수 있습니다.`)
+          : !rich ? h("p", { class: "hint", style: "margin:0 0 10px" }, `메헨이 부족합니다. (보유 ${fmtMh(d.currency)})`) : null,
+        err, go)].filter(Boolean));
+  }
+
+  // 길드원 목록 · 관리
+  const ms = g.master_is_me;
+  const inv = h("input", { class: "input", maxlength: "12", placeholder: "코드네임", "aria-label": "길드에 초대할 코드네임" });
+  const invBtn = h("button", { class: "btn small", type: "submit" }, "초대");
+  const invForm = h("form", { class: "todo-form" }, inv, invBtn);
+  invForm.onsubmit = async e => {
+    e.preventDefault();
+    if (!inv.value.trim()) return;
+    busy(invBtn, true, "…");
+    const r = await guildRun("guild_invite", { p_codename: inv.value.trim() }, "길드 초대를 보냈습니다.");
+    busy(invBtn, false);
+    if (r) reload();
+  };
+  const members = h("div", { class: "fr-list" },
+    h("p", { class: "panel-title" }, g.name, h("span", { class: "hint", style: "font-weight:500" }, ` · ${g.size}/${d.max}명`)),
+    h("p", { class: "hint", style: "margin:0 0 8px;white-space:pre-wrap" }, g.intro || "소개가 없습니다."),
+    ms ? h("button", { class: "link-btn", type: "button", style: "margin:0 0 8px", onclick: async () => {
+      const t = prompt("길드 소개 (100자까지)", g.intro || "");
+      if (t === null) return;
+      if (await guildRun("guild_set_intro", { p_intro: t }, "소개를 바꿨습니다.")) reload();
+    } }, "소개 바꾸기") : null,
+    ...g.members.map(m => h("div", { class: "fr-row pt-mrow" }, miniAvatar(m),
+      h("div", { class: "fr-main" }, h("div", {}, m.me ? h("b", {}, m.codename) : hunterLink(m), m.master ? h("span", { class: "badge", style: "margin-left:6px" }, "길드장") : null),
+        h("div", { class: "hint" }, hunterSub(m))),
+      ms && !m.me ? h("div", { class: "pt-acts" },
+        h("button", { class: "btn ghost small", type: "button", onclick: async () => { if (confirm(`${m.codename}님에게 길드장을 넘길까요?`) && await guildRun("guild_transfer", { p_codename: m.codename }, "길드장을 넘겼습니다.")) reload(); } }, "길드장 넘기기"),
+        h("button", { class: "btn ghost small", type: "button", onclick: async () => { if (confirm(`${m.codename}님을 길드에서 내보낼까요?`) && await guildRun("guild_kick", { p_codename: m.codename }, "길드에서 내보냈습니다.")) reload(); } }, "내보내기")) : null)),
+    g.invited.length ? h("div", { class: "fr-sec" }, h("p", { class: "panel-title" }, "보낸 초대 (7일 동안 유효)"),
+      ...g.invited.map(iv => h("div", { class: "fr-row" }, miniAvatar(iv), h("div", { class: "fr-main" }, hunterLink(iv), h("div", { class: "hint" }, hunterSub(iv))),
+        ms ? h("button", { class: "btn ghost small", type: "button", onclick: async () => { if (await guildRun("guild_cancel_invite", { p_id: iv.id }, "초대를 취소했습니다.")) reload(); } }, "취소") : null))) : null,
+    ms && g.size + g.invited.length < d.max ? h("div", { style: "margin-top:8px" }, invForm) : null,
+    h("div", { style: "display:flex;gap:8px;flex-wrap:wrap;margin-top:12px" },
+      !ms || g.size === 1 ? h("button", { class: "btn ghost small", type: "button", onclick: async () => {
+        if (!confirm(ms ? "혼자 남은 길드에서 나가면 길드가 해산됩니다. 나갈까요?" : "길드에서 나갈까요?")) return;
+        if (await guildRun("guild_leave", {}, "길드에서 나왔습니다.")) reload();
+      } }, ms ? "나가기 (해산)" : "길드 나가기") : null,
+      ms && g.size > 1 ? h("button", { class: "btn ghost small", type: "button", onclick: async () => {
+        if (!confirm(`${g.name} 길드를 해산할까요? 길드원 모두가 길드에서 나가고 채팅도 사라집니다. 되돌릴 수 없습니다.`)) return;
+        if (await guildRun("guild_disband", {}, "길드를 해산했습니다.")) reload();
+      } }, "길드 해산") : null));
+
+  // 길드 채팅
+  const chat = h("div", { class: "chat" });
+  const log = h("ol", { class: "chat-log", "aria-live": "polite" });
+  let msgs = [];
+  const more = h("button", { class: "btn ghost small", type: "button", style: "align-self:center" }, "이전 메시지 더 보기");
+  function bubble(m) {
+    if (m.system) return h("li", { class: "hint", style: "list-style:none;text-align:center;font-size:12px" }, m.body, " · ", fmtWhen(m.at));
+    return h("li", { class: `msg${m.mine ? " mine" : ""}` },
+      m.mine ? null : h("div", { class: "meta", style: "margin:0 0 2px" }, h("b", {}, m.author?.codename || "(떠난 헌터)")),
+      h("div", { class: "bubble" }, m.body),
+      h("div", { class: "meta" }, h("time", {}, fmtWhen(m.at)),
+        m.mine ? null : h("button", { type: "button", class: "keep", title: "신고", "aria-label": "이 메시지 신고", onclick: () => openReport("guild", String(m.id), `${m.author?.codename || ""}님의 길드 메시지`) }, "⚑")));
+  }
+  function paint(scroll = true) {
+    log.replaceChildren(...(msgs.length ? msgs.map(bubble) : [h("li", { class: "hint", style: "text-align:center;list-style:none" }, "첫 메시지를 보내 보세요.")]));
+    if (scroll) log.scrollTop = log.scrollHeight;
+  }
+  more.onclick = async () => {
+    const { data } = await sb.rpc("guild_chat", { p_before: msgs[0]?.id });
+    if (!data) return;
+    msgs = [...data.messages, ...msgs]; more.hidden = data.messages.length < 50; paint(false);
+  };
+  const ta = h("textarea", { class: "input", rows: "2", maxlength: "300", placeholder: "길드원에게 (Enter로 보내기, Shift+Enter 줄바꿈)", "aria-label": "길드 메시지" });
+  const send = h("button", { class: "btn small", type: "submit" }, "보내기");
+  const form = h("form", { class: "chat-form" }, ta, send);
+  ta.onkeydown = e => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); form.requestSubmit(); } };
+  form.onsubmit = async e => {
+    e.preventDefault();
+    const t = ta.value.trim(); if (!t) return;
+    busy(send, true, "…");
+    const { data, error } = await sb.rpc("guild_send", { p_body: t });
+    busy(send, false);
+    if (error) return toast(koError(error));
+    ta.value = "";
+    if (!msgs.some(x => x.id === data.id)) { msgs.push(data); paint(); }
+  };
+  chat.replaceChildren(h("div", { class: "chat-head" }, h("div", { class: "fr-main" }, h("b", {}, `${g.name} 길드 채팅`), h("div", { class: "hint" }, "길드원에게만 보입니다 · 30일 뒤 지워집니다"))),
+    more, log, form);
+  body.replaceChildren(...[invList, h("div", { class: "soc-grid guild-grid" }, members, chat)].filter(Boolean));
+
+  const { data: c0, error: e0 } = await sb.rpc("guild_chat", { p_before: null });
+  if (e0) return log.replaceChildren(h("li", { class: "error" }, koError(e0)));
+  msgs = c0.messages; more.hidden = msgs.length < 50; paint();
+  social.summary.guild_unread = 0; paintSocialBadge();
+  // 새 메시지는 실시간으로 (내 길드 채팅이 열려 있을 때)
+  social.onGuild = row => {
+    if (!log.isConnected) { social.onGuild = null; return false; }
+    if (!msgs.some(x => x.id === row.id))
+      sb.rpc("guild_chat", { p_before: null }).then(({ data }) => { if (data && log.isConnected) { msgs = data.messages; paint(); } });
+    return true;
+  };
+}
+
 async function renderSns(body) {
   const feed = h("div", { class: "sns-feed" });
   let posts = [], cat = snsCat;
@@ -1868,6 +2124,7 @@ async function openPublicHunter(codename) {
     else if (p.pending) btns.push(h("span", { class: "badge" }, "친구 신청 중"));
     else if (!p.blocked) btns.push(h("button", { class: "btn small", type: "button", onclick: () => run("friend_request", { p_codename: p.codename }, d => d?.result === "accepted" ? "친구가 되었습니다." : "친구 신청을 보냈습니다.") }, "친구 신청"));
     if (!p.blocked) btns.push(h("button", { class: "btn ghost small", type: "button", onclick: () => run("party_invite", { p_codename: p.codename }, "파티 초대를 보냈습니다. 상대가 수락하면 함께합니다.").then(refreshSideParty) }, "파티 초대"));
+    if (!p.blocked && p.guild_invitable) btns.push(h("button", { class: "btn ghost small", type: "button", onclick: () => run("guild_invite", { p_codename: p.codename }, "길드 초대를 보냈습니다.") }, "길드 초대"));
     btns.push(p.blocked
       ? h("button", { class: "btn ghost small", type: "button", onclick: () => run("block_user", { p_codename: p.codename, p_block: false }, "차단을 풀었습니다.") }, "차단 해제")
       : h("button", { class: "btn ghost small", type: "button", onclick: () => confirm(`${p.codename}님을 차단할까요?`) && run("block_user", { p_codename: p.codename, p_block: true }, "차단했습니다.") }, "차단"),
@@ -1878,8 +2135,9 @@ async function openPublicHunter(codename) {
   if (p.avatar_url) avatarUrlOf(p.avatar_url).then(u => u && avatarEl(av, { url: u, color: p.avatar_color, name: p.codename }));
   info(p.codename,
     h("div", { class: "hunter-head" }, av, h("div", {},
-      h("div", { class: "codename" }, `${p.codename} · ${p.grade}급 Lv.${p.level}`),
-      h("div", { class: "hint" }, `${REGIONS[p.region] || p.region} 구역 · ${POSITIONS[p.main_position]?.name || p.main_position}${p.sub_position ? ` / ${POSITIONS[p.sub_position]?.name || p.sub_position}` : ""}`),
+      titleLine(p.title, p.codename),
+      h("div", { class: "grade-line" }, `${p.grade}급 · Lv.${p.level}`),
+      h("div", { class: "hint" }, (p.guild ? `${p.guild} 길드 · ` : "") + `${REGIONS[p.region] || p.region} 구역 ·${POSITIONS[p.main_position]?.name || p.main_position}${p.sub_position ? ` / ${POSITIONS[p.sub_position]?.name || p.sub_position}` : ""}`),
       p.friend ? h("span", { class: "badge", style: "margin-top:4px;display:inline-block" }, "친구") : null)),
     h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "특징"),
     h("p", { style: "margin:0;white-space:pre-wrap" }, p.bio || h("span", { class: "hint" }, "공개하지 않았습니다.")),
@@ -1903,7 +2161,8 @@ function openReport(kind, target, label) {
     toast("신고를 접수했습니다. 운영자가 확인합니다.");
   };
   info(`${label} 신고`,
-    kind === "dm" ? h("p", { class: "hint", style: "margin:0 0 12px" }, "신고하면 이 대화의 최근 메시지 100개가 운영자에게 전달되고, 확인이 끝날 때까지 지워지지 않습니다.") : null,
+    kind === "dm" ? h("p", { class: "hint", style: "margin:0 0 12px" }, "신고하면 이 대화의 최근 메시지 100개가 운영자에게 전달되고, 확인이 끝날 때까지 지워지지 않습니다.")
+      : kind === "guild" ? h("p", { class: "hint", style: "margin:0 0 12px" }, "신고하면 이 메시지와 앞뒤 대화가 운영자에게 전달되고, 확인이 끝날 때까지 지워지지 않습니다.") : null,
     h("div", { class: "field" }, h("label", { for: "rp-reason" }, "사유"), sel),
     h("div", { class: "field" }, h("label", { for: "rp-detail" }, "설명"), detail),
     err, go);
@@ -1913,7 +2172,7 @@ function openReport(kind, target, label) {
 function adminReportsSection() {
   const wrap = h("div", {});
   let status = "open";
-  const KIND = { dm: "대화", post: "글", comment: "댓글", user: "헌터" };
+  const KIND = { dm: "대화", post: "글", comment: "댓글", user: "헌터", guild: "길드 채팅" };
   async function load() {
     wrap.replaceChildren(h("p", { class: "hint" }, "불러오는 중…"));
     const { data, error } = await sb.rpc("admin_reports", { p_status: status });
@@ -1927,6 +2186,8 @@ function adminReportsSection() {
     const snap = r.snapshot;
     let content = null;
     if (r.kind === "dm" && Array.isArray(snap)) content = h("ol", { class: "rp-dm" }, ...snap.map(m => h("li", {}, h("b", {}, m.from), h("span", { class: "hint" }, ` ${fmtWhen(m.at)}`), h("div", {}, m.body))));
+    else if (r.kind === "guild" && snap?.messages) content = h("div", {}, h("p", { class: "hint", style: "margin:4px 0" }, `${snap.guild || "(해산된 길드)"} 길드 채팅 · 신고된 메시지는 굵게`),
+      h("ol", { class: "rp-dm" }, ...snap.messages.map(m => h("li", { style: m.id === snap.target ? "font-weight:700" : null }, h("b", {}, m.from), h("span", { class: "hint" }, ` ${fmtWhen(m.at)}`), h("div", {}, m.body)))));
     else if (snap?.body) content = h("blockquote", { class: "rp-quote" }, snap.category ? `[${snap.category}] ` : "", snap.body);
     const note = h("input", { class: "input", placeholder: "처리 메모 (선택)", "aria-label": "처리 메모" });
     const days = h("input", { class: "input", type: "number", min: "0", max: "365", value: "3", style: "width:80px", "aria-label": "정지 일수" });
@@ -1947,7 +2208,7 @@ function adminReportsSection() {
       r.status === "open"
         ? h("div", { class: "rp-actions" }, note,
             h("button", { class: "btn ghost small", type: "button", onclick: () => act("dismiss") }, "문제없음"),
-            ["post", "comment"].includes(r.kind) ? h("button", { class: "btn ghost small", type: "button", onclick: () => act("hide") }, "숨기기") : null,
+            ["post", "comment", "guild"].includes(r.kind) ? h("button", { class: "btn ghost small", type: "button", onclick: () => act("hide") }, "숨기기") : null,
             r.target ? h("span", { class: "rp-ban" }, days, h("span", { class: "hint" }, "일"), h("button", { class: "btn small", type: "button", onclick: () => act("ban") }, "정지")) : null)
         : h("p", { class: "hint", style: "margin:6px 0 0" }, `처리: ${({ dismiss: "문제없음", hide: "숨김" })[r.action] || (r.action?.startsWith("ban:") ? (r.action === "ban:0" ? "정지 해제" : `${r.action.slice(4)}일 정지`) : r.action)}${r.note ? ` · ${r.note}` : ""}`));
   }
@@ -2211,6 +2472,7 @@ const REASON = {
 
 async function renderDungeon(pane, tab = "battle") {
   stopDungeonTimers();
+  bgmPage("dungeon-" + tab);
   const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
   pane.replaceChildren(
     h("h2", {}, "무한 던전"),
@@ -3401,7 +3663,9 @@ function openHunter() {
   $("#e-vis").value = p.bio_visibility;
   $("#e-email").textContent = state.user?.email || "";
   regionOptions($("#e-region"), p.region);
-  $("#e-title-line").textContent = `${p.codename} · ${c.grade}급 Lv.${c.level}`;
+  $("#e-title-line").replaceChildren(titleLine(state.titles?.line, p.codename));
+  $("#e-grade-line").textContent = `${c.grade}급 · Lv.${c.level}`;
+  paintTitlePicker();
   const pos = POSITIONS[c.main_position];
   $("#e-position").textContent = `메인 포지션: ${posLabel(c.main_position, c.main_option)} · 추천 ${prefText(c.main_position)}`
     + (c.sub_position ? ` / 서브: ${posLabel(c.sub_position, c.sub_option)}` : c.level >= 25 ? " / 서브 포지션 선택 가능" : " / 서브 포지션은 25레벨부터")
@@ -3610,7 +3874,7 @@ const DOCS = {
 <tr><td>계정</td><td>이메일, 비밀번호, 사용한 초대코드</td><td>가입할 때 직접 입력</td><td>로그인, 본인 확인, 초대제 운영</td></tr>
 <tr><td>캐릭터</td><td>코드네임 · 포지션 · 활동 구역 · 아바타 색 · 프로필 이미지 · 캐릭터 소개와 공개 범위</td><td>캐릭터를 만들거나 고칠 때 직접 입력</td><td>프로필 표시, 게임 진행</td></tr>
 <tr><td>활동 기록</td><td>레벨 · 스탯 · 메헨(재화) · 아이템 · 장비, 무한 던전 · 지역 안정화 · 탐색 · 별의 무덤 기록과 로그, 조합 · 강화 기록, 주간 랭킹 기록, 홈 화면의 할 일 목록, 화면 설정(테마)</td><td>게임을 이용할 때 자동 저장</td><td>게임 진행, 보상 지급, 랭킹, 부정 이용 방지</td></tr>
-<tr><td>교류</td><td>친구 · 차단 목록, 1:1 메시지, 선물 기록(보낸 것 · 메시지 포함), 파티 구성 · 초대 기록과 파티 랭킹 기록, SNS 글 · 댓글, 신고 내용과 처리 기록</td><td>교류 기능을 이용할 때 직접 작성 · 자동 저장</td><td>친구 · 메신저 · 선물 · 파티 · SNS 제공, 신고 처리</td></tr>
+<tr><td>교류</td><td>친구 · 차단 목록, 1:1 메시지, 선물 기록(보낸 것 · 메시지 포함), 파티 구성 · 초대 기록과 파티 랭킹 기록, 길드 정보(이름 · 소개 · 길드원) · 초대 기록 · 길드 채팅(30일 보관, 신고된 메시지는 확인이 끝날 때까지), SNS 글 · 댓글, 신고 내용과 처리 기록</td><td>교류 기능을 이용할 때 직접 작성 · 자동 저장</td><td>친구 · 메신저 · 선물 · 파티 · 길드 · SNS 제공, 신고 처리</td></tr>
 <tr><td>접속 기록</td><td>로그인 시각, 접속 IP 주소, 브라우저 정보</td><td>로그인 서비스(Supabase)가 자동 기록</td><td>보안, 부정 접속 확인</td></tr>
 <tr><td>브라우저 저장소</td><td>로그인 상태 유지용 정보(세션 토큰), 테마 설정</td><td>이용자 브라우저에 저장</td><td>다시 로그인하지 않아도 되도록, 화면 설정 유지</td></tr>
 </tbody>
@@ -3647,6 +3911,7 @@ const DOCS = {
 <tr><td>GitHub Pages</td><td>게임 화면 파일 제공</td><td>접속 IP 주소, 브라우저 정보</td></tr>
 <tr><td>jsDelivr</td><td>프로그램 라이브러리 전송(CDN)</td><td>접속 IP 주소, 브라우저 정보</td></tr>
 <tr><td>Google Fonts</td><td>글꼴 · 로고 아이콘 전송</td><td>접속 IP 주소, 브라우저 정보</td></tr>
+<tr><td>YouTube</td><td>배경음악 재생 (재생 버튼을 눌렀을 때만 연결, 헌터가 넣은 유튜브 링크 포함)</td><td>접속 IP 주소, 브라우저 정보, 재생한 영상 (YouTube 쿠키가 저장될 수 있음)</td></tr>
 </tbody>
 </table></div>
 </article>
@@ -3786,15 +4051,232 @@ $("#btn-guide").onclick = () => info("가이드",
   h("p", {}, "· 전력 분석: 홈에서 스탯 하나를 골라 5~180분 동안 분석합니다. 다른 활동과 동시에 할 수 있고, 분석한 시간이 스탯마다 쌓여 단계(최대 10단계)가 오를 때마다 그 스탯이 영구로 +1 됩니다. 10단계를 마친 스탯은 분석할 때 가능성을 얻습니다."),
   h("p", {}, "· 교류: 코드네임으로 친구 신청을 보내고, 상대가 수락하면 친구가 됩니다(최대 30명). 친구와는 1:1 메시지(30일 보관, ☆를 누르면 계속 보관)와 선물(하루 10번, 메헨·아이템·장비)을 주고받을 수 있습니다. SNS에는 분류를 골라 글과 댓글을 남깁니다. 불편한 헌터는 차단하거나 신고할 수 있습니다."),
   h("p", {}, "· 파티: 교류 → 파티 탭이나 헌터 정보 창에서 코드네임으로 초대하면 파티가 만들어지고 내가 파티장이 됩니다(1~5명, 해산하기 전까지 유지). 같은 파티는 언제나 같은 활동을 하며, 파티장이 출발을 누르면 무한 던전이나 지역 안정화에 모두 함께 들어갑니다. 파티원 중 누가 다른 활동 중이거나 결과를 받지 않았으면 출발할 수 없고, 최고·최저 레벨 차이가 25 이상이면 공략할 수 없습니다. 몬스터는 들어간 인원에 비례해 강해지고, 한 명이 쓰러져도 나머지가 계속하며, 보상은 모두 똑같이 받습니다. 뱅가드·힐러·서포터의 능력은 동료 1명에게 쓰입니다. 파티 무한 던전 기록은 국제헌터연합의 파티 랭킹에 파티장 이름으로 오릅니다."),
+  h("p", {}, "· 길드: 10레벨 이상이면 교류 → SNS → 길드에서 5,000 Mh로 길드를 만들 수 있습니다(최대 20명, 한 번에 한 길드). 길드장이 코드네임이나 헌터 정보 창으로 초대하고, 초대는 7일 동안 유효합니다. 길드원끼리는 길드 채팅으로 이야기하며, 채팅은 30일 뒤 지워집니다. 길드장은 소개 바꾸기 · 내보내기 · 길드장 넘기기 · 해산을 할 수 있고, 길드장이 나가려면 먼저 길드장을 넘겨야 합니다."),
+  h("p", {}, "· 타이틀: 앞말과 뒷말 조각을 하나씩 골라 '앞말 코드네임 뒷말' 모양으로 프로필에 표시합니다(랭킹에는 표시하지 않음). 조각은 조건을 채우면 얻고 사라지지 않으며, 헌터 정보 창에서 언제든 바꾸거나 비워 둘 수 있습니다. 지금은 캐릭터 생성 조각(새로운 시대 · 헌터)과 등급 조각(F급~S급)을 얻을 수 있고, 나머지 조각은 차례대로 열립니다."),
+  h("p", {}, "· 배경음악: 헌터 정보 아래(모바일은 화면 위쪽)에서 재생 · 일시정지 · 볼륨 · 음악 선택을 합니다. '페이지 음악'이면 화면마다 어울리는 곡으로 바뀌고, 곡을 고르면 그 곡을 반복합니다. 내 유튜브 주소를 넣어 원하는 음악을 틀 수도 있습니다. 모든 곡은 유튜브 영상으로 재생되며, 재생하는 동안에는 영상 플레이어가 함께 보입니다. 브라우저는 화면을 한 번 누르기 전에는 소리를 막아 두기 때문에, 접속 직후에는 한 번 눌러야 재생됩니다. 설정은 이 기기에만 저장됩니다. 음악: zippysound (zippy)"),
   h("p", { class: "hint" }, "콘텐츠가 열릴 때마다 가이드가 추가됩니다."));
 
 document.querySelectorAll(".js-logout").forEach(b => b.onclick = async () => {
-  stopSocial();
+  stopSocial(); bgmStop();
   await sb.auth.signOut();
   Object.assign(state, { user: null, profile: null, character: null, settings: null, avatarUrl: null });
   setAuthMode("login");
   show("screen-auth");
 });
+
+/* ===== 배경음악 =====
+   모든 곡은 유튜브 영상으로 재생한다 (YouTube IFrame API). 파일은 게임에 두지 않는다.
+   유튜브 약관에 따라 재생 중에는 플레이어(영상)를 화면에 보이게 둔다. 곡: zippysound(zippy) */
+const BGM_TRACKS = {
+  deltoton:  { title: "Deltoton",      yt: "nCkhSNvEGKY" },
+  variant:   { title: "Variant",       yt: "ecfTkAKtvhs" },
+  psyche:    { title: "Psyche",        yt: "kJwt8UjjYxM" },
+  boundary:  { title: "境界の守り人",   yt: "E7NiSF6ribI" },
+  rusty:     { title: "Rusty",         yt: "_Ji0YL1QFFw" },
+  danse:     { title: "Danse Macabre", yt: "m-xTU3VgJ8w" },
+  mayday:    { title: "Mayday",        yt: "sSEJ5OAeUNg" },
+  connect:   { title: "Connect!",      yt: "Ng8m0kcvXHY" },
+  resarcana: { title: "Res Arcana",    yt: "DamukOGGmFU" },
+  toddler:   { title: "Toddler",       yt: "9qLC2ylVdNc" },
+};
+// 페이지마다 자동으로 트는 곡 (여러 곡이면 순서대로 돌며 반복). 없는 페이지는 지금 곡을 이어서 튼다.
+const BGM_PAGES = {
+  home: ["deltoton"], "dungeon-battle": ["variant"], "dungeon-explore": ["psyche"], "dungeon-star": ["boundary"],
+  regional: ["rusty", "danse"], union: ["mayday"], inventory: ["mayday"], friends: ["connect"],
+};
+const bgm = { player: null, ready: false, api: null, list: [], idx: 0, page: null, playing: false, waiting: false, err: false, wait: null,
+  prefs: { mode: "auto", vol: 0.4, on: false, yt: "" } };
+try { Object.assign(bgm.prefs, JSON.parse(localStorage.getItem("id-bgm") || "{}")); } catch {}
+const bgmSave = () => { try { localStorage.setItem("id-bgm", JSON.stringify(bgm.prefs)); } catch {} };
+
+function ytId(url) {
+  const s = String(url || "").trim();
+  const m = s.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/) || s.match(/^([\w-]{11})$/);
+  return m ? m[1] : null;
+}
+// 지금 틀어야 할 곡 목록 [{id, title}]
+function bgmWant() {
+  const m = bgm.prefs.mode;
+  if (m === "yt") { const id = ytId(bgm.prefs.yt); return id ? [{ id, title: "내 유튜브 링크", custom: true }] : []; }
+  const keys = m !== "auto" && BGM_TRACKS[m] ? [m] : BGM_PAGES[bgm.page];
+  if (!keys) return bgm.list.length ? bgm.list : [{ id: BGM_TRACKS.deltoton.yt, title: "Deltoton" }];
+  return keys.map(k => ({ id: BGM_TRACKS[k].yt, title: BGM_TRACKS[k].title }));
+}
+const bgmCur = () => bgm.list[bgm.idx] || null;
+
+function ytApiReady() {
+  if (bgm.api) return bgm.api;
+  bgm.api = new Promise((res, rej) => {
+    if (window.YT?.Player) return res();
+    const prev = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => { prev?.(); res(); };
+    const s = document.createElement("script");
+    s.src = "https://www.youtube.com/iframe_api"; s.async = true;
+    s.onerror = () => { bgm.api = null; rej(new Error("yt")); };
+    document.head.append(s);
+  });
+  return bgm.api;
+}
+// 플레이어는 처음 재생할 때 만든다 (그 전에는 유튜브에 연결하지 않음)
+async function bgmPlayer() {
+  if (bgm.player) return bgm.ready ? bgm.player : new Promise(r => (bgm.onReady = () => r(bgm.player)));
+  try { await ytApiReady(); } catch { toast("유튜브를 불러오지 못했습니다. 잠시 뒤에 다시 눌러 주세요."); return null; }
+  const host = $("#bgm-yt-host"); if (!host) return null;
+  const first = bgmCur();
+  return new Promise(resolve => {
+    bgm.player = new YT.Player(host, {
+      width: "100%", height: "200", videoId: first?.id,
+      playerVars: { playsinline: 1, rel: 0, modestbranding: 1 },
+      events: {
+        onReady: e => { bgm.ready = true; e.target.setVolume(Math.round(bgm.prefs.vol * 100)); resolve(e.target); bgm.onReady?.(); },
+        onStateChange: bgmOnState,
+        onError: () => { bgm.err = true; paintBgm(); if (bgm.list.length > 1) bgmNext(); },
+      },
+    });
+  });
+}
+function bgmOnState(e) {
+  const S = YT.PlayerState;
+  if (e.data === S.PLAYING) {
+    bgm.playing = true; bgm.waiting = false; bgm.err = false;
+    if (!bgm.prefs.on) { bgm.prefs.on = true; bgmSave(); }   // 영상에서 직접 재생을 눌렀을 때
+  } else if (e.data === S.PAUSED) {
+    bgm.playing = false;
+    if (bgm.prefs.on && !bgm.switching) { bgm.prefs.on = false; bgmSave(); }   // 영상에서 직접 멈췄을 때
+  } else if (e.data === S.ENDED) {
+    bgm.playing = false;
+    if (bgm.list.length > 1) bgmNext();
+    else { e.target.seekTo(0, true); e.target.playVideo(); }   // 한 곡 반복
+  }
+  paintBgm();
+}
+function bgmNext() {
+  bgm.idx = (bgm.idx + 1) % Math.max(1, bgm.list.length);
+  const c = bgmCur(); if (!c || !bgm.player) return;
+  bgm.prefs.on ? bgm.player.loadVideoById(c.id) : bgm.player.cueVideoById(c.id);
+}
+// 브라우저가 첫 클릭 전 소리를 막으면, 다음에 누르는 순간 재생한다
+function bgmArmGesture() {
+  if (bgm.wait) return;
+  bgm.waiting = true; paintBgm();
+  bgm.wait = () => {
+    document.removeEventListener("pointerdown", bgm.wait, true); document.removeEventListener("keydown", bgm.wait, true);
+    bgm.wait = null;
+    if (bgm.prefs.on) bgmStart();
+  };
+  document.addEventListener("pointerdown", bgm.wait, true); document.addEventListener("keydown", bgm.wait, true);
+}
+async function bgmStart() {
+  const p = await bgmPlayer(); if (!p) return;
+  const c = bgmCur(); if (!c) return paintBgm();
+  const vid = p.getVideoData?.()?.video_id;
+  p.setVolume(Math.round(bgm.prefs.vol * 100));
+  if (vid !== c.id) p.loadVideoById(c.id); else p.playVideo();
+  setTimeout(() => { if (bgm.prefs.on && !bgm.playing) bgmArmGesture(); }, 1500);
+  paintBgm();
+}
+function bgmPause() { bgm.switching = false; bgm.player?.pauseVideo?.(); bgm.playing = false; paintBgm(); }
+
+// 곡 목록을 맞추고, 바뀌었으면 소리를 줄였다가 넘긴다
+function bgmApply(force) {
+  const want = bgmWant();
+  const same = want.length === bgm.list.length && want.every((x, i) => x.id === bgm.list[i].id);
+  if (same && !force) { if (bgm.prefs.on && !bgm.playing) bgmStart(); paintBgm(); return; }
+  bgm.list = want; bgm.idx = 0; bgm.err = false;
+  if (!bgm.list.length) { bgmPause(); return; }
+  if (!bgm.player || !bgm.ready) { if (bgm.prefs.on) bgmStart(); paintBgm(); return; }
+  const p = bgm.player, go = () => {
+    bgm.switching = false;
+    p.setVolume(Math.round(bgm.prefs.vol * 100));
+    bgm.prefs.on ? p.loadVideoById(bgmCur().id) : p.cueVideoById(bgmCur().id);
+    paintBgm();
+  };
+  if (!bgm.playing) return go();
+  bgm.switching = true;
+  let k = 0; const v0 = bgm.prefs.vol * 100;
+  const t = setInterval(() => { k++; p.setVolume(Math.max(0, v0 * (1 - k / 6))); if (k >= 6) { clearInterval(t); go(); } }, 50);
+}
+// 화면이 바뀔 때 부른다
+function bgmPage(page) {
+  if (bgm.page === page) return;
+  bgm.page = page;
+  if (bgm.prefs.mode === "auto") bgmApply();
+}
+function bgmToggle() {
+  bgm.prefs.on = !bgm.prefs.on; bgmSave();
+  if (bgm.prefs.on) { if (!bgm.list.length) bgm.list = bgmWant(); if (!bgm.list.length) { bgm.prefs.on = false; toast("유튜브 주소를 먼저 넣어 주세요."); return paintBgm(); } bgmStart(); }
+  else bgmPause();
+  paintBgm();
+}
+
+let bgmBuilt = false;
+function initBgm() {
+  const box = $("#bgm");
+  if (!box || bgmBuilt) return;
+  bgmBuilt = true;
+  const play = h("button", { type: "button", class: "bgm-play", id: "bgm-play", onclick: bgmToggle });
+  const now = h("div", { class: "bgm-now", id: "bgm-now" });
+  const vol = h("input", { type: "range", min: "0", max: "100", step: "1", value: String(Math.round(bgm.prefs.vol * 100)), "aria-label": "배경음악 볼륨" });
+  const volVal = h("span", { style: "min-width:30px;text-align:right" }, `${Math.round(bgm.prefs.vol * 100)}`);
+  vol.oninput = () => { bgm.prefs.vol = Number(vol.value) / 100; volVal.textContent = vol.value; bgm.player?.setVolume?.(Number(vol.value)); };
+  vol.onchange = bgmSave;
+  const sel = h("select", { class: "input", id: "bgm-sel", "aria-label": "음악 선택" },
+    h("option", { value: "auto" }, "페이지 음악 (자동)"),
+    h("optgroup", { label: "곡 고르기 (한 곡 반복)" }, ...Object.entries(BGM_TRACKS).map(([k, t]) => h("option", { value: k }, t.title))),
+    h("option", { value: "yt" }, "내 유튜브 링크…"));
+  sel.value = BGM_TRACKS[bgm.prefs.mode] || bgm.prefs.mode === "yt" ? bgm.prefs.mode : "auto";
+  const ytIn = h("input", { class: "input", placeholder: "유튜브 주소", value: bgm.prefs.yt || "", "aria-label": "유튜브 주소" });
+  const ytBtn = h("button", { class: "btn small", type: "submit" }, "재생");
+  const ytForm = h("form", { class: "bgm-yt", id: "bgm-ytform" }, ytIn, ytBtn);
+  ytForm.onsubmit = e => {
+    e.preventDefault();
+    if (!ytId(ytIn.value)) return toast("유튜브 영상 주소를 넣어 주세요. (예: https://youtu.be/…)");
+    bgm.prefs.yt = ytIn.value.trim(); bgm.prefs.on = true; bgmSave();
+    bgmApply(true);
+  };
+  sel.onchange = () => {
+    bgm.prefs.mode = sel.value; bgmSave();
+    if (sel.value === "yt" && !ytId(bgm.prefs.yt)) { ytIn.focus(); bgmPause(); bgm.list = []; return paintBgm(); }
+    bgmApply(true);
+  };
+  box.replaceChildren(
+    h("p", { class: "panel-title", style: "margin:0 0 10px" }, "배경음악"),
+    h("div", { class: "bgm-row" }, play, now),
+    h("div", { class: "bgm-vol" }, h("span", { "aria-hidden": "true" }, "🔈"), vol, volVal),
+    sel, ytForm,
+    h("div", { class: "bgm-ytbox", id: "bgm-ytbox" }, h("div", { id: "bgm-yt-host" })),
+    h("p", { class: "bgm-note", id: "bgm-note" }));
+  placeBgm();
+  matchMedia("(max-width: 720px)").addEventListener("change", placeBgm);
+  bgm.list = bgmWant(); bgm.idx = 0;
+  paintBgm();
+  if (bgm.prefs.on) bgmStart();
+}
+// PC: 헌터 정보 아래 / 모바일: 위쪽 헌터 요약 아래 (플레이어를 옮기면 영상이 다시 로드되므로 처음 한 번만 정한다)
+function placeBgm() {
+  const box = $("#bgm"); if (!box) return;
+  if (bgm.player && box.isConnected && box.parentElement) return;
+  const slot = matchMedia("(max-width: 720px)").matches ? $("#bgm-mobile-slot") : $("#bgm-side-slot");
+  if (box.parentElement !== slot) slot.append(box);
+}
+function paintBgm() {
+  const play = $("#bgm-play"), now = $("#bgm-now"), note = $("#bgm-note"), ytf = $("#bgm-ytform"), ybox = $("#bgm-ytbox");
+  if (!play) return;
+  const on = bgm.prefs.on;
+  play.textContent = on ? "❚❚" : "▶";
+  play.setAttribute("aria-label", on ? "일시정지" : "재생");
+  ytf.hidden = bgm.prefs.mode !== "yt";
+  ybox.classList.toggle("off", !on || !bgm.player);   // 재생 중일 때만 영상을 펼쳐 둔다
+  const c = bgmCur() || bgmWant()[0];
+  now.replaceChildren(
+    h("b", {}, c?.title || "곡 없음", bgm.playing ? h("span", { class: "bgm-eq", "aria-hidden": "true" }, h("i"), h("i"), h("i")) : null),
+    c ? h("a", { href: `https://youtu.be/${c.id}`, target: "_blank", rel: "noopener" }, c.custom ? "YouTube에서 보기" : "zippy · YouTube") : h("small", {}, "주소를 넣고 재생을 누르세요"));
+  note.textContent = bgm.err ? "이 영상은 재생할 수 없습니다. (퍼가기가 막혔거나 없는 영상)"
+    : bgm.waiting && on ? "화면을 한 번 누르면 재생됩니다. (브라우저가 자동 재생을 막아 둠)"
+    : bgm.prefs.mode === "yt" ? "유튜브 주소는 이 기기에만 저장됩니다."
+    : bgm.prefs.mode === "auto" ? "화면마다 어울리는 곡으로 바뀝니다." : "고른 곡을 반복합니다.";
+}
+function bgmStop() { bgm.player?.pauseVideo?.(); bgm.playing = false; paintBgm(); }
 
 /* ===== 데이터 불러오기 & 시작 ===== */
 async function loadAll() {
@@ -3807,6 +4289,12 @@ async function loadAll() {
   ]);
   if (p.error) throw p.error;
   state.profile = p.data; state.character = c.data; state.settings = s.data; state.stats = st.data || null;
+  if (state.character && state.profile?.invited) {
+    const { data: tt } = await sb.rpc("my_titles");
+    state.titles = tt || null;
+    const fresh = (tt?.owned || []).filter(x => x.new);
+    if (fresh.length) setTimeout(() => toast(`새 타이틀 조각: ${fresh.map(x => x.name).join(", ")} — 헌터 정보에서 장착할 수 있습니다.`), 600);
+  }
   state.avatarUrl = await signedAvatar(state.profile?.avatar_url);
   if (state.settings) applyTheme(state.settings.theme);
 }
@@ -3826,6 +4314,7 @@ async function boot() {
   if (!state.profile?.invited) return show("screen-invite");
   if (!state.character) { setupCreate(); return show("screen-create"); }
   renderHunter();
+  initBgm();
   renderMain();
   show("screen-app");
   if (docRoute()) syncDoc();   // 로그인 확인 뒤 '게임으로 돌아가기' 버튼으로 다시 그림
