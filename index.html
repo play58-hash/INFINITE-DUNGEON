@@ -261,6 +261,7 @@ code.c { font-family: ui-monospace, Menlo, monospace; background: var(--surface-
 .pt-box .fr-row { padding: 6px 0; }
 .title-line { line-height: 1.35; overflow-wrap: anywhere; }
 .title-line .tt { font-weight: 600; color: var(--accent-text); }
+.title-line.stack > span { display: block; }
 .grade-line { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
 .title-pick { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: end; margin-top: 8px; }
 .title-pick label { font-size: 12px; color: var(--text-dim); display: block; margin-bottom: 4px; }
@@ -1303,8 +1304,8 @@ function renderNav() {
   paintSocialBadge();
 }
 // 프로필 표시: 앞말 · 코드네임 · 뒷말 한 줄 (등급·레벨은 아래 줄에 작게)
-function titleLine(t, codename) {
-  return h("div", { class: "codename title-line" },
+function titleLine(t, codename, stack) {   // stack: 앞말 / 코드네임 / 뒷말을 줄을 나눠 표시 (헌터 정보 카드)
+  return h("div", { class: "codename title-line" + (stack ? " stack" : "") },
     t?.front ? h("span", { class: "tt" }, t.front + " ") : null,
     h("span", { class: "cn" }, codename),
     t?.back ? h("span", { class: "tt" }, " " + t.back) : null);
@@ -1354,7 +1355,7 @@ function renderHunter() {
 
   $("#hunter-card").replaceChildren(
     h("div", { class: "hunter-head" }, av,
-      h("div", { style: "min-width:0" }, titleLine(state.titles?.line, p.codename), h("div", { class: "grade-line" }, `${c.grade}급 · Lv.${c.level}`))),
+      h("div", { style: "min-width:0" }, titleLine(state.titles?.line, p.codename, true), h("div", { class: "grade-line" }, `${c.grade}급 · Lv.${c.level}`))),
     h("div", { class: "kv" }, h("span", {}, "활동 구역"), h("span", {}, REGIONS[p.region])),
     h("div", { class: "kv" }, h("span", {}, "레벨 · 등급"), h("span", {}, `Lv.${c.level} · `, h("span", { class: "badge" }, `${c.grade}급`))),
     h("div", { class: "kv" }, h("span", {}, "다음 승급"), h("span", {}, nextPromotion(c.grade))),
@@ -2279,7 +2280,7 @@ async function renderHome(pane) {
   const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
   pane.replaceChildren(
     h("h2", {}, "홈"),
-    h("p", { class: "hint", style: "margin:0 0 16px" }, "진행 중인 활동과 오늘 남은 횟수, 내 할 일을 한눈에 봅니다."),
+    h("p", { class: "hint", style: "margin:0 0 16px" }, "안녕하세요, 헌터님. 오늘 활동을 확인해보세요."),
     body);
   const { data: d, error } = await sb.rpc("get_home");
   if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
@@ -2397,7 +2398,7 @@ async function renderHome(pane) {
     questBox.replaceChildren(h("p", { class: "panel-title" }, `일일 퀘스트 ${qs.filter(q => q.claimed).length} / ${qs.length}`),
       h("ul", { class: "quest-list" }, ...qs.map(q => {
         let right;
-        if (q.claimed) right = h("span", { class: "badge" }, "받음");
+        if (q.claimed) right = h("span", { class: "badge" }, "완료");
         else if (q.done) {
           right = h("button", { class: "btn small", type: "button" }, "받기");
           right.onclick = async () => {
@@ -2411,7 +2412,7 @@ async function renderHome(pane) {
         return h("li", { class: q.claimed ? "done" : null },
           h("div", { class: "fr-main" }, h("b", {}, q.name), h("div", { class: "hint" }, `${q.desc} · 가능성 +${q.reward}`)), right);
       })),
-      h("p", { class: "hint", style: "margin:8px 0 0;font-size:12px" }, "보상은 레벨 × 퀘스트별 배율 (획득률 적용) · 매일 0시(한국 시간)에 새로 시작합니다."));
+      h("p", { class: "hint", style: "margin:8px 0 0;font-size:12px" }, "매일 0시(한국 시간)에 새로 시작합니다."));
   }
 
   /* 스토리 퀘스트 */
@@ -2519,7 +2520,7 @@ async function renderHome(pane) {
         h("div", { class: "gauge" }, h("i", { style: `width:${Math.max(0, Math.min(100, pct))}%` })),
         h("span", { class: "an-v" }, s.stage >= 10 ? "10단계 · 가능성" : `${s.stage}/10 · 다음 ${hrs(s.next_at - s.minutes)}`));
     })),
-      h("p", { class: "hint", style: "margin:6px 0 0;font-size:12px" }, "고른 스탯에 분석 시간이 쌓이고, 단계마다 그 스탯이 영구로 +1 오릅니다. 10단계를 마친 스탯은 5분마다 가능성 5를 얻습니다. 다른 활동과 동시에 할 수 있습니다."));
+      h("p", { class: "hint", style: "margin:6px 0 0;font-size:12px" }, "다른 활동과 동시 진행이 가능하며, 단계를 달성할 때마다 스탯이 오릅니다. 10단계를 마친 스탯은 전력을 분석할 때마다 가능성을 획득합니다."));
     anBox.replaceChildren(...kids);
   }
   ticks.push(() => anTick && anTick());
