@@ -322,6 +322,25 @@ table.list.rank tr.me td { background: color-mix(in srgb, var(--primary) 10%, tr
 .quest-list li { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
 .quest-list li:last-child { border-bottom: 0; }
 .quest-list li.done b { color: var(--text-dim); }
+.story-cur .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.story-desc { margin: 6px 0 8px; font-size: 13px; line-height: 1.6; color: var(--text-dim); }
+.promo-btn { margin-top: 8px; width: 100%; }
+.codex-cats { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.codex-sum { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-bottom: 12px; }
+.codex-sum div { border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; background: var(--bg); }
+.codex-sum span { display: block; font-size: 12px; color: var(--text-dim); }
+.codex-sum b { font-size: 18px; }
+.codex-group { margin: 14px 0 6px; font-size: 13px; color: var(--text-dim); font-weight: 600; }
+.codex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
+.codex-cell { border: 1px solid var(--border); border-radius: 10px; padding: 10px; background: var(--bg); text-align: left; font: inherit; color: inherit; cursor: pointer; min-height: 64px; display: flex; flex-direction: column; gap: 4px; }
+.codex-cell:hover { border-color: var(--accent); }
+.codex-cell b { font-size: 13px; word-break: keep-all; }
+.codex-cell small { font-size: 11px; color: var(--text-dim); }
+.codex-cell.unknown { opacity: .55; border-style: dashed; }
+.codex-cell.unknown b { letter-spacing: 2px; }
+.codex-cell.boss { border-color: var(--warn, #c08a2b); }
+.sfx-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 12px; color: var(--text-dim); }
+.sfx-row input[type=range] { flex: 1; }
 .an-stats { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
 .an-row { display: grid; grid-template-columns: 36px 1fr auto; gap: 8px; align-items: center; font-size: 12px; }
 .an-row .gauge { margin: 0; }
@@ -1026,10 +1045,23 @@ function josa(word, withB, withoutB) {   // 받침에 맞는 조사
 const soonBox = (title, desc) => h("div", { class: "soon" },
   h("p", { style: "margin:0 0 4px;font-weight:700" }, title), h("p", { style: "margin:0" }, desc));
 const GRADE_ORDER = "FEDCBAS";
-const GRADE_LEVEL = { E: 10, D: 20, C: 35, B: 50, A: 70, S: 100 };   // 이 레벨에 닿으면 승급
+const GRADE_LEVEL = { E: 10, D: 20, C: 35, B: 50, A: 70, S: 100 };   // 이 레벨부터 승급할 수 있음 (서버 grade_need와 같게)
+const nextGrade = grade => GRADE_ORDER[GRADE_ORDER.indexOf(grade) + 1] || null;
+const canPromote = c => { const n = nextGrade(c.grade); return !!n && c.level >= GRADE_LEVEL[n]; };
 function nextPromotion(grade) {
-  const next = GRADE_ORDER[GRADE_ORDER.indexOf(grade) + 1];
-  return next ? `Lv.${GRADE_LEVEL[next]}에 ${next}급` : "최고 등급";
+  const next = nextGrade(grade);
+  return next ? `Lv.${GRADE_LEVEL[next]}부터 ${next}급` : "최고 등급";
+}
+async function doPromote(btn) {
+  const n = nextGrade(state.character.grade);
+  if (!confirm(`${n}급으로 승급할까요?\n승급하면 지역 안정화에서 더 높은 등급의 던전에 도전할 수 있습니다.`)) return;
+  busy(btn, true, "…");
+  const { data, error } = await sb.rpc("promote");
+  if (error) { busy(btn, false); return toast(koError(error)); }
+  sfx("notice");
+  await loadAll(); renderHunter();
+  info(`${data.grade_after}급으로 승급했습니다!`, data.more ? `레벨 조건을 이미 채워서 ${nextGrade(data.grade_after)}급으로도 바로 승급할 수 있습니다.` : "축하합니다, 헌터님.");
+  if (route() === "dungeon" || route() === "home") renderMain();
 }
 
 /* ===== 상태 ===== */
@@ -1326,6 +1358,7 @@ function renderHunter() {
     h("div", { class: "kv" }, h("span", {}, "활동 구역"), h("span", {}, REGIONS[p.region])),
     h("div", { class: "kv" }, h("span", {}, "레벨 · 등급"), h("span", {}, `Lv.${c.level} · `, h("span", { class: "badge" }, `${c.grade}급`))),
     h("div", { class: "kv" }, h("span", {}, "다음 승급"), h("span", {}, nextPromotion(c.grade))),
+    canPromote(c) ? h("button", { class: "btn small promo-btn", style: "margin-bottom:6px", type: "button", onclick: e => doPromote(e.currentTarget) }, `${nextGrade(c.grade)}급으로 승급하기`) : null,
     h("div", { class: "kv" }, h("span", {}, "포지션"), h("span", {}, posLabel(c.main_position, c.main_option))),
     c.sub_position ? h("div", { class: "kv" }, h("span", {}, "서브 포지션"), h("span", {}, posLabel(c.sub_position, c.sub_option))) : null,
     !c.sub_position && c.level >= 25 ? h("button", { class: "btn ghost block small", style: "margin:6px 0", type: "button", onclick: openSubPosition }, "서브 포지션 정하기") : null,
@@ -1349,6 +1382,7 @@ function renderHunter() {
   avatarEl(mav, { url: state.avatarUrl, color: p.avatar_color, name: p.codename });
   $("#mobile-summary").replaceChildren(mav,
     h("div", { style: "flex:1;min-width:0" }, h("strong", {}, p.codename), h("div", { class: "hint" }, `Lv.${c.level} · ${c.grade}급 · ${REGIONS[p.region]}`)),
+    canPromote(c) ? h("button", { class: "btn small", type: "button", onclick: e => { e.stopPropagation(); doPromote(e.currentTarget); } }, `${nextGrade(c.grade)}급 승급`) : null,
     c.stat_points > 0 ? h("span", { class: "badge" }, `포인트 ${c.stat_points}`) : null,
     h("span", { class: "hint" }, "정보 ›"));
   $("#mobile-summary").onclick = openHunter;
@@ -1441,6 +1475,10 @@ function watchGuild(gid) {
 }
 function paintSocialBadge() {
   const s = social.summary || {};
+  // 친구 신청·선물·파티/길드 초대가 새로 늘면 알림음
+  const sig = ["friend_requests", "gifts", "party_invites", "guild_invites"].map(k => s[k] || 0);
+  if (social.sig && sig.some((v, i) => v > social.sig[i])) sfx("notice");
+  social.sig = sig;
   const n = (s.friend_requests || 0) + (s.gifts || 0) + (s.unread || 0) + (s.party_invites || 0) + (s.guild_invites || 0) + (s.guild_unread || 0);
   document.querySelectorAll('[data-menu="friends"]').forEach(a => {
     a.querySelector(".nbadge")?.remove();
@@ -1462,6 +1500,7 @@ function startSocial() {
       if (social.onDm && social.onDm(payload.new)) return;   // 지금 열린 대화면 그 자리에서 보여 준다
       social.summary.unread = (social.summary.unread || 0) + 1;
       paintSocialBadge();
+      sfx("notice");
       toast("새 메시지가 왔습니다.");
     })
     .subscribe();
@@ -1471,6 +1510,7 @@ function stopSocial() {
   if (social.chan) { sb.removeChannel(social.chan); social.chan = null; }
   watchGuild(null);
   social.onDm = null; social.onGuild = null;
+  social.sig = null; social.lastPost = null;
 }
 
 /* 오른쪽 SNS 칸 (PC) */
@@ -1479,6 +1519,8 @@ async function refreshSideSns() {
   if (!box || !state.character) return;
   const { data } = await sb.rpc("sns_feed", { p_category: null, p_before: null });
   const posts = (data?.posts || []).slice(0, 4);
+  const top = posts.find(p => p.author?.codename !== state.profile?.codename);
+  if (top) { if (social.lastPost && top.at > social.lastPost) sfx("notice"); if (!social.lastPost || top.at > social.lastPost) social.lastPost = top.at; }
   box.replaceChildren(
     h("p", { class: "panel-title" }, "SNS"),
     posts.length ? h("ul", { class: "side-feed" }, ...posts.map(p => h("li", {},
@@ -2155,6 +2197,8 @@ async function openPublicHunter(codename) {
       p.friend ? h("span", { class: "badge", style: "margin-top:4px;display:inline-block" }, "친구") : null)),
     h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "특징"),
     h("p", { style: "margin:0;white-space:pre-wrap" }, p.bio || h("span", { class: "hint" }, "공개하지 않았습니다.")),
+    p.codex ? h("p", { class: "panel-title", style: "margin:14px 0 6px" }, `도감 달성률 ${p.codex.all ?? 0}%`) : null,
+    p.codex ? h("div", { class: "codex-sum", style: "margin:0" }, ...CODEX_CATS.map(([k, n]) => h("div", {}, h("span", {}, n), h("b", {}, `${p.codex[k] ?? 0}%`)))) : null,
     btns.length ? h("div", { style: "display:flex;gap:8px;flex-wrap:wrap;margin-top:16px" }, ...btns) : null);
 }
 
@@ -2361,13 +2405,43 @@ async function renderHome(pane) {
             const { data, error } = await sb.rpc("quest_claim", { p_code: q.code });
             if (error) { busy(right, false); return toast(koError(error)); }
             toast(`가능성 +${data.pot}` + (data.level_after > data.level_before ? " — 레벨이 올랐습니다!" : ""));
-            await loadAll(); renderHunter(); paintQuests();
+            await loadAll(); renderHunter(); paintQuests(); paintStory();
           };
         } else right = h("span", { class: "hint" }, "진행 전");
         return h("li", { class: q.claimed ? "done" : null },
           h("div", { class: "fr-main" }, h("b", {}, q.name), h("div", { class: "hint" }, `${q.desc} · 가능성 +${q.reward}`)), right);
       })),
-      h("p", { class: "hint", style: "margin:8px 0 0;font-size:12px" }, "보상은 레벨 × 15 (획득률 적용) · 매일 0시(한국 시간)에 새로 시작합니다."));
+      h("p", { class: "hint", style: "margin:8px 0 0;font-size:12px" }, "보상은 레벨 × 퀘스트별 배율 (획득률 적용) · 매일 0시(한국 시간)에 새로 시작합니다."));
+  }
+
+  /* 스토리 퀘스트 */
+  const storyBox = h("div", { class: "home-box", style: "margin-top:14px" }, h("p", { class: "panel-title" }, "스토리 퀘스트"), h("p", { class: "hint" }, "불러오는 중…"));
+  async function paintStory() {
+    const { data: st, error } = await sb.rpc("story_state");
+    if (error) return storyBox.replaceChildren(h("p", { class: "panel-title" }, "스토리 퀘스트"), h("p", { class: "error" }, koError(error)));
+    const title = h("p", { class: "panel-title" }, `스토리 퀘스트 ${st.claimed} / ${st.total}`);
+    const cur = (st.steps || []).find(s => !s.claimed);
+    if (!cur) return storyBox.replaceChildren(title, h("p", { class: "hint" }, "모든 스토리 퀘스트를 마쳤습니다. 수고하셨습니다, 헌터님!"));
+    let right;
+    if (cur.done) {
+      right = h("button", { class: "btn small", type: "button" }, "받기");
+      right.onclick = async () => {
+        busy(right, true, "…");
+        const { data, error } = await sb.rpc("story_claim");
+        if (error) { busy(right, false); return toast(koError(error)); }
+        sfx("notice");
+        toast(`'${data.name}' 완료` + (data.reward ? ` — ${data.reward}` : ""));
+        await loadAll(); renderHunter(); paintStory();
+      };
+    } else right = h("span", { class: "hint" }, "진행 중");
+    storyBox.replaceChildren(title,
+      h("div", { class: "story-cur" },
+        h("div", { class: "row" }, h("strong", {}, `${cur.step}. ${cur.name}`), right),
+        h("p", { class: "story-desc" }, cur.desc),
+        h("div", { class: "kv" }, h("span", {}, "조건"), h("b", {}, cur.cond)),
+        h("div", { class: "kv", style: "border:0" }, h("span", {}, "보상"), h("b", {}, cur.reward || "없음"))),
+      h("div", { class: "bar", style: "margin-top:8px" }, h("i", { style: `width:${st.claimed / st.total * 100}%` })),
+      h("p", { class: "hint", style: "margin:6px 0 0;font-size:12px" }, "순서대로 하나씩 진행합니다. 조건은 지금까지 해온 기록으로도 인정됩니다."));
   }
 
   /* 전력 분석 */
@@ -2386,19 +2460,19 @@ async function renderHome(pane) {
       if (r.stat_gain > 0) parts.push(`${STAT_KO[r.stat]} +${r.stat_gain} (${r.stage_after}단계)`);
       if (r.pot > 0) parts.push(`가능성 +${r.pot}`);
       toast(parts.length ? parts.join(" · ") : `${okMsg} (${r.credited}분 반영)`);
-      await loadAll(); renderHunter(); paintAnalysis(); paintQuests();
+      await loadAll(); renderHunter(); paintAnalysis(); paintQuests(); paintStory();
     };
     if (a.running) {
       const ru = a.running, start = Date.parse(ru.started_at), end = Date.parse(ru.ends_at);
       const left = h("b", { class: "home-big" }), bar = h("i", { style: "width:0%" });
       const btns = h("div", { style: "display:flex;gap:8px;margin-top:10px" });
-      let shownDone = false;
+      let shownDone = false, sawRun = false;
       anTick = () => {
         const now = Date.now() + off;
         bar.style.width = Math.min(100, (now - start) / (end - start) * 100) + "%";
-        if (now < end) left.textContent = fmtDur(end - now);
+        if (now < end) { sawRun = true; left.textContent = fmtDur(end - now); }
         else if (!shownDone) {
-          shownDone = true; left.textContent = "분석 완료"; left.className = "home-big ok-text";
+          shownDone = true; if (sawRun) sfx("notice"); left.textContent = "분석 완료"; left.className = "home-big ok-text";
           btns.replaceChildren(h("button", { class: "btn small", type: "button", onclick: () => finish("analysis_claim", "분석을 마쳤습니다") }, "결과 받기"));
         }
       };
@@ -2450,8 +2524,8 @@ async function renderHome(pane) {
   }
   ticks.push(() => anTick && anTick());
 
-  body.replaceChildren(h("div", { class: "home-grid" }, actBox, countBox), h("div", { class: "home-grid", style: "margin-top:14px" }, questBox, anBox), todoBox);
-  paintQuests(); paintAnalysis();
+  body.replaceChildren(h("div", { class: "home-grid" }, actBox, countBox), h("div", { class: "home-grid", style: "margin-top:14px" }, questBox, anBox), storyBox, todoBox);
+  paintQuests(); paintStory(); paintAnalysis();
   const tick = () => {
     ticks.forEach(f => f());
     if (Date.parse(d.reset_at) <= nowS()) { stopDungeonTimers(); renderHome(pane); }   // 0시가 지나면 횟수 새로 고침
@@ -2644,7 +2718,7 @@ function renderDungeonRun(body, first) {
   async function poll() {
     const { data, error } = await sb.rpc("get_battle_log");
     if (error) err.textContent = koError(error);
-    else if (data) { err.textContent = ""; cur = data; paintStats(); paintLog(); paintActions(); tick(); }
+    else if (data) { const was = cur.returned; err.textContent = ""; cur = data; if (!was && cur.returned) sfx("notice"); paintStats(); paintLog(); paintActions(); tick(); }
     if (!cur.returned) dgPoll = setTimeout(poll, pollDelay());
   }
   async function retreat() {
@@ -2682,7 +2756,7 @@ function showReport(body, r) {
     ["얻은 가능성", `+${Number(r.pot).toLocaleString()}` + (Number(r.grade_mult) !== 1 ? ` (등급 배율 ×${r.grade_mult})` : "")],
     ["얻은 메헨", `+${Number(r.cur).toLocaleString()} Mh`],
     ["레벨", lvUp ? `Lv.${r.level_before} → Lv.${r.level_after} (스탯 포인트 +${r.points})` : `Lv.${r.level_after}`],
-    ["등급", grUp ? `${r.grade_before}급 → ${r.grade_after}급` : `${r.grade_after}급`],
+    ["등급", gradeNote(r)],
   ];
   const kids = [
     h("h3", { class: "report-title" }, grUp ? `${r.grade_after}급으로 승급했습니다!` : lvUp ? "레벨이 올랐습니다!" : "던전 결과"),
@@ -2702,6 +2776,7 @@ function showReport(body, r) {
   if (r.supplies_returned?.length) kids.push(h("p", { class: "hint", style: "margin:10px 0 0" },
     "돌려받은 보급품: " + r.supplies_returned.map(x => `${x.name} ${x.qty}개`).join(", ")));
   if (r.points > 0) kids.push(h("button", { class: "btn ghost block", style: "margin-top:16px", type: "button", onclick: openStats }, "스탯 포인트 분배하기"));
+  if (state.character && canPromote(state.character)) kids.push(h("button", { class: "btn ghost block", style: "margin-top:8px", type: "button", onclick: e => doPromote(e.currentTarget) }, `${nextGrade(state.character.grade)}급으로 승급하기`));
   kids.push(h("button", { class: "btn block", style: "margin-top:8px", type: "button", onclick: () => renderDungeon($("#main-pane")) }, "확인"));
   body.replaceChildren(...kids);
 }
@@ -2714,9 +2789,13 @@ function progressRows(r) {
       ["얻은 가능성", `+${Number(r.pot || 0).toLocaleString()}`],
       ["얻은 메헨", `+${Number(r.cur || 0).toLocaleString()} Mh`],
       ["레벨", lvUp ? `Lv.${r.level_before} → Lv.${r.level_after} (스탯 포인트 +${r.points})` : `Lv.${r.level_after}`],
-      ["등급", grUp ? `${r.grade_before}급 → ${r.grade_after}급` : `${r.grade_after}급`],
+      ["등급", gradeNote(r)],
     ],
   };
+}
+function gradeNote(r) {   // 승급은 직접 누를 때만 — 결과에는 가능 여부만 알림
+  const g = state.character?.grade || r.grade_after, n = nextGrade(g);
+  return n && r.level_after >= GRADE_LEVEL[n] ? `${g}급 · ${n}급으로 승급할 수 있습니다` : `${g}급`;
 }
 const dropList = drops => h("div", { class: "report" }, ...drops.map(d => h("div", { class: "kv" },
   h("span", { class: d.tier ? `tier${d.tier}` : null, style: d.tier ? "font-weight:700" : null }, d.name),
@@ -2910,7 +2989,7 @@ function renderRegionalRun(body, first) {
     dgPoll = null;
     const { data, error } = await sb.rpc("get_regional_status");
     if (error) err.textContent = koError(error);
-    else if (data) { err.textContent = ""; cur = data; paint(); tick(); }
+    else if (data) { const was = cur.returned; err.textContent = ""; cur = data; if (!was && cur.returned) sfx("notice"); paint(); tick(); }
     if (!cur.returned) dgPoll = setTimeout(poll, cur.speed > 1 ? 2000 : 15000);
   }
   async function claim() {
@@ -2947,6 +3026,7 @@ function showRegionalReport(body, r) {
   kids.push(h("div", { class: "report" }, ...rows.map(([k, v]) => h("div", { class: "kv" }, h("span", {}, k), h("span", {}, v)))));
   if (r.drops?.length) kids.push(h("p", { class: "panel-title", style: "margin:18px 0 8px" }, "획득한 아이템"), dropList(r.drops));
   if (r.points > 0) kids.push(h("button", { class: "btn ghost block", style: "margin-top:16px", type: "button", onclick: openStats }, "스탯 포인트 분배하기"));
+  if (state.character && canPromote(state.character)) kids.push(h("button", { class: "btn ghost block", style: "margin-top:8px", type: "button", onclick: e => doPromote(e.currentTarget) }, `${nextGrade(state.character.grade)}급으로 승급하기`));
   kids.push(h("button", { class: "btn block", style: "margin-top:8px", type: "button", onclick: () => renderRegional($("#main-pane")) }, "확인"));
   body.replaceChildren(...kids);
 }
@@ -3054,7 +3134,7 @@ function renderExploreRun(body, s) {
     const [dx, dy] = DIRS[dir];
     const nx = s.x + dx, ny = s.y + dy;
     if (nx < 0 || nx > 9 || ny < 0 || ny > 9) return;
-    moving = true; err.textContent = ""; paint();
+    moving = true; err.textContent = ""; paint(); sfx("move1");
     const { data, error } = await sb.rpc("explore_move", { p_dir: dir });
     moving = false;
     if (error) { err.textContent = koError(error); return paint(); }
@@ -3131,8 +3211,9 @@ function renderStarIdle(body, s, last, act, exploring) {
   const lv = state.character?.level || 1;
   const err = h("div", { class: "error", role: "alert" });
   const done = !!s?.done_today;
-  const btn = h("button", { class: "btn block", type: "button", disabled: done || !!act || !!exploring },
-    done ? "오늘은 이미 다녀왔습니다" : "별의 무덤에 들어가기");
+  const locked = lv < 10;
+  const btn = h("button", { class: "btn block", type: "button", disabled: locked || done || !!act || !!exploring },
+    locked ? "10레벨부터 들어갈 수 있습니다" : done ? "오늘은 이미 다녀왔습니다" : "별의 무덤에 들어가기");
   btn.onclick = async () => {
     err.textContent = "";
     busy(btn, true, "준비 중…");
@@ -3149,11 +3230,14 @@ function renderStarIdle(body, s, last, act, exploring) {
   kids.push(
     h("p", { style: "margin:0 0 8px" }, "잠든 별들이 묻힌 10×10 무덤을 걸으며 별가루와 아이템을 모읍니다. 무덤을 지키는 별지기에게 들키지 마세요."),
     h("ul", { class: "hint", style: "margin:0 0 16px;padding-left:18px;line-height:1.7" },
-      h("li", {}, `하루 1번 · 한 번에 ${5 + Math.floor(lv / 5)}칸 이동 (5레벨마다 1칸 늘어남) · 탐색 3회와는 따로 셉니다`),
+      h("li", {}, `10레벨부터 · 하루 1번 · 한 번에 ${5 + Math.floor(lv / 5)}칸 이동 (5레벨마다 1칸 늘어남) · 탐색 3회와는 따로 셉니다`),
       h("li", {}, "별가루, 맥동하는 마석, 별조각 사탕, 은하수 이슬, 가능성을 얻을 수 있습니다."),
       h("li", {}, "별지기(◎)는 지도에 보이며, 내가 두 칸 움직일 때마다 한 칸씩 다가옵니다."),
       h("li", {}, "별지기와 마주치면 이동이 남아 있어도 그 자리에서 끝납니다. 그때까지 얻은 것은 그대로 받습니다."),
       h("li", {}, "무한 던전·지역 안정화·탐색과 동시에 할 수 없습니다. 매일 0시(한국 시간)에 다시 열립니다.")));
+  if (locked) kids.push(h("div", { class: "rg-notice" },
+    h("p", { style: "margin:0 0 8px;font-weight:700" }, "별의 무덤은 10레벨부터 들어갈 수 있습니다."),
+    h("p", { class: "hint", style: "margin:0" }, `지금 Lv.${lv} · ${10 - lv}레벨 더 올리면 열립니다.`)));
   if (act) kids.push(h("div", { class: "rg-notice" },
     h("p", { style: "margin:0 0 8px;font-weight:700" }, act.kind === "regional"
       ? `지역 안정화 — ${act.target.grade}급 ${josa(act.target.place || `${act.target.slot}번 던전`, "을", "를")} 공략하고 있습니다.` : "무한 던전에 진입해 있습니다."),
@@ -3206,10 +3290,11 @@ function renderStarRun(body, s) {
     const [dx, dy] = DIRS[dir];
     const nx = s.x + dx, ny = s.y + dy;
     if (nx < 0 || nx > 9 || ny < 0 || ny > 9) return;
-    moving = true; err.textContent = ""; paint();
+    moving = true; err.textContent = ""; paint(); sfx("move2");
     const { data, error } = await sb.rpc("star_move", { p_dir: dir });
     moving = false;
     if (error) { err.textContent = koError(error); return paint(); }
+    if (data.kx !== s.kx || data.ky !== s.ky) setTimeout(() => sfx("stargurdian"), 180);   // 별지기가 움직였다
     s = data;
     msg.textContent = data.message + (data.level_up ? " — 레벨이 올랐다!" : "");
     msg.className = `ex-msg${s.end_reason === "keeper" ? " bad-text" : ""}`;
@@ -3264,9 +3349,10 @@ async function renderInventory(pane, tab = "items") {
   if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
   cur.textContent = fmtMh(inv.currency);
   const refresh = async () => { await loadAll(); renderHunter(); renderInventory(pane, tab); };
-  async function act(call, okMsg) {
+  async function act(call, okMsg, snd) {
     const { error } = await call();
     if (error) return toast(koError(error));
+    if (snd) sfx(snd);
     if (okMsg) toast(okMsg);
     refresh();
   }
@@ -3299,20 +3385,20 @@ function renderOwned(body, inv, act, refresh) {
         title: inv.level < g.req_level ? `${g.req_level}레벨부터 장착할 수 있습니다.` : null,
         onclick: () => act(() => sb.rpc("equip_gear", { p_gear_id: g.id }), "장착했습니다.") }, "장착"),
       g.enhance < 10 ? h("button", { class: "btn ghost small", type: "button", onclick: () => openEnhance(g.id, refresh) }, "강화") : null,
-      g.equipped ? null : h("button", { class: "btn ghost small", type: "button",
+      g.equipped ? null : h("button", { class: "btn ghost small", type: "button", "data-sfx": "own",
         onclick: () => confirm(`${josa(gearName(g), "을", "를")} ${g.sell_price} Mh에 팔까요?`)
-          && act(() => sb.rpc("sell_gear", { p_gear_id: g.id }), "판매했습니다.") }, "판매")));
+          && act(() => sb.rpc("sell_gear", { p_gear_id: g.id }), "판매했습니다.", "sell") }, "판매")));
   const stackRow = x => h("div", { class: "item-row" },
     h("div", { class: "item-main" },
       h("strong", {}, `${x.name} × ${x.qty}`),
       h("div", { class: "hint" }, (x.kind === "consumable" ? fmtEffect(x.effect) : matInfo(x)) + ` · 개당 ${x.sell_price}`),
       h("div", { class: "hint item-desc" }, x.description)),
     h("div", { class: "item-actions" },
-      h("button", { class: "btn ghost small", type: "button",
-        onclick: () => act(() => sb.rpc("shop_sell", { p_code: x.code, p_qty: 1 }), "1개 팔았습니다.") }, "1개 판매"),
-      x.qty > 1 ? h("button", { class: "btn ghost small", type: "button",
+      h("button", { class: "btn ghost small", type: "button", "data-sfx": "own",
+        onclick: () => act(() => sb.rpc("shop_sell", { p_code: x.code, p_qty: 1 }), "1개 팔았습니다.", "sell") }, "1개 판매"),
+      x.qty > 1 ? h("button", { class: "btn ghost small", type: "button", "data-sfx": "own",
         onclick: () => confirm(`${x.name} ${x.qty}개를 ${(x.qty * x.sell_price).toLocaleString()} Mh에 모두 팔까요?`)
-          && act(() => sb.rpc("shop_sell", { p_code: x.code, p_qty: x.qty }), "모두 팔았습니다.") }, "모두 판매") : null));
+          && act(() => sb.rpc("shop_sell", { p_code: x.code, p_qty: x.qty }), "모두 팔았습니다.", "sell") }, "모두 판매") : null));
 
   const cons = inv.stacks.filter(x => x.kind === "consumable"), mats = inv.stacks.filter(x => x.kind === "material");
   const group = (title, rows, empty) => h("div", { class: "item-group" },
@@ -3342,12 +3428,12 @@ function renderShop(body, inv, act) {
           h("div", { class: "hint item-desc" }, it.description)),
         h("div", { class: "item-actions", style: "align-items:center" },
           h("strong", {}, `${it.price.toLocaleString()}`), qty,
-          h("button", { class: "btn small", type: "button", disabled: lowLv,
+          h("button", { class: "btn small", type: "button", "data-sfx": "own", disabled: lowLv,
             title: lowLv ? `${it.req_level}레벨부터 살 수 있습니다.` : null,
             onclick: () => {
               const n = Math.max(1, Math.floor(Number(qty.value) || 1));
               if (n * it.price > inv.currency) return toast("메헨이 부족합니다.");
-              act(() => sb.rpc("shop_buy", { p_code: it.code, p_qty: n }), `${it.name} ${n}개를 샀습니다.`);
+              act(() => sb.rpc("shop_buy", { p_code: it.code, p_qty: n }), `${it.name} ${n}개를 샀습니다.`, "buy");
             } }, lowLv ? `Lv.${it.req_level}` : "구매")));
     };
     const gear = data.filter(x => x.kind === "equip"), cons = data.filter(x => x.kind !== "equip");
@@ -3366,7 +3452,7 @@ async function renderCraft(body, inv, refresh) {
   const slots = h("div", { class: "craft-slots" });
   const pickBox = h("div", { class: "craft-pick" });
   const gearBox = h("div", { class: "craft-pick" });
-  const go = h("button", { class: "btn", type: "button" }, "조합하기");
+  const go = h("button", { class: "btn", type: "button", "data-sfx": "own" }, "조합하기");
   const used = code => picks.filter(p => p.code === code).length;
   function paint() {
     slots.replaceChildren(...[0, 1, 2].map(i => {
@@ -3380,12 +3466,12 @@ async function renderCraft(body, inv, refresh) {
     const stacks = inv.stacks;
     pickBox.replaceChildren(...(stacks.length ? stacks.map(x => h("button", {
       type: "button", disabled: picks.length >= 3 || used(x.code) >= x.qty,
-      onclick: () => { picks.push({ kind: "stack", code: x.code, name: x.name }); paint(); },
+      onclick: () => { picks.push({ kind: "stack", code: x.code, name: x.name }); sfx("mix" + picks.length); paint(); },
     }, `${x.name} ${x.qty - used(x.code)}`)) : [h("span", { class: "hint" }, "재료가 없습니다.")]));
     const gears = inv.gear.filter(g => !g.equipped);
     gearBox.replaceChildren(...(gears.length ? gears.map(g => h("button", {
       type: "button", class: `tier${g.tier}`, disabled: picks.length >= 3 || picks.some(p => p.id === g.id),
-      onclick: () => { picks.push({ kind: "gear", id: g.id, name: gearName(g), tier: g.tier, code: g.code, enhance: g.enhance }); paint(); },
+      onclick: () => { picks.push({ kind: "gear", id: g.id, name: gearName(g), tier: g.tier, code: g.code, enhance: g.enhance }); sfx("mix" + picks.length); paint(); },
     }, gearName(g))) : [h("span", { class: "hint" }, "장착하지 않은 장비가 없습니다.")]));
   }
   go.onclick = async () => {
@@ -3398,6 +3484,7 @@ async function renderCraft(body, inv, refresh) {
     });
     busy(go, false);
     if (error) return toast(koError(error));
+    if (data.result === "success") sfx("mix"); else if (data.result === "destroyed") sfx("fumble");
     craftMsg = data.result === "success"
       ? `${data.great ? "대성공! " : ""}${josa(data.qty > 1 ? `${data.name} ${data.qty}개` : data.name, "을", "를")} 만들었습니다.${data.first ? " 새 조합식을 기록했습니다." : ""}`
       : data.result === "nothing" ? "아무 일도 일어나지 않았다. 맞는 조합식이 없어 재료는 그대로입니다."
@@ -3415,6 +3502,7 @@ async function renderCraft(body, inv, refresh) {
       if (gi >= 0) { const g = gearsLeft.splice(gi, 1)[0]; picks.push({ kind: "gear", id: g.id, name: gearName(g), tier: g.tier, code: g.code, enhance: g.enhance }); continue; }
       picks.length = 0; return toast(`${josa(ing.name, "이", "가")} 부족합니다.`);
     }
+    picks.forEach((_, i) => setTimeout(() => sfx("mix" + (i + 1)), i * 140));
     paint();
   }
   const msg = craftMsg ? h("p", { class: "craft-msg", role: "status" }, craftMsg) : null;
@@ -3428,7 +3516,7 @@ async function renderCraft(body, inv, refresh) {
       (known || []).length ? known.map(r => h("div", { class: "item-row" },
         h("div", { class: "item-main" }, h("strong", { class: r.tier ? `tier${r.tier}` : null }, r.name),
           h("div", { class: "hint" }, r.ingredients.map(x => x.name).join(" + "))),
-        h("div", { class: "item-actions" }, h("button", { class: "btn ghost small", type: "button", onclick: () => fill(r) }, "칸 채우기"))))
+        h("div", { class: "item-actions" }, h("button", { class: "btn ghost small", type: "button", "data-sfx": "own", onclick: () => fill(r) }, "칸 채우기"))))
       : h("p", { class: "hint", style: "margin:0" }, "아직 없습니다. 여러 재료를 넣어 보며 찾아보세요.")));
   paint();
 }
@@ -3534,11 +3622,16 @@ function openStats() {
 
 /* ===== 국제헌터연합: 주간 랭킹 ===== */
 let unionMode = "solo";
+let unionView = "rank";
+const unionTabs = pane => h("div", { class: "tabs", style: "max-width:260px;margin:0 0 14px" },
+  h("button", { type: "button", class: unionView === "rank" ? "on" : null, onclick: () => { unionView = "rank"; renderUnion(pane); } }, "랭킹"),
+  h("button", { type: "button", class: unionView === "codex" ? "on" : null, onclick: () => { unionView = "codex"; renderCodex(pane); } }, "도감"));
 async function renderUnion(pane, offset = 0, mode = unionMode) {
+  if (unionView === "codex") return renderCodex(pane);
   unionMode = mode;
   const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
   pane.replaceChildren(
-    h("h2", {}, "국제헌터연합"),
+    h("h2", {}, "국제헌터연합"), unionTabs(pane),
     h("p", { class: "hint", style: "margin:0 0 16px" }, "무한 던전 주간 랭킹은 매주 월요일 0시(한국 시간)에 새로 시작합니다. 같은 역이면 먼저 도달한 쪽이 앞섭니다. 혼자 세운 기록과 파티로 세운 기록은 따로 겨룹니다."),
     h("div", { style: "display:flex;gap:10px;flex-wrap:wrap" },
       h("div", { class: "tabs", style: "max-width:220px;flex:1 1 180px" },
@@ -3550,7 +3643,7 @@ async function renderUnion(pane, offset = 0, mode = unionMode) {
     body,
     h("p", { class: "hint", style: "margin-top:20px" }, mode === "party"
       ? "파티 기록은 파티장 이름으로 오릅니다. 파티장 이름을 누르면 함께한 파티원을 볼 수 있습니다."
-      : "코드네임을 누르면 헌터 정보를 보고 친구 신청을 할 수 있습니다. 도감, 업적·타이틀, 길드는 차례대로 열립니다."));
+      : "코드네임을 누르면 헌터 정보와 타이틀, 도감 달성률을 보고 친구 신청을 할 수 있습니다."));
   const { data, error } = await sb.rpc(mode === "party" ? "get_party_ranking" : "get_weekly_ranking", { p_offset: offset });
   if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
   const ws = new Date(`${data.week_start}T00:00:00+09:00`), we = new Date(ws.getTime() + 6 * 864e5);
@@ -3576,6 +3669,79 @@ async function renderUnion(pane, offset = 0, mode = unionMode) {
         h("td", {}, h("button", { type: "button", class: "hunter-link", onclick: () => mode === "party" ? showMembers(r) : openPublicHunter(r.codename) }, r.codename)),
         h("td", {}, mode === "party" ? h("span", { class: "rank-party" }, `${r.members.length}명`, h("small", {}, r.members.filter(m => !m.leader).map(m => m.codename).join(", "))) : `${r.grade}급 · Lv.${r.level}`),
         h("td", { style: "text-align:right;font-weight:700" }, `${r.best_station}역`))))));
+}
+
+/* ===== 국제헌터연합: 도감 ===== */
+let codexCat = "monster";
+const CODEX_CATS = [["monster", "몬스터"], ["dungeon", "던전"], ["recipe", "조합식"], ["item", "아이템"]];
+const fmtDay = iso => { const d = new Date(iso); return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`; };
+async function renderCodex(pane) {
+  const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
+  pane.replaceChildren(h("h2", {}, "국제헌터연합"), unionTabs(pane),
+    h("p", { class: "hint", style: "margin:0 0 14px" }, "던전에서 만난 몬스터, 다녀온 던전, 알아낸 조합식, 손에 넣은 아이템이 기록됩니다. 많이 마주칠수록 더 자세한 정보가 열립니다."),
+    body);
+  const { data: cx, error } = await sb.rpc("codex_state");
+  if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
+  const R = cx.rates || {};
+  const cell = (known, title, sub, onclick, extra = "") => h("button", { type: "button", class: `codex-cell${known ? "" : " unknown"}${extra}`, onclick },
+    h("b", {}, known ? title : "???"), sub ? h("small", {}, sub) : null);
+  const kv = (k, v) => v == null || v === "" ? null : h("div", { class: "kv" }, h("span", {}, k), h("span", { style: "text-align:right" }, v));
+  const desc = t => h("p", { style: "margin:0 0 12px;line-height:1.7;white-space:pre-line" }, t);
+  const list = a => Array.isArray(a) && a.length ? a.join(", ") : null;
+  const dungeonName = key => { const d = (cx.dungeons || []).find(x => x.key === key); return d?.name ? `${d.grade ? d.grade + "급 · " : ""}${d.name}` : (d?.grade ? `${d.grade}급 · ???` : key.startsWith("inf:") ? "무한 던전 · ???" : "???"); };
+
+  function paint() {
+    const cats = h("div", { class: "codex-cats" }, ...CODEX_CATS.map(([k, n]) =>
+      h("button", { type: "button", class: `cat-chip${codexCat === k ? " on" : ""}`, "aria-pressed": codexCat === k ? "true" : "false", onclick: () => { codexCat = k; paint(); } }, `${n} ${R[k] ?? 0}%`)));
+    const out = [];
+    if (codexCat === "monster") {
+      const groups = new Map();
+      for (const m of cx.monsters || []) { if (!groups.has(m.group)) groups.set(m.group, []); groups.get(m.group).push(m); }
+      for (const [g, ms] of groups) {
+        out.push(h("p", { class: "codex-group" }, `${dungeonName(g)} · ${ms.filter(m => m.seen).length}/${ms.length}`),
+          h("div", { class: "codex-grid" }, ...ms.map(m => cell(!!m.seen, m.name, m.seen ? `처치 ${m.kills}` : null, () => info(m.name || "???",
+            m.where ? h("p", { class: "hint", style: "margin:0 0 8px" }, m.where + (m.boss ? " · 보스" : "")) : null,
+            desc(m.desc),
+            h("div", { class: "report" }, kv("만난 횟수", m.seen ? `${m.seen}번` : null), kv("처치", m.seen ? `${m.kills}번` : null),
+              kv("강함", m.strength), kv("드롭", list(m.drops)), kv("처음 만난 날", m.first_at ? fmtDay(m.first_at) : null)),
+            m.seen && !m.strength ? h("p", { class: "hint", style: "margin:10px 0 0;font-size:12px" }, m.boss ? "" : "10번 처치하면 강함과 드롭 정보가 열립니다.") : null),
+            m.boss ? " boss" : ""))));
+      }
+    } else if (codexCat === "dungeon") {
+      const sec = (title, arr) => arr.length && out.push(h("p", { class: "codex-group" }, `${title} · ${arr.filter(d => d.seen).length}/${arr.length}`),
+        h("div", { class: "codex-grid" }, ...arr.map(d => cell(!!d.seen, d.name, d.seen ? `${d.place || ""}${d.clears ? ` · 클리어 ${d.clears}` : ""}` : (d.grade ? `${d.grade}급` : null), () => info(d.name || "???",
+          d.place ? h("p", { class: "hint", style: "margin:0 0 8px" }, `${d.grade ? d.grade + "급 · " : ""}${d.place}`) : null,
+          desc(d.desc),
+          h("div", { class: "report" }, kv("클리어", d.seen ? `${d.clears}번` : null), kv("몬스터", list(d.monsters)), kv("드롭", list(d.drops)),
+            kv("처음 간 날", d.first_at ? fmtDay(d.first_at) : null)),
+          d.kind === "regional" && d.clears > 0 && d.clears < 5 ? h("p", { class: "hint", style: "margin:10px 0 0;font-size:12px" }, "5번 클리어하면 드롭 정보가 열립니다.") : null)))));
+      const ds = cx.dungeons || [];
+      for (const g of ["E", "D", "C", "B", "A"]) sec(`지역 안정화 ${g}급`, ds.filter(d => d.kind === "regional" && d.grade === g));
+      sec("무한 던전", ds.filter(d => d.kind === "infinite"));
+      sec("별의 무덤", ds.filter(d => d.kind === "star"));
+    } else if (codexCat === "recipe") {
+      const rs = cx.recipes || [];
+      out.push(h("p", { class: "codex-group" }, `알아낸 조합식 ${rs.filter(r => r.known).length}/${rs.length}`),
+        h("div", { class: "codex-grid" }, ...rs.map(r => cell(r.known, r.name, r.known ? `× ${r.qty}` : null, () => info(r.known ? r.name : "???",
+          r.known ? h("div", { class: "report" }, kv("재료", list(r.ingredients)), kv("결과", `${r.name} × ${r.qty}`), kv("알아낸 날", r.first_at ? fmtDay(r.first_at) : null))
+            : desc("아직 알아내지 못한 조합식입니다. 인벤토리의 조합에서 재료를 이리저리 섞어 보세요."))))));
+    } else {
+      const KIND = { material: "재료", consumable: "소비 아이템", equip: "장비" };
+      const its = cx.items || [];
+      const kinds = [...new Set(its.map(i => i.kind))];
+      for (const k of kinds) {
+        const arr = its.filter(i => i.kind === k);
+        out.push(h("p", { class: "codex-group" }, `${KIND[k] || k} · ${arr.filter(i => i.got).length}/${arr.length}`),
+          h("div", { class: "codex-grid" }, ...arr.map(i => cell(i.got, i.name, i.got && i.tier ? `${i.tier}티어` : null, () => info(i.name || "???",
+            desc(i.desc), i.got ? h("div", { class: "report" }, kv("분류", KIND[i.kind] || i.kind), kv("처음 얻은 날", i.first_at ? fmtDay(i.first_at) : null)) : null)))));
+      }
+    }
+    body.replaceChildren(
+      h("div", { class: "codex-sum" }, h("div", {}, h("span", {}, "전체 달성률"), h("b", {}, `${R.all ?? 0}%`)),
+        ...CODEX_CATS.map(([k, n]) => h("div", {}, h("span", {}, n), h("b", {}, `${R[k] ?? 0}%`)))),
+      cats, ...out);
+  }
+  paint();
 }
 
 /* ===== 운영자: 초대코드 발급 ===== */
@@ -3907,6 +4073,7 @@ const DOCS = {
 <tr><td>친구 · 차단 목록</td><td>본인 (친구 사이인지는 상대도 볼 수 있음)</td></tr>
 <tr><td>신고 내용</td><td>신고한 본인과 운영자 (신고당한 헌터에게 신고자를 알리지 않음)</td></tr>
 <tr><td>메헨 · 아이템 · 장비 · 전투 기록 · 할 일 목록</td><td>본인과 운영자</td></tr>
+<tr><td>활동 횟수 기록 · 도감 · 퀘스트 진행</td><td>본인과 운영자 (도감 달성률과 장착한 타이틀은 다른 헌터도 볼 수 있음)</td></tr>
 <tr><td>이메일 · 접속 기록</td><td>본인과 운영자</td></tr>
 <tr><td>비밀번호</td><td><b>아무도 볼 수 없음.</b> 암호화(해시)되어 저장되며 운영자도 확인할 수 없습니다. 분실 시 ${contactHtml}으로 요청하면 운영자가 새 비밀번호로 재설정합니다.</td></tr>
 </tbody>
@@ -3921,7 +4088,7 @@ const DOCS = {
 <div class="table-scroll"><table>
 <thead><tr><th>서비스</th><th>역할</th><th>처리하는 정보</th></tr></thead>
 <tbody>
-<tr><td>Supabase</td><td>로그인, 데이터베이스, 프로필 이미지 저장</td><td>위 표의 계정 · 캐릭터 · 활동 · 접속 기록 전부</td></tr>
+<tr><td>Supabase</td><td>로그인, 데이터베이스, 프로필 이미지 · 배경음악 · 효과음 파일 저장</td><td>위 표의 계정 · 캐릭터 · 활동 · 접속 기록 전부</td></tr>
 <tr><td>GitHub Pages</td><td>게임 화면 파일 제공</td><td>접속 IP 주소, 브라우저 정보</td></tr>
 <tr><td>jsDelivr</td><td>프로그램 라이브러리 전송(CDN)</td><td>접속 IP 주소, 브라우저 정보</td></tr>
 <tr><td>Google Fonts</td><td>글꼴 · 로고 아이콘 전송</td><td>접속 IP 주소, 브라우저 정보</td></tr>
@@ -4056,22 +4223,24 @@ $("#btn-guide").onclick = () => info("가이드",
   h("p", {}, "· 레벨이 오를 때마다 스탯 포인트 1개를 받아 자유롭게 분배할 수 있습니다."),
   h("p", {}, "· 포지션: 시작할 때 메인 포지션을 고르고, 25레벨이 되면 서브 포지션을 한 번 고릅니다. 서브는 효과가 절반이고, 메인과 같은 포지션을 고르면 메인 효과가 1.5배가 됩니다."),
   h("p", {}, "· 장비는 D~S 다섯 티어가 있고 무기·방어구·장신구 3칸에 끼웁니다. 착용 레벨은 D 1 · C 45 · B 60 · A 80 · S 110입니다. 메헨(Mh)과 별가루로 +10까지 강화하며, +6부터는 재료로 쓸 같은 장비 1개를 직접 고릅니다. 인벤토리의 조합에서 재료 2~3개를 섞어 새 아이템을 만들 수 있습니다. 던전에 소비 아이템을 최대 3종 챙겨 가면 쉬는 대신 먼저 씁니다."),
-  h("p", {}, "· 레벨에 따라 등급이 오릅니다 (E 10 · D 20 · C 35 · B 50 · A 70 · S 100). 처음 받은 각성 등급이 더 높으면 그 레벨에 닿을 때까지 유지됩니다."),
+  h("p", {}, "· 승급: 레벨 조건(E 10 · D 20 · C 35 · B 50 · A 70 · S 100)을 채우면 헌터 정보의 '승급하기' 버튼으로 원할 때 한 등급씩 올립니다. 자동으로 오르지 않으니, 낮은 등급 던전을 더 돌고 싶다면 미뤄 둘 수 있습니다. 처음 받은 각성 등급이 더 높으면 그대로 유지됩니다."),
   h("p", {}, "· 지역 안정화: 활동 구역의 던전을 공략합니다. 지금은 E급(5구역 · 평균 30분)과 D급(6구역 · 평균 40분)이 열려 있고, C급부터는 준비 중입니다. 구역마다 E·D급 던전이 5곳씩 있고, 장소와 테마가 제각각입니다. 마지막 구역은 보스이며, 보스는 테마 재료를 떨어뜨립니다. 구역마다 보상을 얻고, 도중에 쓰러지면 그때까지의 보상만 받습니다. 입장 레벨은 E 1 · D 10이고, 성공률은 내 전력으로 미리 알려 줍니다. 안정화한 던전은 30분 뒤 다른 테마로 다시 나타납니다. 더 높은 등급에 들어갈 수 있으면 낮은 등급 보상은 줄어듭니다."),
   h("p", {}, "· 탐색: 무한 던전의 '탐색' 탭에서 하루 3번, 보이지 않는 10×10 구역을 걸으며 메헨과 아이템을 줍습니다."),
-  h("p", {}, "· 별의 무덤: 무한 던전의 '별의 무덤' 탭에서 하루 1번(탐색과 별도), 10×10 무덤을 걸으며 별가루·마석·별조각 사탕·은하수 이슬·가능성을 모읍니다. 내가 두 칸 움직일 때마다 별지기가 한 칸 다가오고, 마주치면 그 자리에서 끝납니다."),
+  h("p", {}, "· 별의 무덤: 10레벨부터 무한 던전의 '별의 무덤' 탭에서 하루 1번(탐색과 별도), 10×10 무덤을 걸으며 별가루·마석·별조각 사탕·은하수 이슬·가능성을 모읍니다. 내가 두 칸 움직일 때마다 별지기가 한 칸 다가오고, 마주치면 그 자리에서 끝납니다."),
   h("p", {}, "· 무한 던전·지역 안정화·탐색·별의 무덤은 한 번에 하나만 할 수 있습니다."),
-  h("p", {}, "· 일일 퀘스트: 홈에서 확인합니다. 지역 안정화 1회, 탐색 1회, 전력 분석 1회를 마치면 각각 가능성(레벨 × 15)을 받습니다. 매일 0시(한국 시간)에 새로 시작합니다."),
+  h("p", {}, "· 일일 퀘스트: 홈에서 확인합니다. 탐색 1회 · 지역 안정화 1회(가능성 레벨 × 15), 전력 분석 1회 · 상점 구매 1회 · 조합 1회(가능성 레벨 × 10)를 마치면 각각 보상을 받습니다. 매일 0시(한국 시간)에 새로 시작합니다."),
+  h("p", {}, "· 스토리 퀘스트: 홈에서 10단계를 순서대로 진행하며 게임의 기본을 익힙니다. 단계마다 장비 · 아이템 · 메헨 · 타이틀 보상이 있고, 이미 해 둔 활동도 조건으로 인정됩니다."),
   h("p", {}, "· 전력 분석: 홈에서 스탯 하나를 골라 5~180분 동안 분석합니다. 다른 활동과 동시에 할 수 있고, 분석한 시간이 스탯마다 쌓여 단계(최대 10단계)가 오를 때마다 그 스탯이 영구로 +1 됩니다. 10단계를 마친 스탯은 분석할 때 가능성을 얻습니다."),
   h("p", {}, "· 교류: 코드네임으로 친구 신청을 보내고, 상대가 수락하면 친구가 됩니다(최대 30명). 친구와는 1:1 메시지(30일 보관, ☆를 누르면 계속 보관)와 선물(하루 10번, 메헨·아이템·장비)을 주고받을 수 있습니다. SNS에는 분류를 골라 글과 댓글을 남깁니다. 불편한 헌터는 차단하거나 신고할 수 있습니다."),
   h("p", {}, "· 파티: 교류 → 파티 탭이나 헌터 정보 창에서 코드네임으로 초대하면 파티가 만들어지고 내가 파티장이 됩니다(1~5명, 해산하기 전까지 유지). 같은 파티는 언제나 같은 활동을 하며, 파티장이 출발을 누르면 무한 던전이나 지역 안정화에 모두 함께 들어갑니다. 파티원 중 누가 다른 활동 중이거나 결과를 받지 않았으면 출발할 수 없고, 최고·최저 레벨 차이가 25 이상이면 공략할 수 없습니다. 몬스터는 들어간 인원에 비례해 강해지고, 한 명이 쓰러져도 나머지가 계속하며, 보상은 모두 똑같이 받습니다. 뱅가드·힐러·서포터의 능력은 동료 1명에게 쓰입니다. 파티 무한 던전 기록은 국제헌터연합의 파티 랭킹에 파티장 이름으로 오릅니다."),
   h("p", {}, "· 길드: 10레벨 이상이면 교류 → SNS → 길드에서 5,000 Mh로 길드를 만들 수 있습니다(최대 20명, 한 번에 한 길드). 길드장이 코드네임이나 헌터 정보 창으로 초대하고, 초대는 7일 동안 유효합니다. 길드원끼리는 길드 채팅으로 이야기하며, 채팅은 30일 뒤 지워집니다. 길드장은 소개 바꾸기 · 내보내기 · 길드장 넘기기 · 해산을 할 수 있고, 길드장이 나가려면 먼저 길드장을 넘겨야 합니다."),
-  h("p", {}, "· 타이틀: 앞말과 뒷말 조각을 하나씩 골라 '앞말 코드네임 뒷말' 모양으로 프로필에 표시합니다(랭킹에는 표시하지 않음). 조각은 조건을 채우면 얻고 사라지지 않으며, 헌터 정보 창에서 언제든 바꾸거나 비워 둘 수 있습니다. 지금은 캐릭터 생성 조각(새로운 시대 · 헌터)과 등급 조각(F급~S급)을 얻을 수 있고, 나머지 조각은 차례대로 열립니다."),
-  h("p", {}, "· 배경음악: 헌터 정보 아래(모바일은 화면 위쪽)에서 재생 · 일시정지 · 볼륨 · 음악 선택을 합니다. '페이지 음악'이면 화면마다 어울리는 곡으로 바뀌고, 곡을 고르면 그 곡을 반복합니다. 내 유튜브 주소를 넣어 원하는 음악을 틀 수도 있습니다(유튜브 약관상 재생 중에는 영상이 함께 보이며, 모바일에서는 오른쪽 아래 작은 창으로 뜹니다). 브라우저가 소리를 막아 둔 경우 화면 어디든 한 번 누르면 바로 재생되고, 브라우저 사이트 설정에서 이 게임의 '소리'(크롬) 또는 '자동 재생'(사파리 · 파이어폭스)을 허용하면 접속하자마자 재생됩니다. 설정은 이 기기에만 저장됩니다. 음악: zippysound (zippy)"),
+  h("p", {}, "· 타이틀: 앞말과 뒷말 조각을 하나씩 골라 '앞말 코드네임 뒷말' 모양으로 프로필에 표시합니다(랭킹에는 표시하지 않음). 조각은 활동 기록 · 도감 · 퀘스트 등 조건을 채우면 얻고 사라지지 않으며, 헌터 정보 창에서 언제든 바꾸거나 비워 둘 수 있습니다. 어떤 조건인지는 직접 찾아보세요."),
+  h("p", {}, "· 도감: 국제헌터연합 → 도감에서 만난 몬스터, 다녀온 던전, 알아낸 조합식, 얻은 아이템을 봅니다. 몬스터는 처치하면 설명이, 10번 처치하면(보스는 1번) 강함과 드롭이 열리고, 던전은 클리어하면 설명과 몬스터가, 5번 클리어하면 드롭이 열립니다. 달성률은 다른 헌터의 헌터 정보에서도 보입니다."),
+  h("p", {}, "· 배경음악: 헌터 정보 아래(모바일은 화면 위쪽)에서 재생 · 일시정지 · 볼륨 · 음악 선택을 합니다. '페이지 음악'이면 화면마다 어울리는 곡으로 바뀌고, 곡을 고르면 그 곡을 반복합니다. 내 유튜브 주소를 넣어 원하는 음악을 틀 수도 있습니다(유튜브 약관상 재생 중에는 영상이 함께 보이며, 모바일에서는 오른쪽 아래 작은 창으로 뜹니다). 브라우저가 소리를 막아 둔 경우 화면 어디든 한 번 누르면 바로 재생되고, 브라우저 사이트 설정에서 이 게임의 '소리'(크롬) 또는 '자동 재생'(사파리 · 파이어폭스)을 허용하면 접속하자마자 재생됩니다. 설정은 이 기기에만 저장됩니다. 같은 칸에서 효과음도 켜고 끄거나 크기를 바꿀 수 있습니다. 음악: zippysound (zippy)"),
   h("p", { class: "hint" }, "콘텐츠가 열릴 때마다 가이드가 추가됩니다."));
 
 document.querySelectorAll(".js-logout").forEach(b => b.onclick = async () => {
-  stopSocial(); bgmStop();
+  stopSocial(); bgmStop(); sfxS.ready = false;
   await sb.auth.signOut();
   Object.assign(state, { user: null, profile: null, character: null, settings: null, avatarUrl: null });
   setAuthMode("login");
@@ -4263,6 +4432,14 @@ function bgmToggle() {
   paintBgm();
 }
 
+function sfxRow() {
+  const chk = h("input", { type: "checkbox", "aria-label": "효과음 켜기" }); chk.checked = sfxS.prefs.on;
+  const vol = h("input", { type: "range", min: "0", max: "100", step: "1", value: String(Math.round(sfxS.prefs.vol * 100)), "aria-label": "효과음 볼륨", disabled: !sfxS.prefs.on });
+  chk.onchange = () => { sfxS.prefs.on = chk.checked; vol.disabled = !chk.checked; sfxSave(); if (chk.checked) sfx("push"); };
+  vol.oninput = () => { sfxS.prefs.vol = Number(vol.value) / 100; };
+  vol.onchange = () => { sfxSave(); sfx("push"); };
+  return h("div", { class: "sfx-row", "data-sfx": "own" }, h("label", { style: "display:flex;align-items:center;gap:6px;white-space:nowrap" }, chk, "효과음"), vol);
+}
 let bgmBuilt = false;
 function initBgm() {
   const box = $("#bgm");
@@ -4301,7 +4478,7 @@ function initBgm() {
     h("p", { class: "panel-title", style: "margin:0 0 10px" }, "배경음악"),
     h("div", { class: "bgm-row" }, play, now),
     h("div", { class: "bgm-vol" }, h("span", { "aria-hidden": "true" }, "🔈"), vol, volVal),
-    sel, ytForm,
+    sel, ytForm, sfxRow(),
     h("div", { class: "bgm-ytbox off", id: "bgm-ytbox" },
       h("div", { class: "bgm-ytbar" }, h("span", {}, "내 유튜브 링크"), ytClose),
       h("div", { id: "bgm-yt-host" })),
@@ -4346,6 +4523,68 @@ function paintBgm() {
 }
 function bgmStop() { bgm.audio.pause(); bgmYtPause(); paintBgm(); }
 
+/* ===== 효과음 =====
+   Supabase Storage의 비공개 effect 버킷 (예: push.mp3). 로그인한 헌터만 받고, 기기마다 한 번 받아 브라우저 저장소에 둔다.
+   Web Audio로 짧은 소리를 겹쳐 낸다. 파일을 같은 이름으로 바꾸면 SFX_VERSION을 올린다. */
+const SFX_VERSION = 1;
+const SFX_FILES = ["push", "buy", "sell", "mix", "mix1", "mix2", "mix3", "fumble", "notice", "move1", "move2", "stargurdian"];
+const sfxS = { ctx: null, buf: {}, load: {}, ready: false, last: {}, prefs: { on: true, vol: 0.5 } };
+try { Object.assign(sfxS.prefs, JSON.parse(localStorage.getItem("id-sfx") || "{}")); } catch {}
+const sfxSave = () => { try { localStorage.setItem("id-sfx", JSON.stringify(sfxS.prefs)); } catch {} };
+function sfxCtx() {
+  if (!sfxS.ctx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; sfxS.ctx = new AC(); }
+  return sfxS.ctx;
+}
+function sfxLoad(name) {
+  if (sfxS.load[name]) return sfxS.load[name];
+  sfxS.load[name] = (async () => {
+    const ck = `/__sfx/${SFX_VERSION}/${name}.mp3`;
+    let ab = null, cache = null;
+    try { cache = await caches.open("id-sfx"); const hit = await cache.match(ck); if (hit) ab = await hit.arrayBuffer(); } catch {}
+    if (!ab) {
+      const { data, error } = await sb.storage.from("effect").download(`${name}.mp3`);
+      if (error || !data) throw error || new Error("missing");
+      ab = await data.arrayBuffer();
+      try {
+        await cache?.put(ck, new Response(ab.slice(0), { headers: { "Content-Type": "audio/mpeg" } }));
+        for (const req of await cache.keys()) if (!req.url.includes(`/__sfx/${SFX_VERSION}/`)) cache.delete(req);
+      } catch {}
+    }
+    const ctx = sfxCtx(); if (!ctx) throw new Error("no audio");
+    sfxS.buf[name] = await new Promise((res, rej) => ctx.decodeAudioData(ab, res, rej));
+  })().catch(e => { delete sfxS.load[name]; throw e; });
+  return sfxS.load[name];
+}
+function sfx(name) {
+  if (!sfxS.ready || !sfxS.prefs.on || sfxS.prefs.vol <= 0) return;
+  const now = performance.now();
+  if (now - (sfxS.last[name] || 0) < 50) return;   // 같은 소리가 한꺼번에 몰리지 않게
+  sfxS.last[name] = now;
+  const ctx = sfxCtx(); if (!ctx) return;
+  if (ctx.state === "suspended") ctx.resume().catch(() => {});
+  const b = sfxS.buf[name];
+  if (!b) { sfxLoad(name).catch(() => {}); return; }
+  const src = ctx.createBufferSource(), g = ctx.createGain();
+  src.buffer = b; g.gain.value = sfxS.prefs.vol;
+  src.connect(g).connect(ctx.destination);
+  src.start();
+}
+function initSfx() {
+  sfxS.ready = true;
+  // 화면을 처음 누를 때 소리 장치를 깨우고, 파일은 천천히 미리 받아 둔다
+  const wake = () => { sfxCtx()?.resume?.().catch(() => {}); };
+  ["pointerdown", "keydown"].forEach(ev => document.addEventListener(ev, wake, { capture: true, once: true }));
+  const q = SFX_FILES.slice();
+  const next = () => { const n = q.shift(); if (n) sfxLoad(n).catch(() => {}).finally(() => setTimeout(next, 120)); };
+  setTimeout(next, 800);
+}
+// 모든 버튼 누름 소리 (이동·조합·구매처럼 따로 소리가 있는 버튼은 빼고)
+document.addEventListener("click", e => {
+  const b = e.target.closest?.("button, a.btn, .cat-chip");
+  if (!b || b.disabled || b.closest("[data-sfx], .ex-pad, .ex-grid, .craft-pick, .craft-slots")) return;
+  sfx("push");
+}, true);
+
 /* ===== 데이터 불러오기 & 시작 ===== */
 async function loadAll() {
   const uid = state.user.id;
@@ -4382,6 +4621,7 @@ async function boot() {
   if (!state.profile?.invited) return show("screen-invite");
   if (!state.character) { setupCreate(); return show("screen-create"); }
   renderHunter();
+  initSfx();
   initBgm();
   renderMain();
   show("screen-app");
