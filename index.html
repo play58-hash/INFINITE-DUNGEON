@@ -29,6 +29,8 @@
   --shadow: 0 1px 2px rgba(23,19,42,.06), 0 4px 16px rgba(23,19,42,.06);
   --page-top: #E4DAFB;     /* 연한 보라 → 바탕(흰색) */
   --page-bottom: #FFFFFF;
+  --frame: var(--border);  /* 창(카드·대화상자) 테두리 */
+  --frame-glow: 0 0 0 transparent;
 }
 :root[data-theme="dark"] {
   --bg: #0F0D18;
@@ -43,6 +45,8 @@
   --shadow: 0 1px 2px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.3);
   --page-top: #0F0D18;     /* 바탕 → 어두운 보라 */
   --page-bottom: #2A1652;
+  --frame: #C4ADFF;        /* 네온사인 느낌 연보라 */
+  --frame-glow: 0 0 6px rgba(196,173,255,.55), 0 0 18px rgba(150,110,255,.28);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]):not([data-theme="dark"]) {
@@ -51,6 +55,7 @@
     --danger: #FF7A93; --ok: #5FD39B;
     --shadow: 0 1px 2px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.3);
     --page-top: #0F0D18; --page-bottom: #2A1652;
+    --frame: #C4ADFF; --frame-glow: 0 0 6px rgba(196,173,255,.55), 0 0 18px rgba(150,110,255,.28);
   }
 }
 
@@ -91,8 +96,8 @@ textarea.input { min-height: 88px; resize: vertical; }
 .hint { font-size: 14px; color: var(--text-dim); }
 .error { color: var(--danger); font-size: 15px; min-height: 20px; }
 .card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow);
+  background: var(--surface); border: 1px solid var(--frame);
+  border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow), var(--frame-glow);
 }
 .badge {
   display: inline-block; padding: 2px 10px; border-radius: 999px;
@@ -174,7 +179,8 @@ textarea.input { min-height: 88px; resize: vertical; }
 .avatar.lg { width: 96px; height: 96px; font-size: 38px; border-radius: 20px; }
 
 /* ===== 메인 화면 ===== */
-.app { min-height: 100vh; min-height: 100dvh; display: grid; grid-template-rows: auto 1fr auto; }
+.app { min-height: 100vh; min-height: 100dvh; display: grid; grid-template-rows: auto 1fr auto; grid-template-columns: minmax(0, 1fr); }
+html, body { max-width: 100%; overflow-x: clip; }
 .topbar {
   position: sticky; top: 0; z-index: 10;
   display: flex; align-items: center; gap: 8px; padding: 0 20px; height: 60px;
@@ -254,12 +260,39 @@ code.c { font-family: ui-monospace, Menlo, monospace; background: var(--surface-
 .ev-enter.ev-boss span { color: var(--danger); }
 .ev-down { color: var(--danger); font-weight: 700; }
 .ev-pdown { color: var(--danger); font-weight: 600; }
+.side-sns-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.side-sns-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 8px; }
+.side-sns-tabs button { border: 1px solid var(--border); background: transparent; color: var(--text-dim); border-radius: 999px; padding: 2px 9px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.side-sns-tabs button.on { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+.side-sns-write { margin: 0 0 10px; display: grid; gap: 6px; }
+.side-sns-write textarea { min-height: 70px; font-size: 14px; }
+.side-sns-foot { display: flex; align-items: center; gap: 6px; }
+.side-sns-foot select.side-sns-cat { width: auto; flex: none; min-height: 34px; padding: 4px 8px; font-size: 13px; }
+.side-sns-foot .btn { white-space: nowrap; flex: none; }
+.side-sns-foot .hint { margin-left: auto; }
+.side-feed-head .avatar.mini { flex: none; }
+.side-feed-head .hunter-link { font-size: 14px; }
 .pt-bars { display: grid; gap: 7px; margin: 0 0 14px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); }
 .pt-bar { display: grid; grid-template-columns: minmax(64px, 120px) 1fr auto; align-items: center; gap: 10px; font-size: 14px; }
 .pt-bar .gauge { margin: 0; height: 7px; background: var(--surface); }
 .pt-bar.down { opacity: .5; }
 .pt-bar .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pt-bar .hint { font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* 전투 현황: 아군 / 적 HP·MP */
+.bt { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 14px; }
+.bt-side { border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); padding: 10px 12px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.bt-title { margin: 0; font-size: 13px; font-weight: 700; color: var(--text-dim); }
+.bt-unit { display: grid; gap: 3px; min-width: 0; }
+.bt-unit.down, .bt-unit.dead { opacity: .45; }
+.bt-name { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
+.bt-name b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.bt-name span { font-size: 12px; color: var(--text-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.bt-unit .gauge { margin: 0; height: 7px; background: var(--surface); }
+.bt-unit .gauge.mp { height: 4px; }
+.gauge.foe i { background: var(--danger); }
+.bt-unit.boss .bt-name b { color: var(--danger); }
+.bt-empty { margin: 0; font-size: 13px; color: var(--text-dim); }
+@media (max-width: 520px) { .bt { grid-template-columns: 1fr; } }
 .pt-box { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin: 0 0 14px; }
 .pt-box .fr-row { padding: 6px 0; }
 .title-line { line-height: 1.35; overflow-wrap: anywhere; }
@@ -343,8 +376,10 @@ table.list.rank tr.me td { background: color-mix(in srgb, var(--primary) 10%, tr
 .codex-cell.unknown { opacity: .55; border-style: dashed; }
 .codex-cell.unknown b { letter-spacing: 2px; }
 .codex-cell.boss { border-color: var(--warn, #c08a2b); }
-.sfx-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 13px; color: var(--text-dim); }
-.sfx-row input[type=range] { flex: 1; }
+.sfx-row { margin-top: 6px; }
+.sfx-row label { display: flex; align-items: center; gap: 5px; white-space: nowrap; cursor: pointer; }
+.sfx-row input[type=checkbox] { width: 16px; height: 16px; margin: 0; accent-color: var(--primary); }
+.sfx-row input[type=range]:disabled { opacity: .45; }
 .an-stats { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
 .an-row { display: grid; grid-template-columns: 36px 1fr auto; gap: 8px; align-items: center; font-size: 13px; }
 .an-row .gauge { margin: 0; }
@@ -490,7 +525,8 @@ button.cat-chip { cursor: pointer; font-family: inherit; }
 .side-feed { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .side-feed li { border-bottom: 1px solid var(--border); padding-bottom: 8px; }
 .side-feed li:last-child { border-bottom: 0; }
-.side-feed-head { display: flex; align-items: center; gap: 6px; font-size: 14px; }
+.side-feed-head { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; font-size: 14px; }
+.side-feed-head .hint { font-size: 12px; margin-left: auto; }
 .side-feed p { margin: 4px 0 0; font-size: 14px; overflow-wrap: anywhere; word-break: keep-all; color: var(--text); }
 .rp-card { border: 1px solid var(--border); background: var(--bg); border-radius: 12px; padding: 10px 14px; margin-bottom: 10px; }
 .rp-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
@@ -611,8 +647,8 @@ button.cat-chip { cursor: pointer; font-family: inherit; }
 
 /* ===== 팝업 ===== */
 dialog {
-  border: 1px solid var(--border); border-radius: 16px; padding: 0; width: min(520px, calc(100% - 32px));
-  background: var(--surface); color: var(--text); box-shadow: 0 20px 60px rgba(0,0,0,.35);
+  border: 1px solid var(--frame); border-radius: 16px; padding: 0; width: min(520px, calc(100% - 32px));
+  background: var(--surface); color: var(--text); box-shadow: 0 20px 60px rgba(0,0,0,.35), var(--frame-glow);
 }
 dialog::backdrop { background: rgba(10,8,20,.55); }
 .dlg-head { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); }
@@ -670,6 +706,7 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
 #bgm-mobile-slot .bgm select.input { margin: 0; min-height: 32px; grid-row: 1; grid-column: 2; }
 #bgm-mobile-slot .bgm .bgm-row { grid-row: 1; grid-column: 1; }
 #bgm-mobile-slot .bgm .bgm-vol { margin: 0; grid-column: 1 / -1; }
+#bgm-mobile-slot .bgm .sfx-row { margin-top: -2px; }
 #bgm-mobile-slot .bgm .bgm-yt, #bgm-mobile-slot .bgm .bgm-note { grid-column: 1 / -1; margin: 0; }
 #bgm-mobile-slot .bgm .bgm-note { font-size: 12px; }
 
@@ -696,7 +733,7 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
   .mobile-summary .avatar { width: 36px; height: 36px; font-size: 16px; border-radius: 10px; }
   .footer { padding-bottom: 84px; }
   .tabbar {
-    display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+    display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
     background: var(--surface); border-top: 1px solid var(--border);
     padding-bottom: env(safe-area-inset-bottom);
@@ -704,10 +741,17 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
   .tabbar a {
     min-height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center;
     text-decoration: none; color: var(--text-dim); font-size: 13px; font-weight: 700; gap: 2px;
+    min-width: 0; white-space: nowrap; letter-spacing: -0.02em; position: relative;
   }
+  .tabbar a .nbadge { position: absolute; top: 4px; left: 50%; margin-left: 8px; }
   .tabbar a .ico { font-size: 20px; line-height: 1; }
   .tabbar a.on { color: var(--accent-text); }
   .pos-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 400px) {
+  .tabbar a { font-size: 11px; letter-spacing: -0.04em; }
+  .topbar .logo { font-size: 20px; }
+  .top-actions .btn { padding: 0 8px; font-size: 13px; }
 }
 </style>
 </head>
@@ -1520,20 +1564,51 @@ function stopSocial() {
 }
 
 /* 오른쪽 SNS 칸 (PC) */
+let sideSnsCat = null, sideSnsDraft = "", sideSnsWcat = "잡담", sideSnsOpen = false;
 async function refreshSideSns() {
   const box = $("#side-sns");
   if (!box || !state.character) return;
-  const { data } = await sb.rpc("sns_feed", { p_category: null, p_before: null });
-  const posts = (data?.posts || []).slice(0, 4);
-  const top = posts.find(p => p.author?.codename !== state.profile?.codename);
-  if (top) { if (social.lastPost && top.at > social.lastPost) sfx("notice"); if (!social.lastPost || top.at > social.lastPost) social.lastPost = top.at; }
+  // 글을 쓰는 중이면 다시 그리지 않는다 (60초마다 새로 고침)
+  if (box.contains(document.activeElement) && document.activeElement?.tagName === "TEXTAREA") return;
+  const { data } = await sb.rpc("sns_feed", { p_category: sideSnsCat, p_before: null });
+  const posts = (data?.posts || []).slice(0, 5);
+  if (!sideSnsCat) {
+    const top = posts.find(p => p.author?.codename !== state.profile?.codename);
+    if (top) { if (social.lastPost && top.at > social.lastPost) sfx("notice"); if (!social.lastPost || top.at > social.lastPost) social.lastPost = top.at; }
+  }
+  const tabs = h("div", { class: "side-sns-tabs", role: "tablist", "aria-label": "SNS 분류" },
+    ...[null, ...SNS_CATS].map(c => h("button", { type: "button", role: "tab", class: sideSnsCat === c ? "on" : null, "aria-selected": sideSnsCat === c ? "true" : "false",
+      onclick: () => { sideSnsCat = c; refreshSideSns(); } }, c || "전체")));
+  // 글쓰기 (접었다 펴기)
+  const ta = h("textarea", { class: "input", rows: "3", maxlength: "1000", placeholder: "무슨 일이 있었나요?", "aria-label": "새 글" });
+  ta.value = sideSnsDraft;
+  ta.oninput = () => { sideSnsDraft = ta.value; cnt.textContent = `${ta.value.length}/1000`; };
+  const cnt = h("span", { class: "hint", style: "font-size:12px" }, `${ta.value.length}/1000`);
+  const sel = h("select", { class: "input side-sns-cat", "aria-label": "분류" }, ...SNS_CATS.map(c => h("option", { value: c }, c)));
+  sel.value = sideSnsCat || sideSnsWcat;
+  sel.onchange = () => { sideSnsWcat = sel.value; };
+  const send = h("button", { class: "btn small", type: "submit" }, "올리기");
+  const werr = h("div", { class: "error", role: "alert", style: "font-size:13px;min-height:0" });
+  const form = h("form", { class: "side-sns-write", hidden: !sideSnsOpen }, ta, h("div", { class: "side-sns-foot" }, sel, cnt, send), werr);
+  form.onsubmit = async e => {
+    e.preventDefault(); werr.textContent = "";
+    if (!ta.value.trim()) return;
+    busy(send, true, "…");
+    const { error } = await sb.rpc("sns_post", { p_category: sel.value, p_body: ta.value });
+    busy(send, false);
+    if (error) return (werr.textContent = koError(error));
+    sideSnsDraft = ""; sideSnsOpen = false; toast("SNS에 올렸습니다.");
+    refreshSideSns();
+  };
+  const toggle = h("button", { type: "button", class: "btn ghost small", onclick: () => { sideSnsOpen = !sideSnsOpen; form.hidden = !sideSnsOpen; toggle.textContent = sideSnsOpen ? "닫기" : "글쓰기"; if (sideSnsOpen) ta.focus(); } }, sideSnsOpen ? "닫기" : "글쓰기");
   box.replaceChildren(
-    h("p", { class: "panel-title" }, "SNS"),
+    h("div", { class: "side-sns-head" }, h("p", { class: "panel-title", style: "margin:0" }, "SNS"), toggle),
+    form, tabs,
     posts.length ? h("ul", { class: "side-feed" }, ...posts.map(p => h("li", {},
-      h("div", { class: "side-feed-head" }, h("span", { class: "cat-chip" }, p.category), h("b", {}, p.author.codename), h("span", { class: "hint" }, fmtWhen(p.at))),
+      h("div", { class: "side-feed-head" }, miniAvatar(p.author, 22), hunterLink(p.author), h("span", { class: "cat-chip" }, p.category), h("span", { class: "hint" }, fmtWhen(p.at))),
       h("p", {}, p.body.length > 70 ? p.body.slice(0, 70) + "…" : p.body))))
-      : h("p", { class: "hint", style: "margin:0 0 10px" }, "아직 글이 없습니다."),
-    h("a", { class: "btn ghost small block", href: "#/friends", onclick: () => { nextSocialTab = "sns"; } }, "SNS 열기"));
+      : h("p", { class: "hint", style: "margin:0 0 10px" }, sideSnsCat ? `'${sideSnsCat}' 글이 아직 없습니다.` : "아직 글이 없습니다."),
+    h("a", { class: "btn ghost small block", href: "#/friends", onclick: () => { nextSocialTab = "sns"; snsCat = sideSnsCat; } }, "SNS 열기"));
 }
 
 /* ===== 파티 ===== */
@@ -1559,6 +1634,43 @@ function partyBars(list) {
     h("div", { class: "gauge hp" }, h("i", { style: `width:${m.down ? 0 : Math.max(0, Math.min(100, m.hp / m.mhp * 100))}%` })),
     h("span", { class: "hint" }, m.down ? "쓰러짐" : `HP ${m.hp}/${m.mhp} · MP ${m.mp}`))));
 }
+/* ===== 전투 현황 (아군·적 HP/MP 바) =====
+   로그 이벤트의 hp·mp·mhp·mmp(혼자), party(파티), foes·fh·fmax(적)를 따라가며 지금 상태를 만든다. */
+function battleState(events, mode, fallbackMe) {
+  let me = fallbackMe ? { ...fallbackMe } : null, foes = null, party = null;
+  for (const e of events || []) {
+    if (e.party) party = e.party;
+    if (e.hp != null) {
+      if (e.mhp != null) me = { ...(me || {}), hp: e.hp, mp: e.mp, mhp: e.mhp, mmp: e.mmp };
+      else if (me) { me.hp = e.hp; if (e.mp != null) me.mp = e.mp; }
+    }
+    if (e.type === "enter" && e.foes) {
+      foes = e.foes.map((n, i) => ({
+        n: String(n).replace(/^보스 /, ""), boss: /^보스 /.test(n) || (mode === "inf" && e.boss && i === 0),
+        max: Number(e.fmax?.[i] ?? 1), hp: Number(e.fh?.[i] ?? e.fmax?.[i] ?? 1),
+      }));
+    } else if (e.fh && foes) foes.forEach((f, i) => { f.hp = Number(e.fh[i] ?? f.hp); });
+    if (e.type === "clear" && foes) foes.forEach(f => { f.hp = 0; });
+  }
+  return { me, foes, party };
+}
+function battleBars(st, myName) {
+  const pct = (a, b) => b > 0 ? Math.max(0, Math.min(100, a / b * 100)) : 0;
+  const ally = m => h("div", { class: `bt-unit${m.down || m.hp <= 0 ? " down" : ""}` },
+    h("div", { class: "bt-name" }, h("b", {}, m.n), h("span", {}, m.down || m.hp <= 0 ? "쓰러짐" : `HP ${m.hp}/${m.mhp} · MP ${m.mp ?? "-"}/${m.mmp ?? "-"}`)),
+    h("div", { class: "gauge hp", title: "HP" }, h("i", { style: `width:${m.down ? 0 : pct(m.hp, m.mhp)}%` })),
+    m.mmp ? h("div", { class: "gauge mp", title: "MP" }, h("i", { style: `width:${pct(m.mp, m.mmp)}%` })) : null);
+  const allies = st.party || (st.me ? [{ n: myName, ...st.me }] : []);
+  const foe = f => h("div", { class: `bt-unit${f.hp <= 0 ? " dead" : ""}${f.boss ? " boss" : ""}` },
+    h("div", { class: "bt-name" }, h("b", {}, (f.boss ? "보스 " : "") + f.n), h("span", {}, f.hp <= 0 ? "처치" : f.max > 1 ? `HP ${Math.round(f.hp)}/${Math.round(f.max)}` : "")),
+    h("div", { class: "gauge foe", title: "HP" }, h("i", { style: `width:${pct(f.hp, f.max)}%` })));
+  return h("div", { class: "bt", "aria-label": "전투 현황" },
+    h("div", { class: "bt-side" }, h("p", { class: "bt-title" }, st.party ? `아군 · 파티 ${allies.length}명` : "아군"),
+      ...(allies.length ? allies.map(ally) : [h("p", { class: "bt-empty" }, "준비 중")])),
+    h("div", { class: "bt-side" }, h("p", { class: "bt-title" }, "적"),
+      ...(st.foes?.length ? st.foes.map(foe) : [h("p", { class: "bt-empty" }, "아직 만난 적이 없습니다.")])));
+}
+const myStartBars = () => { const t = state.stats || {}, c = state.character || {}; const mhp = t.hp ?? c.hp, mmp = t.mp ?? c.mp; return mhp ? { hp: mhp, mhp, mp: mmp, mmp } : null; };
 const lastParty = (events, start) => [...(events || [])].reverse().find(e => e.party)?.party || start;
 
 // 다른 화면에서 쓰는 파티 요약 (파티원과 하는 일)
@@ -2690,7 +2802,9 @@ function renderDungeonRun(body, first) {
       statBox("도달", `${cur.reached}역`),
       statBox("가능성", `+${Math.round(cur.pot * cur.grade_mult).toLocaleString()}`),
       statBox("메헨", `+${Number(cur.cur).toLocaleString()} Mh`));
-    if (pty) ptBox.replaceChildren(partyBars(lastParty(cur.events, pty.start)));
+    const bs = battleState(cur.events, "inf", pty ? null : myStartBars());
+    if (pty && !bs.party) bs.party = pty.start;
+    ptBox.replaceChildren(battleBars(bs, state.profile?.codename || "나"));
   }
   function paintLog() {
     const nearBottom = list.scrollTop + list.clientHeight >= list.scrollHeight - 40;
@@ -2965,13 +3079,12 @@ function renderRegionalRun(body, first) {
     const hp = last ? last.hp : maxHp, mp = last ? last.mp : maxMp;
     const zoneBox = h("div", { class: "dg-stat" }, h("small", {}, "구역"), h("b", {}, `${zone}`, h("span", { class: "hint", style: "font-size:14px;font-weight:600" }, ` / ${t.zones || "?"}`)));
     const rewardBox = h("div", { class: "dg-stat" }, h("small", {}, "모은 보상"), h("b", { style: "font-size:15px" }, `가능성 +${cur.pot || 0}`, h("br"), `메헨 +${cur.cur || 0} Mh`));
-    if (t.party) {
-      stats.style.gridTemplateColumns = "repeat(2, 1fr)";
-      stats.replaceChildren(zoneBox, rewardBox);
-      ptBox.replaceChildren(partyBars(lastParty(cur.events, t.party.start)));
-      return;
-    }
-    stats.replaceChildren(zoneBox, gauge("HP", hp, maxHp, "hp"), gauge("MP", mp, maxMp, "mp"), rewardBox);
+    stats.style.gridTemplateColumns = "repeat(2, 1fr)";
+    stats.replaceChildren(zoneBox, rewardBox);
+    const bs = battleState(cur.events, "rg", t.party ? null : { hp: maxHp, mhp: maxHp, mp: maxMp, mmp: maxMp });
+    if (t.party && !bs.party) bs.party = t.party.start;
+    if (bs.me && !t.party) { bs.me.mhp = bs.me.mhp || maxHp; bs.me.mmp = bs.me.mmp || maxMp; }
+    ptBox.replaceChildren(battleBars(bs, state.profile?.codename || "나"));
   }
   function paint() {
     const nearBottom = list.scrollTop + list.clientHeight >= list.scrollHeight - 40;
@@ -4149,6 +4262,22 @@ const DOCS = {
 </tbody>
 </table></div>
 
+<h3>배경음악 · 효과음</h3>
+<div class="table-scroll"><table>
+<thead><tr><th>구분</th><th>제작 · 출처</th><th>이용 약관</th><th>사용처</th></tr></thead>
+<tbody>
+<tr><td>배경음악 10곡</td><td>zippy (zippysound) — Deltoton · Variant · Psyche · 境界の守り人 · Rusty · Danse Macabre · Mayday · Connect! · Res Arcana · Toddler</td><td><a href="https://zippysound.fanbox.cc/posts/8574304" target="_blank" rel="noopener">Zippy 무료 배경음악 이용약관</a></td><td>화면별 배경음악</td></tr>
+<tr><td>효과음</td><td>みんなの創作支援サイトＴスタ (T-STUDIO)</td><td><a href="https://tnosite.com/ko/agreement-5/" target="_blank" rel="noopener">T-STUDIO 서비스 약관</a></td><td>버튼 · 구매 · 판매 · 조합 · 이동 · 알림 소리</td></tr>
+</tbody>
+</table></div>
+<ul>
+<li><b>저작권은 각 제작자에게 있습니다.</b> 두 곳 모두 로열티 프리로 게임에 쓰는 것을 허용하지만 저작권을 포기하지 않았습니다. 곡의 저작권은 zippy에게, 효과음의 저작권은 T-STUDIO에게 있습니다.</li>
+<li><b>음원 파일은 가입한 헌터에게만 재생됩니다.</b> 두 약관 모두 음원을 따로 떼어 2차 배포하는 것을 금지하므로, 파일은 공개 저장소가 아닌 비공개 저장 공간에 두고 로그인한 헌터의 기기에서 재생할 때만 내려받습니다.</li>
+<li><b>하면 안 되는 일:</b> 게임에서 나오는 음원을 녹음 · 추출해 다른 곳에 올리거나 나눠 주는 일, 판매하는 일, 자기 작품인 것처럼 내세우는 일, YouTube Content ID 같은 저작권 관리 시스템에 등록하는 일, 음악 모음집처럼 음악이 주가 되는 콘텐츠에 쓰는 일은 금지되어 있습니다.</li>
+<li><b>내 유튜브 링크:</b> 배경음악에서 헌터가 직접 넣은 유튜브 영상은 YouTube 플레이어로 재생되며, 그 영상의 권리와 이용 조건은 YouTube 약관과 영상 게시자를 따릅니다. 게임은 영상을 저장하거나 다시 배포하지 않습니다.</li>
+<li>약관 내용은 각 사이트의 원문이 기준이며, 바뀔 수 있습니다. (확인: 2026년 11월)</li>
+</ul>
+
 <h3>사용한 오픈소스 라이브러리</h3>
 <div class="table-scroll"><table>
 <thead><tr><th>이름</th><th>라이선스</th><th>사용처</th></tr></thead>
@@ -4224,11 +4353,11 @@ $("#btn-guide").onclick = () => info("가이드",
   h("p", {}, "INFINITE DUNGEON은 방치형 게임입니다. 무한 던전에 6~12시간 진입해 두고, 돌아와 결과를 받으세요."),
   h("p", {}, "· HP·MP가 부족해지면 쉬면서 회복하고 다시 나아갑니다. 깊은 역일수록 오래 걸려서, 진입 시간이 길수록 더 깊이 내려갑니다."),
   h("p", {}, "· HP·DEF가 높을수록 덜 쉬고, 힐러는 전투 중 회복으로 휴식을 줄입니다."),
-  h("p", {}, "· 10역마다 구간(테마)이 바뀌고, 역마다 일반 몬스터 1마리·2마리 또는 보스를 만납니다. 보스는 강하지만 보상이 큽니다."),
+  h("p", {}, "· 10역마다 구간(테마)이 바뀝니다. 테마는 30곳 중 무작위로 정해지며(바로 앞 테마와는 겹치지 않음), 역마다 일반 몬스터 1마리·2마리 또는 보스를 만납니다. 보스는 강하지만 보상이 큽니다. 진행 화면 위쪽의 전투 현황에서 아군(파티원 포함)과 적의 HP·MP를 볼 수 있습니다."),
   h("p", {}, "· 복귀 후 '조금 더 진입'을 고르면 50% 확률로 더 깊이 들어가 1.5배 보상을 받고, 실패하면 이번 보상의 20%를 잃습니다."),
   h("p", {}, "· 레벨이 오를 때마다 스탯 포인트 1개를 받아 자유롭게 분배할 수 있습니다."),
   h("p", {}, "· 포지션: 시작할 때 메인 포지션을 고르고, 25레벨이 되면 서브 포지션을 한 번 고릅니다. 서브는 효과가 절반이고, 메인과 같은 포지션을 고르면 메인 효과가 1.5배가 됩니다."),
-  h("p", {}, "· 장비는 D~S 다섯 티어가 있고 무기·방어구·장신구 3칸에 끼웁니다. 착용 레벨은 D 1 · C 45 · B 60 · A 80 · S 110입니다. 메헨(Mh)과 별가루로 +10까지 강화하며, +6부터는 재료로 쓸 같은 장비 1개를 직접 고릅니다. 인벤토리의 조합에서 재료 2~3개를 섞어 새 아이템을 만들 수 있습니다. 던전에 소비 아이템을 최대 3종 챙겨 가면 쉬는 대신 먼저 씁니다."),
+  h("p", {}, "· 장비는 D~S 다섯 티어가 있고 무기·방어구·장신구 3칸에 끼웁니다. 착용 레벨은 D 1 · C 25 · B 40 · A 60 · S 90입니다. 메헨(Mh)과 별가루로 +10까지 강화하며, +6부터는 재료로 쓸 같은 장비 1개를 직접 고릅니다. 인벤토리의 조합에서 재료 2~3개를 섞어 새 아이템을 만들 수 있습니다. 던전에 소비 아이템을 최대 3종 챙겨 가면 쉬는 대신 먼저 씁니다."),
   h("p", {}, "· 승급: 레벨 조건(E 10 · D 20 · C 35 · B 50 · A 70 · S 100)을 채우면 헌터 정보의 '승급하기' 버튼으로 원할 때 한 등급씩 올립니다. 자동으로 오르지 않으니, 낮은 등급 던전을 더 돌고 싶다면 미뤄 둘 수 있습니다. 처음 받은 각성 등급이 더 높으면 그대로 유지됩니다."),
   h("p", {}, "· 지역 안정화: 활동 구역의 던전을 공략합니다. 지금은 E급(5구역 · 평균 30분)과 D급(6구역 · 평균 40분)이 열려 있고, C급부터는 준비 중입니다. 구역마다 E·D급 던전이 5곳씩 있고, 장소와 테마가 제각각입니다. 마지막 구역은 보스이며, 보스는 테마 재료를 떨어뜨립니다. 구역마다 보상을 얻고, 도중에 쓰러지면 그때까지의 보상만 받습니다. 입장 레벨은 E 1 · D 10이고, 성공률은 내 전력으로 미리 알려 줍니다. 안정화한 던전은 30분 뒤 다른 테마로 다시 나타납니다. 더 높은 등급에 들어갈 수 있으면 낮은 등급 보상은 줄어듭니다."),
   h("p", {}, "· 탐색: 무한 던전의 '탐색' 탭에서 하루 3번, 보이지 않는 10×10 구역을 걸으며 메헨과 아이템을 줍습니다."),
@@ -4237,7 +4366,7 @@ $("#btn-guide").onclick = () => info("가이드",
   h("p", {}, "· 일일 퀘스트: 홈에서 확인합니다. 탐색 1회 · 지역 안정화 1회(가능성 레벨 × 15), 전력 분석 1회 · 상점 구매 1회 · 조합 1회(가능성 레벨 × 10)를 마치면 각각 보상을 받습니다. 매일 0시(한국 시간)에 새로 시작합니다."),
   h("p", {}, "· 스토리 퀘스트: 홈에서 10단계를 순서대로 진행하며 게임의 기본을 익힙니다. 단계마다 장비 · 아이템 · 메헨 · 타이틀 보상이 있고, 이미 해 둔 활동도 조건으로 인정됩니다."),
   h("p", {}, "· 전력 분석: 홈에서 스탯 하나를 골라 5~180분 동안 분석합니다. 다른 활동과 동시에 할 수 있고, 분석한 시간이 스탯마다 쌓여 단계(최대 10단계)가 오를 때마다 그 스탯이 영구로 +1 됩니다. 10단계를 마친 스탯은 분석할 때 가능성을 얻습니다."),
-  h("p", {}, "· 교류: 코드네임으로 친구 신청을 보내고, 상대가 수락하면 친구가 됩니다(최대 30명). 친구와는 1:1 메시지(30일 보관, ☆를 누르면 계속 보관)와 선물(하루 10번, 메헨·아이템·장비)을 주고받을 수 있습니다. SNS에는 분류를 골라 글과 댓글을 남깁니다. 불편한 헌터는 차단하거나 신고할 수 있습니다."),
+  h("p", {}, "· 교류: 코드네임으로 친구 신청을 보내고, 상대가 수락하면 친구가 됩니다(최대 30명). 친구와는 1:1 메시지(30일 보관, ☆를 누르면 계속 보관)와 선물(하루 10번, 메헨·아이템·장비)을 주고받을 수 있습니다. SNS에는 분류를 골라 글과 댓글을 남깁니다(PC에서는 오른쪽 SNS 칸에서 분류별로 보고 바로 글을 쓸 수도 있습니다). 불편한 헌터는 차단하거나 신고할 수 있습니다."),
   h("p", {}, "· 파티: 교류 → 파티 탭이나 헌터 정보 창에서 코드네임으로 초대하면 파티가 만들어지고 내가 파티장이 됩니다(1~5명, 해산하기 전까지 유지). 같은 파티는 언제나 같은 활동을 하며, 파티장이 출발을 누르면 무한 던전이나 지역 안정화에 모두 함께 들어갑니다. 파티원 중 누가 다른 활동 중이거나 결과를 받지 않았으면 출발할 수 없고, 최고·최저 레벨 차이가 25 이상이면 공략할 수 없습니다. 몬스터는 들어간 인원에 비례해 강해지고, 한 명이 쓰러져도 나머지가 계속하며, 보상은 모두 똑같이 받습니다. 뱅가드·힐러·서포터의 능력은 동료 1명에게 쓰입니다. 파티 무한 던전 기록은 국제헌터연합의 파티 랭킹에 파티장 이름으로 오릅니다."),
   h("p", {}, "· 길드: 10레벨 이상이면 교류 → SNS → 길드에서 5,000 Mh로 길드를 만들 수 있습니다(최대 20명, 한 번에 한 길드). 길드장이 코드네임이나 헌터 정보 창으로 초대하고, 초대는 7일 동안 유효합니다. 길드원끼리는 길드 채팅으로 이야기하며, 채팅은 30일 뒤 지워집니다. 길드장은 소개 바꾸기 · 내보내기 · 길드장 넘기기 · 해산을 할 수 있고, 길드장이 나가려면 먼저 길드장을 넘겨야 합니다."),
   h("p", {}, "· 타이틀: 앞말과 뒷말 조각을 하나씩 골라 '앞말 코드네임 뒷말' 모양으로 프로필에 표시합니다(랭킹에는 표시하지 않음). 조각은 활동 기록 · 도감 · 퀘스트 등 조건을 채우면 얻고 사라지지 않으며, 헌터 정보 창에서 언제든 바꾸거나 비워 둘 수 있습니다. 어떤 조건인지는 직접 찾아보세요."),
@@ -4441,10 +4570,11 @@ function bgmToggle() {
 function sfxRow() {
   const chk = h("input", { type: "checkbox", "aria-label": "효과음 켜기" }); chk.checked = sfxS.prefs.on;
   const vol = h("input", { type: "range", min: "0", max: "100", step: "1", value: String(Math.round(sfxS.prefs.vol * 100)), "aria-label": "효과음 볼륨", disabled: !sfxS.prefs.on });
+  const val = h("span", { style: "min-width:30px;text-align:right" }, String(Math.round(sfxS.prefs.vol * 100)));
   chk.onchange = () => { sfxS.prefs.on = chk.checked; vol.disabled = !chk.checked; sfxSave(); if (chk.checked) sfx("push"); };
-  vol.oninput = () => { sfxS.prefs.vol = Number(vol.value) / 100; };
+  vol.oninput = () => { sfxS.prefs.vol = Number(vol.value) / 100; val.textContent = vol.value; };
   vol.onchange = () => { sfxSave(); sfx("push"); };
-  return h("div", { class: "sfx-row", "data-sfx": "own" }, h("label", { style: "display:flex;align-items:center;gap:6px;white-space:nowrap" }, chk, "효과음"), vol);
+  return h("div", { class: "bgm-vol sfx-row", "data-sfx": "own" }, h("label", {}, chk, "효과음"), vol, val);
 }
 let bgmBuilt = false;
 function initBgm() {
