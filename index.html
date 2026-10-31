@@ -906,7 +906,13 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
         <label>메인 포지션</label>
         <div class="pos-grid" id="pos-grid"></div>
         <div class="opt-row" id="opt-row"></div>
-        <span class="hint">추천 스탯은 전투력에 1.5배로 반영되고, 나머지 스탯은 0.8배로 반영됩니다. 25레벨이 되면 서브 포지션을 하나 더 고를 수 있습니다.</span>
+        <span class="hint">선호 스테이터스는 전투력에 1.5배로 반영되고, 나머지 스탯은 0.8배로 반영됩니다. 25레벨이 되면 서브 포지션을 하나 더 고를 수 있습니다.</span>
+      </div>
+
+      <div class="field">
+        <label for="c-skill">이능력명</label>
+        <input id="c-skill" class="input" maxlength="12" required placeholder="1~12자 (예: 백발백중)">
+        <span class="hint">전투에서 공격할 때 쓰는 이능력의 이름입니다. 전투 기록에 '백발백중 → 적 · 피해 n'처럼 나옵니다. 나중에 헌터 정보에서 바꿀 수 있습니다.</span>
       </div>
 
       <div class="field">
@@ -955,6 +961,8 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
       <div class="grade-big" id="reveal-grade">F</div>
       <p id="reveal-text" style="margin:0 0 18px"></p>
       <button id="reveal-go" class="btn block" type="button">입장하기</button>
+      <button id="reveal-again" class="btn ghost block" type="button" style="margin-top:8px">한 번 더 측정하기 (1회)</button>
+      <p class="hint" style="margin:8px 0 0;font-size:13px">재측정은 한 번만 할 수 있고, 다시 나온 등급으로 확정됩니다. 승급하기 전까지는 헌터 정보에서도 할 수 있습니다.</p>
     </div>
   </div>
 </section>
@@ -1013,6 +1021,11 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
     <div class="field">
       <label for="e-codename">코드네임</label>
       <input id="e-codename" class="input" maxlength="12">
+    </div>
+    <div class="field">
+      <label for="e-skill">이능력명</label>
+      <input id="e-skill" class="input" maxlength="12" placeholder="1~12자">
+      <span class="hint">전투 기록에 '이능력명 → 적 · 피해 n'처럼 나옵니다.</span>
     </div>
     <div class="field" data-tour="hd-photo">
       <label>프로필 이미지</label>
@@ -1090,16 +1103,16 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 const POSITIONS = {
   dealer: { name: "딜러", desc: "강한 힘으로 적을 먼저 제압하는 헌터.",
     A: { name: "갤런트리", en: "gallantry", tag: "용맹", desc: "마주한 상대와 정면 승부를 즐기는 헌터.", effect: "주는 피해 +20%" },
-    B: { name: "스카우트", en: "scout", tag: "정찰병", desc: "넓은 시야를 가지고 상황을 주도하는 헌터.", effect: "공격 횟수 +1 (회당 피해 60%)" } },
+    B: { name: "스카우트", en: "scout", tag: "정찰병", desc: "넓은 시야를 가지고 상황을 주도하는 헌터.", effect: "공격횟수 +1 (회당 피해 60%)" } },
   tanker: { name: "탱커", desc: "적의 공격에도 무너지지 않는 헌터.",
-    A: { name: "뱅가드", en: "vanguard", tag: "선봉", desc: "가장 앞으로 나가 적의 시선을 이끄는 헌터.", effect: "도발 (파티원 대신 피격, 혼자일 때는 10% 확률로 공격 회피)" },
-    B: { name: "시타델", en: "citadel", tag: "성채", desc: "적의 공격으로부터 수호하는 헌터.", effect: "받는 피해 -20%" } },
+    A: { name: "뱅가드", en: "vanguard", tag: "선봉", desc: "가장 앞으로 나가 적의 시선을 끄는 헌터.", effect: "도발 (가장 취약한 아군 1명 대신 피격) · 1인 공략 때는 10% 확률로 공격 회피" },
+    B: { name: "시타델", en: "citadel", tag: "성채", desc: "적의 공격으로부터 수호하는 헌터.", effect: "아군의 받는 피해 -20%" } },
   supporter: { name: "서포터", desc: "상대의 능력을 전략적으로 가감하는 헌터.",
-    A: { name: "카탈리스트", en: "catalyst", tag: "촉매", desc: "아군을 극대화하는 헌터.", effect: "아군 ATK·DEF +20%" },
-    B: { name: "아티피스", en: "artifice", tag: "계략", desc: "적을 무력화시키는 헌터.", effect: "적 ATK·DEF -20%" } },
+    A: { name: "카탈리스트", en: "catalyst", tag: "촉매", desc: "아군을 극대화하는 헌터.", effect: "아군 1명의 ATK·DEF +20%" },
+    B: { name: "아티피스", en: "artifice", tag: "계략", desc: "적을 무력화시키는 헌터.", effect: "적 1명의 ATK·DEF -20%" } },
   healer: { name: "힐러", desc: "아군이 지치지 않도록 독려하는 헌터.",
-    A: { name: "리커버리", en: "recovery", tag: "회복", desc: "아군의 부상을 치유하는 헌터.", effect: "아군 HP 50% 미만이면 HP 30% 회복 (조건마다, 회당 MP 5)" },
-    B: { name: "서플라이", en: "supply", tag: "공급", desc: "아군의 이능력 한도를 늘리는 헌터.", effect: "아군 MP 30% 미만이면 MP 30% 회복 (조건마다, 회당 MP 5)" } },
+    A: { name: "리커버리", en: "recovery", tag: "회복", desc: "아군의 부상을 치유하는 헌터.", effect: "아군의 HP가 50% 미만일 경우 HP 30% 회복" },
+    B: { name: "서플라이", en: "supply", tag: "공급", desc: "아군의 이능력 한도를 늘리는 헌터.", effect: "아군의 MP가 30% 미만일 경우 MP 30% 회복" } },
 };
 const posLabel = (pos, opt) => POSITIONS[pos] ? `${POSITIONS[pos].name} · ${POSITIONS[pos][opt]?.name || ""}` : "-";
 // 포지션 고르기 (캐릭터 생성 · 서브 포지션 공용)
@@ -1109,7 +1122,7 @@ function posPicker(grid, row, pick, onChange) {
       type: "button", class: "pos" + (pick.position === id ? " on" : ""), "aria-pressed": pick.position === id ? "true" : "false",
       onclick: () => { pick.position = id; pick.option = null; onChange(); },
     }, h("strong", {}, p.name), h("small", { style: "display:block" }, p.desc),
-       h("small", { style: "display:block;margin-top:4px" }, `추천 스탯 ${prefText(id)} · ${p.A.name} / ${p.B.name}`))));
+       h("small", { style: "display:block;margin-top:4px" }, `선호 스테이터스 ${prefText(id)} · ${p.A.name} / ${p.B.name}`))));
   row.replaceChildren();
   if (!pick.position) return;
   const p = POSITIONS[pick.position];
@@ -1389,6 +1402,8 @@ $("#form-create").onsubmit = async e => {
   const codename = $("#c-codename").value.trim();
   if (codename.length < 2 || codename.length > 12) return (err.textContent = "코드네임은 2~12자로 입력해 주세요.");
   if (!draft.position || !draft.option) return (err.textContent = "메인 포지션과 세부 선택을 골라 주세요.");
+  const skill = $("#c-skill").value.trim();
+  if (skill.length < 1 || skill.length > 12) return (err.textContent = "이능력명은 1~12자로 적어 주세요.");
   busy(btn, true, "측정 중…");
   const { data, error } = await sb.rpc("create_character", {
     p_codename: codename,
@@ -1398,6 +1413,7 @@ $("#form-create").onsubmit = async e => {
     p_bio: $("#c-bio").value,
     p_bio_visibility: $("#c-vis").value,
     p_region: $("#c-region").value,
+    p_skill_name: skill,
   });
   if (error) { busy(btn, false); return (err.textContent = koError(error)); }
   if (draft.photo) {
@@ -1407,10 +1423,28 @@ $("#form-create").onsubmit = async e => {
     } catch { toast("사진 업로드에 실패했습니다. 헌터 정보에서 다시 올려 주세요."); }
   }
   busy(btn, false);
-  $("#reveal-grade").textContent = data.grade;
-  $("#reveal-text").textContent = `${codename} 헌터, ${data.grade}급으로 등록되었습니다. ${GRADE_TEXT[data.grade]}`
+  showReveal(codename, data.grade, true);
+};
+function showReveal(codename, grade, canAgain, again) {
+  $("#reveal-grade").textContent = grade;
+  $("#reveal-text").textContent = `${codename} 헌터, ${again ? "재측정 결과 " : ""}${grade}급으로 등록되었습니다. ${GRADE_TEXT[grade]}`
     + " 각성 등급은 헌터의 개성이며, 성장 속도는 모든 헌터가 같습니다.";
+  $("#reveal-again").hidden = !canAgain;
+  $("#reveal-again").nextElementSibling.hidden = !canAgain;
   show("screen-reveal");
+}
+// 각성 등급 재측정 (1회)
+async function remeasureGrade(btn) {
+  if (!confirm("각성 등급을 한 번 더 측정할까요? 재측정은 한 번만 할 수 있고, 새로 나온 등급으로 확정됩니다.")) return null;
+  busy(btn, true, "측정 중…");
+  const { data, error } = await sb.rpc("remeasure_grade");
+  busy(btn, false);
+  if (error) { toast(koError(error)); return null; }
+  return data;
+}
+$("#reveal-again").onclick = async e => {
+  const d = await remeasureGrade(e.currentTarget);
+  if (d) showReveal($("#c-codename").value.trim() || state.profile?.codename || "", d.grade, false, true);
 };
 $("#reveal-go").onclick = () => boot();
 
@@ -1499,6 +1533,7 @@ function renderHunter() {
     h("div", { class: "kv" }, h("span", {}, "다음 승급"), h("span", {}, nextPromotion(c.grade))),
     canPromote(c) ? h("button", { class: "btn small promo-btn", style: "margin-bottom:6px", type: "button", onclick: e => doPromote(e.currentTarget) }, `${nextGrade(c.grade)}급으로 승급하기`) : null,
     h("div", { class: "kv" }, h("span", {}, "포지션"), h("span", {}, posLabel(c.main_position, c.main_option))),
+    c.skill_name ? h("div", { class: "kv" }, h("span", {}, "이능력"), h("span", {}, c.skill_name)) : null,
     c.sub_position ? h("div", { class: "kv" }, h("span", {}, "서브 포지션"), h("span", {}, posLabel(c.sub_position, c.sub_option))) : null,
     !c.sub_position && c.level >= 25 ? h("button", { class: "btn ghost block small", style: "margin:6px 0", type: "button", onclick: openSubPosition }, "서브 포지션 정하기") : null,
     h("div", { style: "padding-top:8px;border-top:1px dashed var(--border)" },
@@ -3836,6 +3871,24 @@ async function openEnhance(gearId, onDone, lastResult) {
 }
 
 /* ===== 스탯 분배 ===== */
+// 스탯 분배 초기화: 지금까지 분배한 포인트 1개당 500 Mh
+const allocTotal = c => Object.values(c?.alloc || {}).reduce((a, b) => a + (Number(b) || 0), 0);
+function resetStatsBtn(before) {
+  const c = state.character, n = allocTotal(c);
+  if (n < 1) return null;
+  const cost = n * 500;
+  return h("button", { class: "btn ghost block small", type: "button", style: "margin-top:8px", onclick: async e => {
+    if (c.currency < cost) return toast(`메헨이 부족합니다. (${cost.toLocaleString()} Mh 필요)`);
+    if (!confirm(`지금까지 분배한 스탯 ${n}포인트를 되돌릴까요? ${cost.toLocaleString()} Mh를 씁니다. (분석으로 오른 스탯은 그대로입니다)`)) return;
+    busy(e.currentTarget, true, "…");
+    const { data, error } = await sb.rpc("reset_stats");
+    busy(e.currentTarget, false);
+    if (error) return toast(koError(error));
+    before?.();
+    toast(`스탯을 초기화했습니다. 포인트 ${data.points}개를 돌려받았습니다.`);
+    await loadAll(); renderHunter();
+  } }, `분배 초기화 (${n}포인트 · ${cost.toLocaleString()} Mh)`);
+}
 function openStats() {
   const c = state.character;
   const add = { hp: 0, mp: 0, atk: 0, def: 0, luk: 0 };
@@ -3850,8 +3903,8 @@ function openStats() {
   function paint() {
     const used = Object.values(add).reduce((a, b) => a + b, 0);
     $("#st-left").replaceChildren("남은 포인트 ", h("strong", {}, String(c.stat_points - used)),
-      h("span", { class: "hint", style: "display:block;margin-top:4px" }, `${POSITIONS[c.main_position].name}의 추천 스탯(${prefText(c.main_position)})은 전투력에 1.5배로 반영됩니다.`));
-    $("#st-rows").replaceChildren(...Object.keys(add).map(k => h("div", { class: "alloc" },
+      h("span", { class: "hint", style: "display:block;margin-top:4px" }, `${POSITIONS[c.main_position].name}의 선호 스테이터스(${prefText(c.main_position)})는 전투력에 1.5배로 반영됩니다.`));
+    $("#st-rows").replaceChildren(resetStatsBtn(() => $("#dlg-stats").close()) || "", ...Object.keys(add).map(k => h("div", { class: "alloc" },
       h("div", {}, h("strong", {}, label[k]), pref.has(k) ? h("span", { class: "badge", style: "margin-left:6px;font-size:12px" }, "선호") : null,
         h("small", { class: "hint" }, desc[k])),
       h("div", { class: "alloc-ctl" },
@@ -4160,6 +4213,7 @@ function openHunter() {
   const p = state.profile, c = state.character;
   edit.color = p.avatar_color; edit.photo = null; edit.clearPhoto = false;
   $("#e-codename").value = p.codename;
+  $("#e-skill").value = c.skill_name || "";
   $("#e-bio").value = p.bio || "";
   $("#e-vis").value = p.bio_visibility;
   $("#e-email").textContent = state.user?.email || "";
@@ -4168,10 +4222,12 @@ function openHunter() {
   $("#e-grade-line").textContent = `${c.grade}급 · Lv.${c.level}`;
   paintTitlePicker();
   const pos = POSITIONS[c.main_position];
-  $("#e-position").textContent = `메인 포지션: ${posLabel(c.main_position, c.main_option)} · 추천 ${prefText(c.main_position)}`
+  $("#e-position").textContent = `메인 포지션: ${posLabel(c.main_position, c.main_option)} · 선호 ${prefText(c.main_position)}`
     + (c.sub_position ? ` / 서브: ${posLabel(c.sub_position, c.sub_option)}` : c.level >= 25 ? " / 서브 포지션 선택 가능" : " / 서브 포지션은 25레벨부터")
     + " · 변경 불가";
-  $("#e-start-grade").textContent = `각성 등급: ${c.start_grade}급 · 다음 승급 ${nextPromotion(c.grade)}`;
+  $("#e-start-grade").replaceChildren(`각성 등급: ${c.start_grade}급 · 다음 승급 ${nextPromotion(c.grade)}`,
+    !c.remeasured && c.grade === c.start_grade ? h("button", { type: "button", class: "btn ghost small", style: "margin-left:8px;min-height:30px;padding:2px 10px",
+      onclick: async e => { const d = await remeasureGrade(e.currentTarget); if (d) { toast(`각성 등급 재측정: ${d.before}급 → ${d.grade}급`); await loadAll(); renderHunter(); openHunter(); } } }, "재측정 (1회)") : null);
   $("#edit-error").textContent = "";
   const sbox = $("#e-stats");
   sbox.replaceChildren(
@@ -4179,7 +4235,8 @@ function openHunter() {
       .map(([k, v]) => h("div", { class: "stat" }, h("b", {}, String(v)), h("small", {}, k)))),
     c.stat_points > 0
       ? h("button", { class: "btn block small", type: "button", onclick: () => { $("#dlg-hunter").close(); openStats(); } }, `스탯 포인트 ${c.stat_points} 분배`)
-      : null);
+      : null,
+    resetStatsBtn(() => { $("#dlg-hunter").close(); }));
   swatches($("#e-swatches"), edit.color, col => { edit.color = col; renderEditAvatar(); });
   renderEditAvatar();
   $("#dlg-hunter").showModal();
@@ -4255,6 +4312,11 @@ $("#e-save").onclick = async () => {
       if (/duplicate|unique/i.test(error.message)) throw new Error("이미 사용 중인 코드네임입니다.");
       throw error;
     }
+    const sk = $("#e-skill").value.trim();
+    if (sk !== (state.character.skill_name || "") && sk) {
+      const { error: e2 } = await sb.rpc("set_skill_name", { p_name: sk });
+      if (e2) throw e2;
+    }
     $("#dlg-hunter").close();
     toast("저장했습니다.");
     await loadAll();
@@ -4283,7 +4345,7 @@ function openSubPosition() {
   function paint() {
     posPicker(grid, row, pick, paint);
     const same = pick.position === c.main_position && pick.option === c.main_option;
-    note.textContent = !pick.option ? "서브 포지션은 효과가 절반이고, 추천 스탯은 전투력에 1.25배로 반영됩니다."
+    note.textContent = !pick.option ? "서브 포지션은 효과가 절반이고, 선호 스테이터스는 전투력에 1.25배로 반영됩니다."
       : same ? `메인과 같은 ${posLabel(pick.position, pick.option)}을(를) 고르면 메인 효과가 1.5배가 됩니다.`
       : `${posLabel(pick.position, pick.option)}의 효과가 절반으로 적용됩니다. 한 번 정하면 바꿀 수 없습니다.`;
     go.disabled = !pick.option;
@@ -4944,12 +5006,12 @@ const TOURS = {
     { sel: '[data-tour="hm-act"]', text: "지금 하고 있는 활동 내역입니다. 무한 던전이나 지역 안정화는 창을 닫아도 서버에서 계속 진행되기 때문에 계속 보고 있지 않으셔도 괜찮습니다." },
     { sel: '[data-tour="hm-count"]', text: "필요한 재료를 얻을 수 있는 탐색과 별의 무덤은 하루 횟수가 정해져 있습니다.\n매일 0시(한국 시간)에 횟수가 초기화됩니다." },
     { sel: '[data-tour="hm-quest"]', text: "꾸준한 활동을 격려하기 위한 일일 퀘스트가 마련되어 있습니다. 퀘스트를 완수하셨다면 하루가 끝나기 전, [받기]를 눌러 가능성을 수령해주시기 바랍니다." },
-    { sel: '[data-tour="hm-an"]', text: "스테이더스 하나를 골라 분석하면 단계마다 그 스테이더스가 상승합니다. 던전 공략이나 탐색 등 다른 활동과 동시에 할 수 있으니 주기적으로 확인하여 분석하시기를 권장드립니다." },
+    { sel: '[data-tour="hm-an"]', text: "스테이터스 하나를 골라 분석하면 단계마다 그 스테이터스가 상승합니다. 던전 공략이나 탐색 등 다른 활동과 동시에 할 수 있으니 주기적으로 확인하여 분석하시기를 권장드립니다." },
     { sel: '[data-tour="hm-story"]', text: "스토리 퀘스트에서는 순차적으로 현 상황에서 중요한 이야기를 확인하실 수 있습니다. 현재는 튜토리얼이 마련되어 있으므로 기본 활동을 익히면서 장비와 아이템도 받을 수 있습니다." },
     { sel: '[data-tour="hm-todo"]', text: "헌터님만 확인할 수 있는 메모장이에요. 할 일을 적어 두고 끝나면 체크하실 수 있습니다." },
     { sel: "#bgm", text: "배경음악과 효과음을 켜고 끄거나 크기를 바꿀 수 있어요. 듣고 싶은 음악이 있다면 유튜브 링크로 재생할 수 있습니다." },
     { sel: "#side-party, #side-sns", all: true, pc: true, text: "다른 헌터와 파티를 맺은 경우, 파티 현황이 이곳에 나타납니다.\n이곳에서 헌터 전용 SNS 새 글을 확인할 수 있습니다. 카테고리 별로 다른 탭을 사용하고, 원하시면 게시글을 올릴 수 있습니다." },
-    { text: "안내는 여기까지예요. 이용이 어려움이 생기시면 화면 아래 [가이드]나 각 화면의 [도움말]을 이용해주십시오.\n헌터님의 무한한 가능성을 기대하겠습니다." },
+    { text: "안내는 여기까지예요. 이용에 어려움이 생기시면 화면 아래 [가이드]나 각 화면의 [도움말]을 이용해주십시오.\n헌터님의 무한한 가능성을 기대하겠습니다." },
   ],
   "dungeon-battle": [
     { text: "안녕하세요, 헌터님. 국제헌터연합 던전관리국의 안내 직원입니다. 무한 던전 이용 방법을 간단히 안내해 드리겠습니다.\n안내를 원치 않으시다면 [건너뛰기]를 선택해주시기 바랍니다." },
@@ -4957,7 +5019,7 @@ const TOURS = {
     { sel: '[data-tour="dg-hours"]', text: "먼저 전투에서는 진입 시간을 설정합니다. 6~12시간 중에서 고르면 그동안 역을 하나씩 공략하며 진입합니다.\n창을 닫아도 계속 진행되니 안심하시기 바랍니다." },
     { sel: '[data-tour="dg-supplies"]', text: "진입 전 보급품을 챙길 수 있습니다.\n소비 아이템을 최대 3종, 종류당 5개까지 가능합니다.\nHP·MP가 부족해지면 쉬기 전에 먼저 사용하고, 남은 것은 다시 인벤토리에 들어갑니다." },
     { sel: '[data-tour="dg-start"]', text: "준비가 끝나면 진입해주십시오.\n역마다 몬스터 1~2마리나 보스 몬스터를 조우합니다. 보스는 강하지만 보상이 큽니다." },
-    { text: "진입하면 이런 전투 현황이 보실 수 있습니다.\n왼쪽은 헌터님(파티라면 파티원 모두)의 HP·MP, 오른쪽은 지금 맞선 적이며, 그 아래 기록에서 역마다 있었던 일을 확인할 수 있습니다.", art: tourBattleArt },
+    { text: "진입하면 이런 전투 현황을 보실 수 있습니다.\n왼쪽은 헌터님(파티라면 파티원 모두)의 HP·MP, 오른쪽은 지금 맞선 적이며, 그 아래 기록에서 역마다 있었던 일을 확인할 수 있습니다.", art: tourBattleArt },
     { text: "시간이 다 되거나 더 버티기 어려우면 복귀합니다.\n결과 수령 전, [조금 더 진입]을 고르면 50% 확률로 더 깊이 들어가 추가분 보상이 1.5배가 됩니다. 대신 실패하면 이번 보상의 20%를 잃으니 신중하게 선택하시길 바랍니다." },
     { text: "도달한 역의 수에 따라 국제헌터연합 주간 랭킹에 오릅니다. 그럼 무운을 빕니다, 헌터님." },
   ],
@@ -4972,7 +5034,7 @@ const TOURS = {
   "dungeon-star": [
     { text: "무한 던전에서 특수하게 발견되는 별의 무덤 지역을 안내해드리겠습니다.\n잠든 별들이 묻힌 곳이라, 연합에서도 10레벨 이상 헌터에게만 출입을 허가하고 있습니다." },
     { sel: '[data-tour="st-rules"]', text: "하루 1번, 탐색과는 따로 들어갈 수 있습니다.\n돌아볼 수 있는 곳은 세로 10칸, 가로 10칸의 구역 안으로, 시작 위치는 무작위로 정해집니다.\n별가루·마석·별조각 사탕·은하수 이슬·가능성이 발견되는 것으로 보고되었습니다." },
-    { text: "별의 무덤이 위험한 이유는 이곳에 무덤을 지키는 별지기가 존재하기 때문입니다.\n별지기(◎)의 위치 지도에 표시되며, 헌터님(●)이 두 칸 움직일 때마다 한 칸씩 이동합니다.", art: () => {
+    { text: "별의 무덤이 위험한 이유는 이곳에 무덤을 지키는 별지기가 존재하기 때문입니다.\n별지기(◎)의 위치는 지도에 표시되며, 헌터님(●)이 두 칸 움직일 때마다 한 칸씩 이동합니다.", art: () => {
       const cells = []; for (let i = 0; i < 21; i++) cells.push(h("i", { class: i === 8 ? "me" : i === 12 ? "kp" : null }, i === 8 ? "●" : i === 12 ? "◎" : ""));
       return h("div", { class: "tour-grid" }, ...cells); } },
     { text: "별지기와 마주치면 이동이 남아 있어도 바로 쫓겨납니다.\n그 전까지 얻은 건 그대로 받으니, 신중하게 움직여주시길 바랍니다." },
@@ -4984,7 +5046,7 @@ const TOURS = {
     { sel: '[data-tour="rg-board"]', text: "같은 구역의 헌터들이 함께 출입하기 때문에 누군가 공략 중이거나 이미 안정화한 던전에는 진입이 불가합니다.\n안정화된 던전은 30분 뒤 국제헌터연합의 관측에 따라 새롭게 안내됩니다." },
     { sel: '[data-tour="rg-info"]', text: "던전을 선택하면 장소와 테마, 구역 수, 예상 성공률을 확인할 수 있습니다.\n성공률은 헌터님의 전력으로 미리 계산한 수치입니다." },
     { sel: '[data-tour="rg-start"]', text: "공략을 시작하면 구역을 하나씩 지나며 몬스터를 물리칩니다.\n마지막 구역의 보스를 쓰러뜨리면 안정화 성공으로 간주합니다." },
-    { text: "공략 중에는 아군과 적의 HP을 실시간으로 확인할 수 있습니다.\n도중에 쓰러질 경우, 그때까지 정리한 구역의 보상만 받고, 던전은 그대로 잔존합니다.", art: tourRegionalArt },
+    { text: "공략 중에는 아군과 적의 HP를 실시간으로 확인할 수 있습니다.\n도중에 쓰러질 경우, 그때까지 정리한 구역의 보상만 받고, 던전은 그대로 잔존합니다.", art: tourRegionalArt },
     { text: "파티로 들어가면 몬스터는 인원만큼 강해지지만 성공률이 오르고, 보상은 모두 똑같이 수령합니다.\n그럼 무운을 빕니다." },
   ],
   "union-rank": [
@@ -5137,7 +5199,7 @@ function startTour(key) {
     artEl.replaceChildren(...(st.art ? [st.art()] : []));
     [...dots.children].forEach((d, k) => d.classList.toggle("on", k === i));
     prev.hidden = i === 0;
-    next.textContent = i === steps.length - 1 ? "알겠어요" : "다음";
+    next.textContent = i === steps.length - 1 ? "확인" : "다음";
     type(st.text);
     place();
     setTimeout(() => {   // 스크롤이 끝난 뒤 다시 맞춤. 모바일은 아래 말풍선에 가리지 않게 조금 더 올린다
