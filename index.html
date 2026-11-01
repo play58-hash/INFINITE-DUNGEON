@@ -776,12 +776,13 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
 .tour-btn { flex: none; }
 /* 스토리 화면 */
 .story { position: fixed; inset: 0; z-index: 300; background: radial-gradient(120% 90% at 50% 0%, #2B1650 0%, #170B2E 55%, #0D0620 100%); color: #EDE4FF;
-  display: grid; place-items: center; overflow-y: auto; cursor: pointer; padding: 56px 20px 72px; }
+  display: grid; justify-items: center; align-items: start; overflow-y: auto; cursor: pointer; padding: clamp(56px, 14vh, 140px) 20px 72px; }
 .story-inner { width: min(640px, 100%); }
 .story-title { font-size: 34px; letter-spacing: .04em; margin: 0 0 28px; color: #C4ADFF; text-shadow: 0 0 18px rgba(196,173,255,.45); }
 .story-lines { display: grid; gap: 18px; }
 .story-p { margin: 0; font-size: 18px; line-height: 1.9; opacity: 0; transform: translateY(8px); transition: opacity .9s ease, transform .9s ease; word-break: keep-all; }
 .story-p.in { opacity: 1; transform: none; }
+.story-lines.out { opacity: 0; transition: opacity .8s ease; }
 .story-p.date { color: #B9A7E6; font-weight: 700; letter-spacing: .06em; }
 .story-p.glitch { color: #E3D4FF; text-shadow: 0 0 8px rgba(255,80,160,.35); overflow-wrap: anywhere; animation: storyGlitch 2.4s steps(2) infinite; }
 .story-p.last { font-weight: 700; color: #fff; }
@@ -1962,7 +1963,7 @@ async function renderParty(body, pane) {
       h("li", {}, "파티장이 출발을 누르면 모두 함께 들어갑니다. 파티원 중 누가 다른 활동(무한 던전·지역 안정화·탐색·별의 무덤) 중이거나 결과를 받지 않았으면 출발할 수 없습니다."),
       h("li", {}, "몬스터의 HP·공격력은 들어간 인원에 비례해 강해지고, 보상(가능성·메헨·아이템)은 모두 똑같이 받습니다."),
       h("li", {}, "한 명이 쓰러져도 나머지가 계속 공략합니다. 무한 던전의 복귀는 파티장만 정할 수 있고, '조금 더 진입'은 없습니다."),
-      h("li", {}, "뱅가드·힐러·서포터의 능력은 파티원 1명에게 쓰입니다. 뱅가드는 가장 위태로운 동료의 공격을 대신 받고, 힐러는 가장 다친 동료를 치유하며, 서포터 A는 가장 강한 동료를 강화하고 서포터 B는 가장 약한 동료가 받는 피해를 줄입니다."),
+      h("li", {}, "뱅가드·힐러·서포터의 능력은 파티원 1명에게 쓰입니다. 뱅가드는 가장 위태로운 동료의 공격을 대신 받고, 힐러는 가장 다친 동료를 치유하며, 서포터는 가장 강한 동료를 강화하거나 가장 약한 동료가 받는 피해를 줄입니다."),
       h("li", {}, "최고·최저 레벨 차이가 25 이상이면 파티는 만들 수 있지만 공략할 수 없습니다."),
       h("li", {}, "지역 안정화는 파티장의 활동 구역 던전을, 파티원 모두가 입장 레벨을 넘어야 들어갈 수 있습니다. 보상 비율은 가장 높은 레벨을 기준으로 합니다."),
       h("li", {}, "파티 무한 던전 기록은 국제헌터연합의 '파티' 랭킹에 파티장 이름으로 오릅니다."))));
@@ -2923,7 +2924,7 @@ async function renderDungeon(pane, tab = "battle") {
   const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
   pane.replaceChildren(
     h("h2", {}, "무한 던전"),
-    h("p", { class: "hint", style: "margin:0 0 16px" }, "끝이 없는 던전의 역을 하나씩 공략합니다. 창을 닫아도 서버에서 계속 진행됩니다."),
+    h("p", { class: "hint", style: "margin:0 0 16px" }, "종착역을 알 수 없는 지하철형 던전, 무한 던전으로 진입하였습니다."),
     h("div", { class: "dg-tabrow" },
       h("div", { class: "tabs", style: "max-width:400px;flex:1", "data-tour": "dg-tabs" },
         h("button", { type: "button", class: tab === "battle" ? "on" : null, onclick: () => renderDungeon(pane, "battle") }, "전투"),
@@ -2978,7 +2979,7 @@ async function renderDungeonIdle(body) {
       range,
       h("div", { class: "range-scale" }, h("span", {}, "6시간"), h("span", {}, "12시간"))),
     h("p", { class: "hint", style: "margin:0 0 16px" },
-      "HP·MP가 부족해지면 쉬면서 회복한 뒤 다음 역으로 나아갑니다. 깊은 역일수록 전투도 휴식도 길어지니, 오래 머물수록 더 깊이 내려갈 수 있습니다."),
+      "진입 시간이 늘어날수록 휴식과 전투 시간이 늘어나 더 깊이 진입할 수 있습니다."),
   ];
   // 보급품: 소비 아이템 최대 3종, 종류당 5개
   const { data: inv } = await sb.rpc("get_inventory");
@@ -3178,7 +3179,7 @@ async function renderRegional(pane) {
   const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
   pane.replaceChildren(
     paneHead("지역 안정화", "regional"),
-    h("p", { class: "hint", style: "margin:0 0 16px" }, "활동 구역에 나타난 던전을 공략합니다. 지금은 E급(평균 30분)과 D급(평균 40분) 던전이 열려 있고, C급부터는 준비 중입니다. 같은 구역의 헌터들이 함께 쓰는 던전판이라, 누군가 공략 중이거나 안정화한 던전에는 들어갈 수 없습니다."),
+    h("p", { class: "hint", style: "margin:0 0 16px;white-space:pre-line" }, "활동 구역에 나타난 던전을 공략합니다. 현재 E~D급까지 출입할 수 있습니다. 이미 공략 중이거나 안정화한 던전에는 들어갈 수 없습니다.\n활동 구역을 옮기고 싶은 경우 세부 정보에서 변경이 가능합니다."),
     body);
   const { data: act, error: e1 } = await sb.rpc("get_current_action");
   if (e1) return body.replaceChildren(h("p", { class: "error" }, koError(e1)));
@@ -3534,7 +3535,7 @@ function renderExploreIdle(body, s, last, act, starring) {
   }
   kids.push(
     h("div", { "data-tour": "ex-rules" },
-    h("p", { style: "margin:0 0 8px" }, "보이지 않는 10×10 구역을 한 칸씩 걸으며 떨어진 메헨과 아이템을 줍습니다."),
+    h("p", { style: "margin:0 0 8px" }, "무한 던전의 제한된 공간에서 메헨과 아이템을 획득합니다."),
     h("ul", { class: "hint", style: "margin:0 0 16px;padding-left:18px;line-height:1.7" },
       h("li", {}, `하루 3번 · 한 번에 ${5 + Math.floor(lv / 5)}칸 이동 (5레벨마다 1칸 늘어남)`),
       h("li", {}, "찾은 것은 그 자리에서 바로 받습니다. 이미 지나간 칸에는 아무것도 없습니다."),
@@ -3693,7 +3694,7 @@ function renderStarIdle(body, s, last, act, exploring) {
   }
   kids.push(
     h("div", { "data-tour": "st-rules" },
-    h("p", { style: "margin:0 0 8px" }, "잠든 별들이 묻힌 10×10 무덤을 걸으며 별가루와 아이템을 모읍니다. 무덤을 지키는 별지기에게 들키지 마세요."),
+    h("p", { style: "margin:0 0 8px" }, "잠든 별이 묻힌 무덤을 탐색하여 별가루와 아이템을 획득합니다. 무덤을 지키는 별지기에게 들키지 않도록 주의하세요."),
     h("ul", { class: "hint", style: "margin:0 0 16px;padding-left:18px;line-height:1.7" },
       h("li", {}, `10레벨부터 · 하루 1번 · 한 번에 ${5 + Math.floor(lv / 5)}칸 이동 (5레벨마다 1칸 늘어남) · 탐색 3회와는 따로 셉니다`),
       h("li", {}, "별가루, 맥동하는 마석, 별조각 사탕, 은하수 이슬, 가능성을 얻을 수 있습니다."),
@@ -4167,12 +4168,12 @@ async function openEnhance(gearId, onDone, lastResult) {
 }
 
 /* ===== 스탯 분배 ===== */
-// 스탯 분배 초기화: 지금까지 분배한 포인트 1개당 500 Mh
+// 스탯 분배 초기화: 지금까지 분배한 포인트 1개당 50 Mh
 const allocTotal = c => Object.values(c?.alloc || {}).reduce((a, b) => a + (Number(b) || 0), 0);
 function resetStatsBtn(before) {
   const c = state.character, n = allocTotal(c);
   if (n < 1) return null;
-  const cost = n * 500;
+  const cost = n * 50;
   return h("button", { class: "btn ghost block small", type: "button", style: "margin-top:8px", onclick: async e => {
     if (c.currency < cost) return toast(`메헨이 부족합니다. (${cost.toLocaleString()} Mh 필요)`);
     if (!confirm(`지금까지 분배한 스탯 ${n}포인트를 되돌릴까요? ${cost.toLocaleString()} Mh를 씁니다. (분석으로 오른 스탯은 그대로입니다)`)) return;
@@ -4763,7 +4764,7 @@ const DOCS = {
 <tr><th rowspan="2">딜러</th><td rowspan="2">강한 힘으로 적을 먼저 제압하는 헌터.<br>선호 스테이터스 ATK·LUK</td><td><b>갤런트리</b><br>마주한 상대와 정면 승부를 즐기는 헌터.</td><td>주는 피해 +20%</td></tr>
 <tr><td><b>스카우트</b><br>넓은 시야를 가지고 상황을 주도하는 헌터.</td><td>공격횟수 +1 (회당 피해 60%)</td></tr>
 <tr><th rowspan="2">탱커</th><td rowspan="2">적의 공격에도 무너지지 않는 헌터.<br>선호 스테이터스 HP·DEF</td><td><b>뱅가드</b><br>가장 앞으로 나가 적의 시선을 끄는 헌터.</td><td>도발 (가장 취약한 아군 1명 대신 피격)<br>*1인 공략 때는 10% 확률로 공격 회피</td></tr>
-<tr><td><b>시타델</b><br>적의 공격으로부터 수호하는 헌터.</td><td>아군의 받는 피해 -20%</td></tr>
+<tr><td><b>시타델</b><br>적의 공격으로부터 수호하는 헌터.</td><td>받는 피해 -20% (아군과 함께면 20%를 인원수로 나눠 모두 -(20/n)%)</td></tr>
 <tr><th rowspan="2">서포터</th><td rowspan="2">상대의 능력을 전략적으로 가감하는 헌터.<br>선호 스테이터스 MP·LUK</td><td><b>카탈리스트</b><br>아군을 극대화하는 헌터.</td><td>아군 1명의 ATK·DEF +20%</td></tr>
 <tr><td><b>아티피스</b><br>적을 무력화시키는 헌터.</td><td>적 1명의 ATK·DEF -20%</td></tr>
 <tr><th rowspan="2">힐러</th><td rowspan="2">아군이 지치지 않도록 독려하는 헌터.<br>선호 스테이터스 MP·HP</td><td><b>리커버리</b><br>아군의 부상을 치유하는 헌터.</td><td>아군의 HP가 50% 미만일 경우 HP 30% 회복</td></tr>
@@ -4979,7 +4980,7 @@ const DOCS = {
 <div class="table-scroll"><table>
 <thead><tr><th>구분</th><th>제작 · 출처</th><th>이용 약관</th><th>사용처</th></tr></thead>
 <tbody>
-<tr><td>배경음악 10곡</td><td>zippy (zippysound) — Deltoton · Variant · Psyche · 境界の守り人 · Rusty · Danse Macabre · Mayday · Connect! · Res Arcana · Toddler</td><td><a href="https://zippysound.fanbox.cc/posts/8574304" target="_blank" rel="noopener">Zippy 무료 배경음악 이용약관</a></td><td>화면별 배경음악</td></tr>
+<tr><td>배경음악 11곡</td><td>zippy (zippysound) — Deltoton · Variant · Psyche · 境界の守り人 · Rusty · Danse Macabre · Mayday · Connect! · Res Arcana · Toddler · 月は知っている</td><td><a href="https://zippysound.fanbox.cc/posts/8574304" target="_blank" rel="noopener">Zippy 무료 배경음악 이용약관</a></td><td>화면별 배경음악</td></tr>
 <tr><td>효과음</td><td>みんなの創作支援サイトＴスタ (T-STUDIO)</td><td><a href="https://tnosite.com/ko/agreement-5/" target="_blank" rel="noopener">T-STUDIO 서비스 약관</a></td><td>버튼 · 구매 · 판매 · 조합 · 이동 · 알림 소리</td></tr>
 </tbody>
 </table></div>
@@ -5084,7 +5085,7 @@ const BGM_TRACKS = {
   deltoton:  { title: "Deltoton" },      variant: { title: "Variant" },   psyche: { title: "Psyche" },
   guardianoftheboundary: { title: "境界の守り人" },   rusty:   { title: "Rusty" },     dansemacabre: { title: "Danse Macabre" },
   mayday:    { title: "Mayday" },        connect: { title: "Connect!" },  resarcana: { title: "Res Arcana" },
-  toddler:   { title: "Toddler" },
+  toddler:   { title: "Toddler" },       themoonknowsit: { title: "月は知っている" },
 };
 // 페이지마다 자동으로 트는 곡 (여러 곡이면 순서대로 돌며 반복). 없는 페이지는 지금 곡을 이어서 튼다.
 const BGM_PAGES = {
@@ -5416,13 +5417,13 @@ document.addEventListener("click", e => {
 /* ===== 스토리 (도감 · 처음 접속) =====
    어두운 보라색 화면에서 한 문단씩 보여 준다. 누르거나 Enter/→로 다음 문단, 건너뛰기로 끝까지. */
 const STORIES = [
-  { key: "irto", title: "Irto.", when: "계정을 만든 뒤", paras: [
+  { key: "intro", title: "Intro.", when: "계정을 만든 뒤", music: "themoonknowsit", paras: [
     { t: "2125년 2월 16일.", cls: "date" },
     { t: "전세계 어디서든, 모든 하늘에서 유성우를 관측할 수 있었습니다. 하늘에서 마치 별조각으로 만들어진 비가 떨어지는 듯한 풍경이었죠." },
     { t: "그 다음날, 세상은 어둠에 잠겼습니다. 극지방에서만 관측할 수 있는 극야가 전세계에서 일어난 것입니다." },
     { t: "이 이상 현상은 던전과 몬스터가 당연해진 시대에서 해프닝으로 지나갔습니다." },
     { t: "하지만 당신은 알고 있습니다." },
-    { t: "무̵͇̥͍͖̼̱̭͚̳͌̀̈́̓̄͋̑͋̚̕̕수̧̯̳̰̼͉̠̠̝̑̀̃͆̈́́̆̔̈͜͞ͅ한̴̧̹͚̩̼̞̳̀̔̒̈́̄̽ 계͍̼͉̦̬̎͋̓͊́̕͜약̗̤͍͍̞̘͎̰̿̐̂̇̿̀̓͐͛̚̕͟͜이̴̛̙̦̞̙̩̪͖͊̃͊́́̄́ 계̵̧̦̩̱̙̠̺͊͑̔́̈́̋약̛͇͔͖͇̪̎̑̄̒̚͟자̛̺̥̦̺͉̬̘͊̋̈̓̋̌̈́̓͛͜͠의̷̡̮̳̞̦̩̠̝̲͐̿̅̽̿̀̌͊͜ 소̢̪̦̟̝̜̆́́̀̄͘멸̨̙̝̜̬̳͇̗͊̀̈́̌̀̒̐͠로̩̜̝̬̻̒̔͑͂̀͜͡ 파̴͚̮̗̦̩̤̠̟͓͋͆͒́̇͐̆̽̚͟͞기̸̠̪̻̱͙̰̓̿̿̀̇̓̌͛͟되̳̹̫̦͓̎̅̍͆̐͠͝었̛̜͕̗͖͈̈́̾̏̀̄͘고̧̮̻͈̹̫̈́̒̃̽͞,̡̠͎͔̹̦͍̾̐̌̑͆̊͟ 가̴͕̞̲̫͓̄̊̏͑̆͘능̨̥̜̱̪̻̠̽̔̓͊̈̚͘성̴̡̠̙̱̻̺͍̥̈́̄̐͂͌̆͋은̨̠̺̞̰̰̭̐̎̏̀̄̚͠ 온̶̢̛͖͎̟͙̗̜͎̪̻͑̌́̿̂̄̀̎̀ 우̷̧̯͖̪̮̖̋̓̓͑̿̔͛주̳͍̙̠̯̮͋̀̿̾̑͆͘͘에̳͉̥̼͔͎̂̏̅͌̍̑͟͡ 흩̨͈̩͔͖̰̳̱̾̐̃̒̃͂̋͟뿌̢̡͇̫̠̰͖̫̬́̀͊͐̾̊͒려̸̛͈̦̺͇̤̍̀̔̏̐졌̢̨̬̭̤͉̪̳̳̎̀́̿̐̀̂́͛͜습̴̨̟̖͕̭̰̖̀̔͆̓̽͂̾̿͛͛͠니̷̛̻̖̯͉͉̪̫̮̌̃̍̈̾̍̒̾͡다̵̨͕͉̹͙̮̺̑͒͒̀̍̒.̸̬̟̜͇̺̞́̍͑̊́̈̋͛͢", cls: "glitch" },
+    { t: "무̵͇̥͍͖̼̱̭͚̳͌̀̈́̓̄͋̑͋̚̕̕수̧̯̳̰̼͉̠̠̝̑̀̃͆̈́́̆̔̈͜͞ͅ한̴̧̹͚̩̼̞̳̀̔̒̈́̄̽ 계͍̼͉̦̬̎͋̓͊́̕͜약̗̤͍͍̞̘͎̰̿̐̂̇̿̀̓͐͛̚̕͟͜이̴̛̙̦̞̙̩̪͖͊̃͊́́̄́ 계̵̧̦̩̱̙̠̺͊͑̔́̈́̋약̛͇͔͖͇̪̎̑̄̒̚͟자̛̺̥̦̺͉̬̘͊̋̈̓̋̌̈́̓͛͜͠의̷̡̮̳̞̦̩̠̝̲͐̿̅̽̿̀̌͊͜ 소̢̪̦̟̝̜̆́́̀̄͘멸̨̙̝̜̬̳͇̗͊̀̈́̌̀̒̐͠로̩̜̝̬̻̒̔͑͂̀͜͡ 파̴͚̮̗̦̩̤̠̟͓͋͆͒́̇͐̆̽̚͟͞기̸̠̪̻̱͙̰̓̿̿̀̇̓̌͛͟되̳̹̫̦͓̎̅̍͆̐͠͝었̛̜͕̗͖͈̈́̾̏̀̄͘고̧̮̻͈̹̫̈́̒̃̽͞,̡̠͎͔̹̦͍̾̐̌̑͆̊͟ 가̴͕̞̲̫͓̄̊̏͑̆͘능̨̥̜̱̪̻̠̽̔̓͊̈̚͘성̴̡̠̙̱̻̺͍̥̈́̄̐͂͌̆͋은̨̠̺̞̰̰̭̐̎̏̀̄̚͠ 온̶̢̛͖͎̟͙̗̜͎̪̻͑̌́̿̂̄̀̎̀ 우̷̧̯͖̪̮̖̋̓̓͑̿̔͛주̳͍̙̠̯̮͋̀̿̾̑͆͘͘에̳͉̥̼͔͎̂̏̅͌̍̑͟͡ 흩̨͈̩͔͖̰̳̱̾̐̃̒̃͂̋͟뿌̢̡͇̫̠̰͖̫̬́̀͊͐̾̊͒려̸̛͈̦̺͇̤̍̀̔̏̐졌̢̨̬̭̤͉̪̳̳̎̀́̿̐̀̂́͛͜습̴̨̟̖͕̭̰̖̀̔͆̓̽͂̾̿͛͛͠니̷̛̻̖̯͉͉̪̫̮̌̃̍̈̾̍̒̾͡다̵̨͕͉̹͙̮̺̑͒͒̀̍̒.̸̬̟̜͇̺̞́̍͑̊́̈̋͛͢", cls: "glitch", breakAfter: true },   // 이 문단 다음에 화면을 바꾼다
     { t: "방금 무슨 일이 있었나요?" },
     { t: "아무튼, 2126년 현재. 계속해서 지역 던전과 무한 던전의 안정성을 관측하고 분석한 국제헌터연합에서 드디어 무한 던전을 재개방했습니다." },
     { t: "그 전에, 헌터 등록 및 등급 측정 기준을 대거 개편하여 새롭게 등록 및 측정을 한다고 하네요." },
@@ -5445,8 +5446,14 @@ function playStory(key, onDone) {
   document.body.append(root);
   document.documentElement.classList.add("story-on");
   storyNow = root;
+  let turning = false;
   function add() {
-    if (i >= st.paras.length) return;
+    if (i >= st.paras.length || turning) return;
+    if (i > 0 && st.paras[i - 1].breakAfter && lines.childElementCount) {   // 화면 전환: 지금 문단들을 지우고 제목 아래에서 새로 시작
+      turning = true;
+      lines.classList.add("out");
+      return setTimeout(() => { lines.replaceChildren(); lines.classList.remove("out"); root.scrollTop = 0; turning = false; add(); }, reduce ? 0 : 900);
+    }
     const p = st.paras[i++];
     const el = h("p", { class: `story-p${p.cls ? " " + p.cls : ""}` }, p.t);
     lines.append(el);
@@ -5454,8 +5461,22 @@ function playStory(key, onDone) {
     el.scrollIntoView({ block: "end", behavior: reduce ? "auto" : "smooth" });
     if (i >= st.paras.length) { fin.hidden = false; hint.hidden = true; skip.hidden = true; setTimeout(() => fin.focus(), 50); }
   }
+  // 스토리 음악: 배경음악을 끈 적이 없으면 재생하고, 끝나면 원래 음악으로 돌아간다
+  const music = st.music && (bgm.prefs.on || !(() => { try { return localStorage.getItem("id-bgm"); } catch { return null; } })()) ? new Audio() : null;
+  const wasPlaying = !bgm.audio.paused;
+  let musicTry = null;
+  if (music) {
+    bgm.audio.pause(); bgmYtPause?.();
+    music.loop = true; music.volume = bgm.prefs.vol ?? 0.4;
+    bgmSrc(st.music).then(url => { if (!storyNow) return; music.src = url; musicTry = () => music.play().catch(() => {}); musicTry(); }).catch(() => {});
+    root.addEventListener("pointerdown", () => { if (music.paused && musicTry) musicTry(); });
+  }
   function end() {
     removeEventListener("keydown", onKey, true);
+    if (music) {
+      const v0 = music.volume; let k = 0;
+      const t = setInterval(() => { k++; music.volume = Math.max(0, v0 * (1 - k / 10)); if (k >= 10) { clearInterval(t); music.pause(); music.src = ""; if (wasPlaying || (bgm.prefs.on && state.character)) bgmPlay(); } }, 60);
+    }
     root.remove(); storyNow = null;
     document.documentElement.classList.remove("story-on");
     markTourSeen("story-" + key);
@@ -5766,7 +5787,7 @@ async function boot() {
   if (!state.profile?.invited) return show("screen-invite");
   if (!state.character) {
     setupCreate(); show("screen-create");
-    if (!tourSeen("story-irto")) playStory("irto");   // 첫 스토리: 계정을 만든 뒤, 캐릭터를 만들기 전에 한 번
+    if (!tourSeen("story-intro")) playStory("intro");   // 첫 스토리: 계정을 만든 뒤, 캐릭터를 만들기 전에 한 번
     return;
   }
   renderHunter();
