@@ -455,6 +455,8 @@ html.doc-open, html.doc-open body { overflow: hidden; }
 .prose li { margin: 4px 0; }
 .prose a { color: var(--accent-text); }
 .table-scroll { overflow-x: auto; margin: 0 0 12px; }
+.prose table.tbl-center td, .prose table.tbl-center th { text-align: center; }
+.prose .glitch-text { overflow-wrap: anywhere; }
 .prose table { width: 100%; border-collapse: collapse; font-size: 15px; line-height: 1.6; min-width: 520px; }
 .prose table.tbl-k4 th:first-child, .prose table.tbl-k4 td:first-child { width: calc(4.2em + 22px); min-width: calc(4.2em + 22px); word-break: keep-all; }
 .prose th, .prose td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top; }
@@ -540,6 +542,34 @@ html.doc-open, html.doc-open body { overflow: hidden; }
 .cat-chip { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 13px; font-weight: 700; background: var(--surface-2); color: var(--text-dim); border: 1px solid transparent; white-space: nowrap; }
 button.cat-chip { cursor: pointer; font-family: inherit; }
 .cat-chip.big { padding: 6px 12px; font-size: 14px; }
+.lb { display: grid; gap: 12px; }
+.lb-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.lb-head .badge { white-space: nowrap; }
+.lb-chat .chat-form .btn { white-space: nowrap; flex: none; }
+.lb-timer { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; min-height: 28px; }
+.lb-count { font-size: 24px; color: var(--accent-text); font-variant-numeric: tabular-nums; }
+.lb-members { display: grid; gap: 8px; }
+.lb-mem { display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; background: var(--surface-2); }
+.lb-mem.ready { border-color: color-mix(in srgb, var(--primary) 50%, transparent); }
+.lb-mem.empty { justify-content: center; border-style: dashed; background: transparent; min-height: 44px; }
+.lb-state { font-size: 13px; font-weight: 700; color: var(--text-dim); white-space: nowrap; }
+.lb-state.on { color: var(--accent-text); }
+.lb-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.lb-btns .btn { flex: 1 1 120px; }
+.lb-chat .chat-log { height: 220px; }
+.lb-chat .chat-head { display: block; } .lb-chat .chat-head .hint { display: block; margin: 2px 0 0 !important; font-size: 13px; }
+.notice-box { border: 1px solid var(--frame); border-radius: 12px; padding: 12px 14px; margin: 0 0 14px; background: color-mix(in srgb, var(--primary) 6%, var(--surface)); }
+.notice-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.notice-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; }
+.sns-cmt.reply { margin-left: 30px; }
+.mention { color: var(--accent-text); font-weight: 700; }
+.reply-bar { display: flex; align-items: center; gap: 8px; margin: 8px 0 0; font-size: 13px; color: var(--text-dim); }
+.mk-filter { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 14px 0 10px; }
+.mk-filter .input { flex: 1 1 160px; min-height: 38px; }
+.mk-sell { display: grid; gap: 10px; }
+.mk-sell-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.mk-sell-row .input { width: 130px; min-height: 38px; }
+.mk-sell .craft-pick button.on { outline: 2px solid var(--primary); }
 .cat-chip.notice { background: color-mix(in srgb, #E8A33D 18%, var(--surface)); color: color-mix(in srgb, #E8A33D 70%, var(--text)); border-color: color-mix(in srgb, #E8A33D 45%, transparent); }
 .cat-chip.on { background: color-mix(in srgb, var(--primary) 16%, var(--surface)); color: var(--accent-text); border-color: color-mix(in srgb, var(--primary) 40%, transparent); }
 .sns-write { padding: 14px; margin-bottom: 14px; }
@@ -744,6 +774,25 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
 /* ===== 화면 소개 (튜토리얼) ===== */
 .dg-tabrow { display: flex; align-items: center; gap: 8px; }
 .tour-btn { flex: none; }
+/* 스토리 화면 */
+.story { position: fixed; inset: 0; z-index: 300; background: radial-gradient(120% 90% at 50% 0%, #2B1650 0%, #170B2E 55%, #0D0620 100%); color: #EDE4FF;
+  display: grid; place-items: center; overflow-y: auto; cursor: pointer; padding: 56px 20px 72px; }
+.story-inner { width: min(640px, 100%); }
+.story-title { font-size: 34px; letter-spacing: .04em; margin: 0 0 28px; color: #C4ADFF; text-shadow: 0 0 18px rgba(196,173,255,.45); }
+.story-lines { display: grid; gap: 18px; }
+.story-p { margin: 0; font-size: 18px; line-height: 1.9; opacity: 0; transform: translateY(8px); transition: opacity .9s ease, transform .9s ease; word-break: keep-all; }
+.story-p.in { opacity: 1; transform: none; }
+.story-p.date { color: #B9A7E6; font-weight: 700; letter-spacing: .06em; }
+.story-p.glitch { color: #E3D4FF; text-shadow: 0 0 8px rgba(255,80,160,.35); overflow-wrap: anywhere; animation: storyGlitch 2.4s steps(2) infinite; }
+.story-p.last { font-weight: 700; color: #fff; }
+@keyframes storyGlitch { 0%, 92%, 100% { transform: none; } 94% { transform: translate(-1px, 1px); } 96% { transform: translate(2px, -1px); } }
+.story-skip { position: fixed; top: 14px; right: 16px; border: 1px solid rgba(196,173,255,.4); background: transparent; color: #CBB9F5; border-radius: 999px; padding: 6px 14px; font: inherit; font-size: 14px; cursor: pointer; }
+.story-hint { position: fixed; bottom: 18px; left: 0; right: 0; text-align: center; margin: 0; font-size: 13px; color: #9C8AC8; }
+.story-go { margin-top: 32px; border: 0; border-radius: 12px; padding: 12px 28px; font: inherit; font-weight: 700; font-size: 16px; background: #C4ADFF; color: #170B2E; cursor: pointer; box-shadow: 0 0 22px rgba(196,173,255,.5); }
+.story-on body { overflow: hidden; }
+.story-card { display: grid; gap: 4px; text-align: left; padding: 14px 16px; border-radius: 12px; border: 1px solid #3A2466; background: linear-gradient(135deg, #2B1650, #170B2E); color: #EDE4FF; cursor: pointer; font: inherit; }
+.story-card small { color: #B9A7E6; }
+@media (prefers-reduced-motion: reduce) { .story-p { transition: none; } .story-p.glitch { animation: none; } }
 .pane-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 6px; }
 .main-pane .pane-head h2 { margin: 0; }
 .tour { position: fixed; inset: 0; z-index: 200; }
@@ -1106,7 +1155,7 @@ const POSITIONS = {
     B: { name: "스카우트", en: "scout", tag: "정찰병", desc: "넓은 시야를 가지고 상황을 주도하는 헌터.", effect: "공격횟수 +1 (회당 피해 60%)" } },
   tanker: { name: "탱커", desc: "적의 공격에도 무너지지 않는 헌터.",
     A: { name: "뱅가드", en: "vanguard", tag: "선봉", desc: "가장 앞으로 나가 적의 시선을 끄는 헌터.", effect: "도발 (가장 취약한 아군 1명 대신 피격) · 1인 공략 때는 10% 확률로 공격 회피" },
-    B: { name: "시타델", en: "citadel", tag: "성채", desc: "적의 공격으로부터 수호하는 헌터.", effect: "아군의 받는 피해 -20%" } },
+    B: { name: "시타델", en: "citadel", tag: "성채", desc: "적의 공격으로부터 수호하는 헌터.", effect: "받는 피해 -20% (아군과 함께면 20%를 인원수로 나눠 모두 -(20/n)%)" } },
   supporter: { name: "서포터", desc: "상대의 능력을 전략적으로 가감하는 헌터.",
     A: { name: "카탈리스트", en: "catalyst", tag: "촉매", desc: "아군을 극대화하는 헌터.", effect: "아군 1명의 ATK·DEF +20%" },
     B: { name: "아티피스", en: "artifice", tag: "계략", desc: "적을 무력화시키는 헌터.", effect: "적 1명의 ATK·DEF -20%" } },
@@ -1260,7 +1309,7 @@ function applyTheme(theme) {
   const btn = $("#btn-theme");
   if (btn) btn.textContent = { light: "밝은 테마", dark: "어두운 테마", system: "기기 설정" }[theme] || "테마";
 }
-try { applyTheme(localStorage.getItem("id-theme") || "dark"); } catch { applyTheme("dark"); }
+try { applyTheme(localStorage.getItem("id-theme") || "system"); } catch { applyTheme("system"); }
 
 /* ===== 사진: 가운데를 1:1로 잘라 256px WebP로 변환 ===== */
 async function squareImage(file) {
@@ -1584,7 +1633,7 @@ function renderMain() {
   if (r === "dungeon") { const t = nextDgTab || "battle"; nextDgTab = null; return renderDungeon(pane, t); }
   if (r === "regional") return renderRegional(pane);
   if (r === "union") return renderUnion(pane);
-  if (r === "inventory") return renderInventory(pane);
+  if (r === "inventory") { const t = nextInvTab || "items"; nextInvTab = null; return renderInventory(pane, t); }
   const [title, desc, stage] = SOON[r];
   pane.replaceChildren(
     h("h2", {}, title),
@@ -1655,10 +1704,10 @@ function watchGuild(gid) {
 function paintSocialBadge() {
   const s = social.summary || {};
   // 친구 신청·선물·파티/길드 초대가 새로 늘면 알림음
-  const sig = ["friend_requests", "gifts", "party_invites", "guild_invites"].map(k => s[k] || 0);
+  const sig = ["friend_requests", "gifts", "party_invites", "guild_invites", "notices"].map(k => s[k] || 0);
   if (social.sig && sig.some((v, i) => v > social.sig[i])) sfx("notice");
   social.sig = sig;
-  const n = (s.friend_requests || 0) + (s.gifts || 0) + (s.unread || 0) + (s.party_invites || 0) + (s.guild_invites || 0) + (s.guild_unread || 0);
+  const n = (s.friend_requests || 0) + (s.gifts || 0) + (s.unread || 0) + (s.party_invites || 0) + (s.guild_invites || 0) + (s.guild_unread || 0) + (s.notices || 0);
   document.querySelectorAll('[data-menu="friends"]').forEach(a => {
     a.querySelector(".nbadge")?.remove();
     if (n > 0) a.append(h("span", { class: "nbadge", "aria-label": `새 소식 ${n}개` }, n > 99 ? "99+" : String(n)));
@@ -1956,13 +2005,40 @@ async function renderSocial(pane, tab) {
       tabBtn("friends", h("span", {}, "친구", h("span", { class: "wide" }, " · 메시지")), (s.friend_requests || 0) + (s.unread || 0)),
       tabBtn("party", "파티", s.party_invites || 0),
       tabBtn("gifts", "선물함", s.gifts || 0)),
-    body);
+    noticeBox(pane), body);
   if (socialTab === "party") return renderParty(body, pane);
   if (socialTab === "gifts") return renderGifts(body);
   if (socialTab === "sns") return renderSnsWrap(body, pane);
   return renderFriends(body, pane);
 }
 
+// 새 알림 (내 댓글에 달린 답글 · 거래소 판매) — 교류 메뉴 숫자 배지에 더해진다
+function noticeBox(pane) {
+  const n = social.summary?.notices || 0;
+  if (!n) return null;
+  const box = h("div", { class: "notice-box" }, h("p", { class: "hint", style: "margin:0" }, `새 알림 ${n}개 불러오는 중…`));
+  sb.rpc("my_notices").then(({ data, error }) => {
+    if (error) return box.replaceChildren(h("p", { class: "error", style: "margin:0" }, koError(error)));
+    const ok = h("button", { type: "button", class: "btn ghost small" }, "모두 확인");
+    ok.onclick = async () => {
+      busy(ok, true, "…");
+      await sb.rpc("notices_seen");
+      if (social.summary) social.summary.notices = 0;
+      paintSocialBadge(); box.remove();
+    };
+    box.replaceChildren(
+      h("div", { class: "row", style: "display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px" }, h("b", {}, `새 알림 ${data.length}`), ok),
+      h("ul", { class: "notice-list" }, ...data.map(x => h("li", {},
+        miniAvatar(x.who, 24),
+        h("div", { class: "fr-main" },
+          x.kind === "reply"
+            ? h("div", {}, hunterLink(x.who), "님이 내 댓글에 답글을 달았습니다", h("span", { class: "hint" }, ` · ${fmtWhen(x.at)}`))
+            : h("div", {}, "거래소 판매 · ", h("b", {}, `${x.body}${x.extra.qty > 1 ? ` × ${x.extra.qty}` : ""}`), ` · +${Number(x.extra.got).toLocaleString()} Mh`, h("span", { class: "hint" }, ` · ${x.who?.codename || ""} · ${fmtWhen(x.at)}`)),
+          x.kind === "reply" ? h("p", { class: "hint", style: "margin:2px 0 0" }, `“${x.body.length > 60 ? x.body.slice(0, 60) + "…" : x.body}” ← 내 댓글 “${x.extra.mine}”`) : null),
+        x.kind === "sold" ? h("a", { class: "btn ghost small", href: "#/inventory", onclick: () => { nextInvTab = "trade"; } }, "거래소") : null))));
+  });
+  return box;
+}
 async function renderFriends(body, pane) {
   const { data: fl, error } = await sb.rpc("friend_list");
   if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
@@ -2386,35 +2462,41 @@ async function renderSns(body) {
   }
   function postCard(p) {
     const cbox = h("div", { class: "sns-comments", hidden: true });
-    const cbtn = h("button", { type: "button", class: "link-btn" }, `댓글 ${p.comments}`);
+    const noCmt = p.category === "공지";   // 공지는 댓글을 받지 않는다
+    const cbtn = h("button", { type: "button", class: "link-btn", hidden: noCmt }, `댓글 ${p.comments}`);
     cbtn.onclick = () => { cbox.hidden = !cbox.hidden; if (!cbox.hidden) loadComments(); };
+    let replyTo = null;   // 답글 대상 댓글 { id, name }
     async function loadComments(list) {
       if (!list) { const { data, error } = await sb.rpc("sns_comments", { p_post: p.id }); if (error) return toast(koError(error)); list = data; }
       p.comments = list.length; cbtn.textContent = `댓글 ${list.length}`;
-      const inp = h("input", { class: "input", maxlength: "300", placeholder: "댓글 (300자까지)", "aria-label": "댓글" });
+      const inp = h("input", { class: "input", maxlength: "300", placeholder: replyTo ? `@${replyTo.name}에게 답글 (300자까지)` : "댓글 (300자까지)", "aria-label": "댓글" });
       const send = h("button", { class: "btn small", type: "submit" }, "달기");
+      const replyBar = replyTo ? h("div", { class: "reply-bar" }, h("span", {}, `@${replyTo.name}에게 답글`),
+        h("button", { type: "button", class: "link-btn", onclick: () => { replyTo = null; loadComments(list); } }, "취소")) : null;
       const f = h("form", { class: "todo-form", style: "margin:8px 0 0" }, inp, send);
       f.onsubmit = async e => {
         e.preventDefault();
         if (!inp.value.trim()) return;
         busy(send, true, "…");
-        const { data, error } = await sb.rpc("sns_comment", { p_post: p.id, p_body: inp.value });
+        const { data, error } = await sb.rpc("sns_comment", { p_post: p.id, p_body: inp.value, p_reply_to: replyTo?.id ?? null });
         busy(send, false);
         if (error) return toast(koError(error));
+        replyTo = null;
         loadComments(data);
       };
-      cbox.replaceChildren(...list.map(c => h("div", { class: "sns-cmt" },
-        miniAvatar(c.author, 26),
+      cbox.replaceChildren(...list.map(c => h("div", { class: "sns-cmt" + (c.root_id ? " reply" : "") },
+        miniAvatar(c.author, c.root_id ? 22 : 26),
         h("div", { class: "fr-main" },
-          h("div", {}, hunterLink(c.author), h("span", { class: "hint" }, ` · ${fmtWhen(c.at)}`)),
-          h("p", {}, c.body)),
+          h("div", {}, hunterLink(c.author), h("span", { class: "hint" }, ` · ${fmtWhen(c.at)}`),
+            h("button", { type: "button", class: "link-btn", style: "margin-left:8px", onclick: () => { replyTo = { id: c.id, name: c.author?.codename || "" }; loadComments(list); setTimeout(() => cbox.querySelector("input")?.focus(), 0); } }, "답글")),
+          h("p", {}, c.to ? h("span", { class: "mention" }, `@${c.to} `) : null, c.body)),
         c.mine || state.profile?.is_admin
           ? h("button", { type: "button", class: "link-btn", onclick: async () => {
               if (!confirm("이 댓글을 지울까요?")) return;
               const { data, error } = await sb.rpc("sns_delete_comment", { p_id: c.id });
               if (error) return toast(koError(error));
               loadComments(data); } }, "삭제")
-          : h("button", { type: "button", class: "link-btn", onclick: () => openReport("comment", String(c.id), "댓글") }, "신고"))), f);
+          : h("button", { type: "button", class: "link-btn", onclick: () => openReport("comment", String(c.id), "댓글") }, "신고"))), replyBar, f);
     }
     return h("article", { class: "sns-post" },
       h("div", { class: "fr-row" }, miniAvatar(p.author),
@@ -3111,6 +3193,7 @@ async function renderRegional(pane) {
 async function renderRegionalBoard(body, act) {
   const { data: rg, error } = await sb.rpc("get_regional");
   if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
+  if (rg.my_lobby) return renderRegionalLobby(body, act);
   const offset = Date.parse(rg.now) - Date.now();
   const pt = rg.party, ptMember = !!pt && !pt.leader_is_me;
   if (pt) {   // 파티: 성공률·입장·보상은 파티 기준
@@ -3153,7 +3236,7 @@ async function renderRegionalBoard(body, act) {
   function paintBoard() {
     const list = rg.dungeons.filter(d => d.grade === rgGrade);
     board.replaceChildren(...list.map(d => {
-      const label = d.state === "open" ? "공략 가능"
+      const label = d.state === "open" ? (d.lobby ? `대기실 ${d.lobby}/5명` : "공략 가능")
         : d.state === "attacking" ? `${d.mine ? "내가" : d.by} 공략 중 · ${leftUntil(d.until, offset)}`
         : `안정화됨 · ${leftUntil(d.until, offset)} 뒤 다른 곳에 재등장`;
       return h("button", {
@@ -3168,14 +3251,15 @@ async function renderRegionalBoard(body, act) {
     const d = rg.dungeons.find(x => x.id === selected);
     const g = rg.grades.find(x => x.grade === rgGrade);
     btn.disabled = !d || busyElsewhere;
-    btn.textContent = d ? `${pt ? `파티 ${pt.size}명으로 ` : ""}${d.place || `${d.grade}-${d.slot}`} 공략 시작 (예상 성공 ${Math.round(g.success * 100)}%)` : "공략할 던전을 고르세요";
+    btn.textContent = d ? (pt ? `파티 ${pt.size}명으로 ${d.place || `${d.grade}-${d.slot}`} 공략 시작 (예상 성공 ${Math.round(g.success * 100)}%)`
+      : `${d.place || `${d.grade}-${d.slot}`} 대기실 입장${d.lobby ? ` (${d.lobby}/5명 대기 중)` : ""} · 혼자 예상 성공 ${Math.round(g.success * 100)}%`) : "공략할 던전을 고르세요";
   }
   function paintAll() { paintTabs(); paintInfo(); paintBoard(); paintBtn(); }
 
   btn.onclick = async () => {
     err.textContent = "";
-    busy(btn, true, "진입 중…");
-    const { error } = await sb.rpc(pt ? "start_party_regional" : "start_regional", { p_dungeon_id: selected, p_speed: speed });
+    busy(btn, true, pt ? "진입 중…" : "입장 중…");
+    const { error } = await sb.rpc(pt ? "start_party_regional" : "lobby_join", { p_dungeon_id: selected, p_speed: speed });
     busy(btn, false);
     if (error) {
       err.textContent = koError(error);
@@ -3211,6 +3295,99 @@ async function renderRegionalBoard(body, act) {
   dgTimer = setInterval(paintBoard, 1000);                         // 남은 시간 표시
   dgPoll = setTimeout(() => renderRegionalBoard(body, act), 30000); // 다른 헌터 상황 반영
   maybeTour("regional");
+}
+
+/* ===== 지역 안정화 대기실 =====
+   던전마다 최대 5명. 누군가 준비 완료를 누르면 30초 뒤 무조건 출발하고, 모두 준비 완료면 바로 출발한다.
+   준비 완료 뒤에는 30초가 지나기 전에 '바로 출발'로 먼저 떠날 수 있다. 대기실 전용 채팅이 있다. */
+async function renderRegionalLobby(body, act) {
+  stopDungeonTimers();
+  let st = null, chatDraft = "", lastChat = 0;
+  const head = h("div", {}), members = h("div", { class: "lb-members", "data-tour": "lb-members" });
+  const timer = h("div", { class: "lb-timer", "aria-live": "polite" });
+  const btns = h("div", { class: "lb-btns", "data-tour": "lb-btns" });
+  const log = h("ol", { class: "chat-log lb-chat-log", "aria-live": "polite" });
+  const ta = h("input", { class: "input", maxlength: "200", placeholder: "대기실 채팅 (200자까지)", "aria-label": "대기실 채팅" });
+  const send = h("button", { class: "btn small", type: "submit" }, "보내기");
+  const form = h("form", { class: "chat-form" }, ta, send);
+  ta.oninput = () => { chatDraft = ta.value; };
+  form.onsubmit = async e => {
+    e.preventDefault();
+    const t = ta.value.trim(); if (!t) return;
+    busy(send, true, "…");
+    const { data, error } = await sb.rpc("lobby_chat", { p_body: t });
+    busy(send, false);
+    if (error) return toast(koError(error));
+    ta.value = chatDraft = ""; paint(data);
+  };
+  const chat = h("div", { class: "chat lb-chat", "data-tour": "lb-chat" }, h("div", { class: "chat-head" }, h("b", {}, "대기실 채팅"), h("span", { class: "hint", style: "margin-left:8px" }, "대기실에 있는 헌터에게만 보이고, 출발하면 사라집니다")), log, form);
+  const act2 = (name, label, cls = "btn") => {
+    const b = h("button", { type: "button", class: cls }, label);
+    b.onclick = async () => {
+      busy(b, true, "…");
+      const { data, error } = await sb.rpc(name);
+      busy(b, false);
+      if (error) { toast(koError(error)); return poll(); }
+      paint(data);
+    };
+    return b;
+  };
+  function done(data) {
+    stopDungeonTimers();
+    if (data?.started) { toast("공략을 시작했습니다!"); sfx("notice"); return renderRegional($("#main-pane")); }
+    renderRegional($("#main-pane"));
+  }
+  function paint(data) {
+    if (!data?.in_lobby) return done(data);
+    st = data;
+    const off = Date.parse(st.now) - Date.now();
+    const me = st.members.find(m => m.me);
+    head.replaceChildren(
+      h("div", { class: "lb-head" },
+        h("div", {}, h("p", { class: "panel-title", style: "margin:0" }, `대기실 · ${st.grade}-${st.slot}`),
+          h("b", { style: "font-size:18px" }, `${st.place} · ${st.theme}`)),
+        h("div", { style: "display:flex;gap:8px;align-items:center" }, h("span", { class: "badge" }, `${st.members.length} / 5명`), helpBtn("regional-lobby"))));
+    members.replaceChildren(...st.members.map(m => h("div", { class: `lb-mem${m.ready ? " ready" : ""}` },
+      miniAvatar(m, 36),
+      h("div", { class: "fr-main" },
+        h("div", {}, m.me ? h("b", {}, m.codename) : hunterLink(m), m.me ? h("span", { class: "hint" }, " (나)") : null),
+        h("div", { class: "hint" }, m.admin ? "운영자" : `${m.grade}급 · Lv.${m.level} · ${posLabel(m.main_position, m.main_option)}${m.sub_position ? ` / ${POSITIONS[m.sub_position]?.name || ""}` : ""}`),
+        m.busy ? h("div", { class: "error", style: "font-size:12px;min-height:0" }, `${m.busy} 중 — 출발할 때 빠집니다`) : null),
+      h("span", { class: `lb-state${m.ready ? " on" : ""}` }, m.ready ? "준비 완료" : "대기 중"))),
+      ...Array.from({ length: 5 - st.members.length }, () => h("div", { class: "lb-mem empty" }, h("span", { class: "hint" }, "빈 자리"))));
+    btns.replaceChildren(
+      !me?.ready ? act2("lobby_ready", "준비 완료") : null,
+      st.ready_at ? act2("lobby_go", "바로 출발", me?.ready ? "btn" : "btn ghost") : null,
+      act2("lobby_leave", "나가기", "btn ghost"));
+    const tick = () => {
+      if (!st.deadline) { timer.replaceChildren(h("span", { class: "hint" }, "누군가 '준비 완료'를 누르면 30초 뒤 출발합니다. 모두 준비 완료면 바로 출발합니다.")); return; }
+      const left = Math.max(0, Math.ceil((Date.parse(st.deadline) - (Date.now() + off)) / 1000));
+      timer.replaceChildren(h("b", { class: "lb-count" }, `${left}초`), h("span", { class: "hint" }, left > 0 ? " 뒤 출발합니다. 그 전에 '바로 출발'로 먼저 떠날 수 있습니다." : " 출발하는 중…"));
+    };
+    tick();
+    clearInterval(dgTimer); dgTimer = setInterval(tick, 500);
+    const atBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 30;
+    const newest = st.chat.at(-1)?.id || 0;
+    if (newest !== lastChat) {
+      log.replaceChildren(...(st.chat.length ? st.chat.map(m => h("li", { class: `msg${m.mine ? " mine" : ""}` },
+        m.mine ? null : h("div", { class: "meta", style: "margin:0 0 2px" }, h("b", {}, m.who || "(떠난 헌터)")),
+        h("div", { class: "bubble" }, m.body), h("div", { class: "meta" }, h("time", {}, fmtWhen(m.at)))))
+        : [h("li", { class: "hint", style: "text-align:center;list-style:none" }, "함께할 헌터에게 인사해 보세요.")]));
+      if (atBottom || !lastChat) log.scrollTop = log.scrollHeight;
+      lastChat = newest;
+    }
+  }
+  async function poll() {
+    const { data, error } = await sb.rpc("lobby_state");
+    if (error) { toast(koError(error)); return; }
+    paint(data);
+    if (data?.in_lobby) { clearTimeout(dgPoll); dgPoll = setTimeout(poll, 2500); }
+  }
+  body.replaceChildren(h("div", { class: "lb" }, head, timer, members, btns,
+    h("p", { class: "hint", style: "margin:0" }, "대기실에 들어온 헌터가 함께 공략합니다. 몬스터는 인원만큼 강해지고 보상은 모두 똑같이 받습니다. 출발할 때 다른 활동 중인 헌터는 빠집니다."),
+    chat));
+  await poll();
+  maybeTour("regional-lobby");
 }
 
 function renderRegionalRun(body, first) {
@@ -3624,16 +3801,16 @@ function renderStarRun(body, s) {
 }
 
 /* ===== 인벤토리 ===== */
+let nextInvTab = null;
 async function renderInventory(pane, tab = "items") {
   const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
   const cur = h("strong", {}, "");
   pane.replaceChildren(
-    h("div", { class: "inv-head" }, h("h2", {}, "인벤토리"), h("span", { class: "hint", style: "margin-left:auto" }, "보유 ", cur), helpBtn({ items: "inv-items", shop: "inv-shop", craft: "inv-craft" }[tab])),
+    h("div", { class: "inv-head" }, h("h2", {}, "인벤토리"), h("span", { class: "hint", style: "margin-left:auto" }, "보유 ", cur), helpBtn({ items: "inv-items", shop: "inv-shop", craft: "inv-craft", trade: "inv-trade" }[tab])),
     h("div", { class: "tabs", style: "max-width:480px;margin-top:10px", "data-tour": "inv-tabs" },
       ...[["items", "보유"], ["shop", "상점"], ["craft", "조합"], ["trade", "거래소"]].map(([id, label]) =>
         h("button", { type: "button", class: tab === id ? "on" : null, onclick: () => renderInventory(pane, id) }, label))),
     body);
-  if (tab === "trade") return body.replaceChildren(soonBox("5단계에서 열립니다", "다른 헌터와 아이템을 사고팝니다."));
   const { data: inv, error } = await sb.rpc("get_inventory");
   if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
   cur.textContent = fmtMh(inv.currency);
@@ -3647,6 +3824,7 @@ async function renderInventory(pane, tab = "items") {
   }
   if (tab === "shop") return renderShop(body, inv, act);
   if (tab === "craft") return renderCraft(body, inv, refresh);
+  if (tab === "trade") return renderTrade(body, inv, refresh);
   renderOwned(body, inv, act, refresh);
 }
 
@@ -3734,6 +3912,124 @@ function renderShop(body, inv, act) {
         h("div", { class: "item-group" }, h("p", { class: "panel-title" }, "소비 아이템 · 재료"), cons.map(row))));
     maybeTour("inv-shop");
   });
+}
+
+/* ===== 거래소 =====
+   판매자가 정한 가격(개당)에 올리고 누구나 바로 사는 고정가 방식. 성사되면 판매 금액의 5%는 수수료로 사라진다.
+   올릴 수 있는 것: 상점에서 팔지 않는 장비·재료, 강화된 장비. 올린 물건은 7일 뒤 돌아온다. */
+let tradeKind = "all", tradeQ = "";
+async function renderTrade(body, inv, refresh) {
+  const { data: m, error } = await sb.rpc("market_state");
+  if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
+  const KIND = { equip: "장비", material: "재료" };
+  const nameOf = x => `${x.name}${x.enhance ? ` +${x.enhance}` : ""}`;
+  const listBox = h("div", {});
+  function paintList() {
+    const q = tradeQ.trim();
+    const rows = m.listings.filter(l => (tradeKind === "all" || l.kind === tradeKind) && (!q || l.name.includes(q)));
+    listBox.replaceChildren(...(rows.length ? rows.map(l => {
+      const qty = h("input", { class: "input qty-input", type: "number", min: "1", max: String(l.qty), value: "1", "aria-label": `${l.name} 살 수량` });
+      const buy = h("button", { class: "btn small", type: "button", "data-sfx": "own" }, "구매");
+      buy.onclick = async () => {
+        const n = l.kind === "equip" ? 1 : Math.max(1, Math.min(l.qty, Math.floor(Number(qty.value) || 1)));
+        const total = n * l.price;
+        if (total > (state.character?.currency ?? 0)) return toast("메헨이 부족합니다.");
+        if (!confirm(`${josa(`${nameOf(l)}${n > 1 ? ` ${n}개` : ""}`, "을", "를")} ${total.toLocaleString()} Mh에 살까요?`)) return;
+        busy(buy, true, "…");
+        const { error } = await sb.rpc("market_buy", { p_id: l.id, p_qty: n });
+        busy(buy, false);
+        if (error) { toast(koError(error)); return renderTrade(body, inv, refresh); }
+        sfx("buy"); toast(`${josa(`${nameOf(l)}${n > 1 ? ` ${n}개` : ""}`, "을", "를")} 샀습니다.`); refresh();
+      };
+      const down = h("button", { class: "btn ghost small", type: "button" }, "내리기");
+      down.onclick = async () => {
+        if (!confirm(`${josa(`${nameOf(l)}${l.qty > 1 ? ` ${l.qty}개` : ""}`, "을", "를")} 거래소에서 내릴까요? 인벤토리로 돌아옵니다.`)) return;
+        busy(down, true, "…");
+        const { error } = await sb.rpc("market_cancel", { p_id: l.id });
+        busy(down, false);
+        if (error) return toast(koError(error));
+        toast("거래소에서 내렸습니다."); refresh();
+      };
+      return h("div", { class: "item-row" },
+        h("div", { class: "item-main" },
+          h("strong", { class: l.tier ? `tier${l.tier}` : null }, nameOf(l), l.qty > 1 ? ` × ${l.qty}` : ""),
+          h("div", { class: "hint" }, l.kind === "equip"
+            ? `${SLOT_NAME[l.slot] || ""} · ${TIER_NAME[l.tier] || ""} · Lv.${l.req_level}부터 · ${fmtStats(l.stats)}`
+            : (KIND[l.kind] || "")),
+          h("div", { class: "hint", style: "margin-top:2px" }, l.mine ? "내가 올린 물건" : h("span", {}, "판매 ", hunterLink(l.seller)), ` · ${(ms => ms >= 864e5 ? `${Math.floor(ms / 864e5)}일 ${Math.floor(ms % 864e5 / 36e5)}시간` : fmtDur(ms))(Date.parse(l.expires_at) - Date.now())} 남음`)),
+        h("div", { class: "item-actions", style: "align-items:center" },
+          h("strong", {}, `${l.price.toLocaleString()} Mh`, l.kind !== "equip" ? h("small", { class: "hint" }, " /개") : null),
+          l.mine ? down : [l.kind !== "equip" && l.qty > 1 ? qty : null, buy]));
+    }) : [h("p", { class: "hint", style: "margin:0" }, m.listings.length ? "조건에 맞는 물건이 없습니다." : "아직 올라온 물건이 없습니다.")]));
+  }
+  // 찾기
+  const search = h("input", { class: "input", type: "search", placeholder: "이름으로 찾기", "aria-label": "거래소 검색", value: tradeQ });
+  search.oninput = () => { tradeQ = search.value; paintList(); };
+  const chips = h("div", { class: "cat-row", style: "margin:0" });
+  const paintChips = () => chips.replaceChildren(...[["all", "전체"], ["equip", "장비"], ["material", "재료"]].map(([k, n]) =>
+    h("button", { type: "button", class: `cat-chip big${tradeKind === k ? " on" : ""}`, "aria-pressed": tradeKind === k ? "true" : "false", onclick: () => { tradeKind = k; paintChips(); paintList(); } }, n)));
+  paintChips();
+
+  // 판매 등록
+  let pick = null;   // { kind: "gear", id, name, enhance, tier } | { kind: "stack", code, name, qty }
+  const pickBox = h("div", { class: "craft-pick" }), gearBox = h("div", { class: "craft-pick" });
+  const sQty = h("input", { class: "input", type: "number", min: "1", value: "1", "aria-label": "올릴 수량" });
+  const sPrice = h("input", { class: "input", type: "number", min: "1", max: "99999999", placeholder: "개당 가격", "aria-label": "개당 가격 (Mh)" });
+  const sNote = h("p", { class: "hint", style: "margin:0" });
+  const sBtn = h("button", { class: "btn small", type: "button", "data-sfx": "own" }, "거래소에 올리기");
+  const full = m.mine_open >= m.max_listings;
+  function paintSell() {
+    pickBox.replaceChildren(...(m.sellable.stacks.length ? m.sellable.stacks.map(x => h("button", { type: "button", class: pick?.code === x.code && pick.kind === "stack" ? "on" : null,
+      onclick: () => { pick = { kind: "stack", ...x }; sQty.max = String(x.qty); if (Number(sQty.value) > x.qty) sQty.value = String(x.qty); paintSell(); } }, `${x.name} ${x.qty}`))
+      : [h("span", { class: "hint" }, "올릴 수 있는 재료가 없습니다.")]));
+    gearBox.replaceChildren(...(m.sellable.gear.length ? m.sellable.gear.map(g => h("button", { type: "button", class: `tier${g.tier}${pick?.id === g.id ? " on" : ""}`,
+      onclick: () => { pick = { kind: "gear", ...g }; paintSell(); } }, nameOf(g)))
+      : [h("span", { class: "hint" }, "올릴 수 있는 장비가 없습니다.")]));
+    sQty.hidden = !pick || pick.kind === "gear";
+    const n = pick?.kind === "stack" ? Math.max(1, Math.floor(Number(sQty.value) || 1)) : 1;
+    const price = Math.floor(Number(sPrice.value) || 0);
+    sNote.textContent = !pick ? "올릴 물건을 고르세요."
+      : price > 0 ? `${nameOf(pick)}${n > 1 ? ` ${n}개` : ""} · 다 팔리면 ${(price * n).toLocaleString()} Mh 중 수수료 5%를 뺀 ${(price * n - Math.ceil(price * n * m.fee)).toLocaleString()} Mh를 받습니다.`
+      : `${nameOf(pick)} · 개당 가격을 적어 주세요.`;
+    sBtn.disabled = full || !pick || price < 1;
+  }
+  sQty.oninput = sPrice.oninput = paintSell;
+  sBtn.onclick = async () => {
+    const n = pick.kind === "stack" ? Math.max(1, Math.floor(Number(sQty.value) || 1)) : 1;
+    busy(sBtn, true, "…");
+    const { error } = await sb.rpc("market_list", pick.kind === "gear"
+      ? { p_code: null, p_qty: 1, p_price: Math.floor(Number(sPrice.value)), p_gear_id: pick.id }
+      : { p_code: pick.code, p_qty: n, p_price: Math.floor(Number(sPrice.value)), p_gear_id: null });
+    busy(sBtn, false);
+    if (error) return toast(koError(error));
+    sfx("sell"); toast("거래소에 올렸습니다."); refresh();
+  };
+  paintSell();
+
+  const hist = m.history.length ? h("table", { class: "list" },
+    h("thead", {}, h("tr", {}, h("th", {}, "날짜"), h("th", {}, "구분"), h("th", {}, "물건"), h("th", { style: "text-align:right" }, "금액"))),
+    h("tbody", {}, ...m.history.map(t => h("tr", {},
+      h("td", {}, fmtWhen(t.at)),
+      h("td", {}, t.sold ? `판매 → ${t.other?.codename || "(떠난 헌터)"}` : `구매 ← ${t.other?.codename || "(떠난 헌터)"}`),
+      h("td", {}, `${nameOf(t)}${t.qty > 1 ? ` × ${t.qty}` : ""}`),
+      h("td", { style: "text-align:right" }, t.sold ? `+${(t.total - t.fee).toLocaleString()}` : `-${t.total.toLocaleString()}`)))))
+    : h("p", { class: "hint", style: "margin:0" }, "최근 30일 거래가 없습니다.");
+  const expired = m.closed.length ? h("p", { class: "hint", style: "margin:8px 0 0" },
+    `기한이 지나 돌아온 물건: ${m.closed.map(x => `${nameOf(x)}${x.qty > 1 ? ` ${x.qty}개` : ""}`).join(", ")}`) : null;
+
+  body.replaceChildren(
+    h("p", { class: "hint", style: "margin:16px 0 0" }, `판매자가 정한 가격에 누구나 바로 사는 고정가 거래소입니다. 거래가 성사되면 판매 금액의 5%가 수수료로 사라집니다. 상점에서 팔지 않는 장비·재료와 강화된 장비만 올릴 수 있고, 한 번에 ${m.max_listings}개까지, 올린 물건은 ${m.days}일 뒤 팔리지 않으면 돌아옵니다.`),
+    h("div", { class: "mk-filter" }, chips, search),
+    h("div", { class: "item-group", style: "margin-top:0", "data-tour": "mk-list" }, h("p", { class: "panel-title" }, `올라온 물건 (${m.listings.length})`), listBox),
+    h("div", { class: "item-group", "data-tour": "mk-sell" }, h("p", { class: "panel-title" }, `판매 등록 (올린 물건 ${m.mine_open} / ${m.max_listings})`),
+      full ? h("p", { class: "error", style: "margin:0 0 8px" }, "올릴 수 있는 수를 다 채웠습니다. 팔리거나 내린 뒤에 올려 주세요.") : null,
+      h("div", { class: "mk-sell" },
+        h("small", { class: "hint" }, "재료"), pickBox,
+        h("small", { class: "hint" }, "장비 (장착하지 않은 것)"), gearBox,
+        h("div", { class: "mk-sell-row" }, sQty, sPrice, h("span", { class: "hint" }, "Mh"), sBtn), sNote)),
+    h("div", { class: "item-group", "data-tour": "mk-hist" }, h("p", { class: "panel-title" }, "거래 기록 (최근 30일)"), hist, expired));
+  paintList();
+  maybeTour("inv-trade");
 }
 
 /* ===== 조합 ===== */
@@ -4085,10 +4381,15 @@ async function renderCodex(pane) {
       for (const [part, label] of [["front", "앞말"], ["back", "뒷말"]]) {
         const arr = ts.filter(t => t.part === part);
         out.push(h("p", { class: "codex-group" }, `${label} · ${arr.filter(t => t.got).length}/${arr.length}`),
-          h("div", { class: "codex-grid" }, ...arr.map(t => cell(t.got, t.name, t.got ? label : null, () => info(t.got ? t.name : "???",
+          h("div", { class: "codex-grid" }, ...arr.map(t => cell(t.got, t.name, t.got ? label : t.cond, () => info(t.got ? t.name : "???",
             t.got ? h("div", { class: "report" }, kv("부분", label), kv("얻은 조건", t.cond), kv("얻은 날", t.got_at ? fmtDay(t.got_at) : null))
-              : desc("아직 얻지 못한 타이틀 조각입니다. 어떤 조건인지는 직접 찾아보세요."))))));
+              : h("div", { class: "report" }, kv("부분", label), kv("얻는 조건", t.cond)))))));
       }
+    },
+    story(out) {
+      out.push(h("p", { class: "codex-group" }, `스토리 · ${STORIES.length}/${STORIES.length}`),
+        h("div", { class: "codex-grid", style: "grid-template-columns:repeat(auto-fill,minmax(200px,1fr))" }, ...STORIES.map(st =>
+          h("button", { type: "button", class: "story-card", onclick: () => playStory(st.key) }, h("b", {}, st.title), h("small", {}, `${st.when} · 다시 보기`)))));
     },
     item(out) {
       const KIND = { material: "재료", consumable: "소비 아이템", equip: "장비" };
@@ -4107,11 +4408,12 @@ async function renderCodex(pane) {
     if (codexCat === "all") {
       for (const [k, n] of CODEX_CATS) { out.push(h("h3", { class: "codex-sec", id: `codex-${k}` }, `${n} ${R[k] ?? 0}%`)); SEC[k](out); }
       out.push(h("h3", { class: "codex-sec", id: "codex-title" }, `타이틀 ${tRate}%`)); SEC.title(out);
+      out.push(h("h3", { class: "codex-sec", id: "codex-story" }, "스토리")); SEC.story(out);
     } else SEC[codexCat]?.(out);
     const tile = (k, label, v) => h("button", { type: "button", class: `codex-tile${codexCat === k ? " on" : ""}`, "aria-pressed": codexCat === k ? "true" : "false",
       onclick: () => { codexCat = k; paint(); } }, h("span", {}, label), h("b", {}, `${v ?? 0}%`));
     body.replaceChildren(
-      h("div", { class: "codex-sum", "data-tour": "cx-sum" }, tile("all", "전체 달성률", R.all), ...CODEX_CATS.map(([k, n]) => tile(k, n, R[k])), tile("title", "타이틀", tRate)),
+      h("div", { class: "codex-sum", "data-tour": "cx-sum" }, tile("all", "전체 달성률", R.all), ...CODEX_CATS.map(([k, n]) => tile(k, n, R[k])), tile("title", "타이틀", tRate), tile("story", "스토리", 100)),
       ...out);
   }
   paint();
@@ -4328,7 +4630,7 @@ $("#e-save").onclick = async () => {
 /* ===== 테마 버튼 (기기 설정 → 밝게 → 어둡게) ===== */
 $("#btn-theme").onclick = async () => {
   const order = ["system", "light", "dark"];
-  const next = order[(order.indexOf(state.settings?.theme || "dark") + 1) % 3];
+  const next = order[(order.indexOf(state.settings?.theme || "system") + 1) % 3];
   applyTheme(next);
   if (state.settings) state.settings.theme = next;
   await sb.from("settings").update({ theme: next, updated_at: new Date().toISOString() }).eq("user_id", state.user.id);
@@ -4419,6 +4721,151 @@ const DOCS = {
 <p>로그인과 계정 관리를 위한 이메일 및 접속 기록 외 다른 개인 정보는 수집하지 않습니다. 관련하여 자세한 사항은 홈페이지 내 <a href="#/privacy">[개인정보 수집 및 이용]</a> 메뉴에서 확인 부탁드립니다.</p>
 </article>
 <p class="about-end">무한한 가능성은 언제나 여러분 곁에 있습니다.</p>`,
+  },
+  guide: {
+    title: "가이드",
+    toc: [["g-grade", "등급"], ["g-stat", "스테이터스"], ["g-pos", "포지션"], ["g-profile", "프로필 · 타이틀"], ["g-inf", "무한 던전"], ["g-rg", "지역 안정화"], ["g-union", "국제헌터연합"], ["g-inv", "인벤토리"], ["g-social", "교류"]],
+    html: `
+<div class="doc-head"><h1>가이드</h1></div>
+<article class="card prose">
+<p>안녕하세요, 헌터님. 국제헌터연합에서는 무한 던전의 입장이 다시 가능함에 따라, 헌터 관리 및 공략 체계를 재정비하였습니다.</p>
+<p>활동에 어려움을 겪는 경우 해당 페이지를 참고해주시고, 이외 문의 또는 건의 사항이 있는 경우 <a href="https://forms.gle/D5choa1dujHw469BA" target="_blank" rel="noopener noreferrer">문의 창구</a>를 통해 질문 부탁드립니다.</p>
+</article>
+
+<article class="card prose" id="g-grade">
+<h2>등급</h2>
+<p>2126년 특정 시점을 기준으로 헌터 등급을 재평가하고 있습니다. 이전에 이미 각성하셨던 분들이라면 일종의 재각성 등급으로 간주하여 주십시오.</p>
+<p>고위험 던전에 입장하여 사고가 발생하는 것을 방지하고자 등급 측정 기준이 강화되어 낮은 등급이 나올 확률이 높으나, 이는 각성 등급일 뿐, 꾸준한 공략을 통해 '가능성'이 축적되면 승급이 가능합니다.</p>
+<div class="table-scroll"><table class="tbl-center">
+<thead><tr><th>등급</th><th>F급</th><th>E급</th><th>D급</th><th>C급</th><th>B급</th><th>A급</th><th>S급</th></tr></thead>
+<tbody><tr><th>승급 레벨</th><td>1</td><td>10</td><td>20</td><td>35</td><td>50</td><td>70</td><td>100</td></tr></tbody>
+</table></div>
+</article>
+
+<article class="card prose" id="g-stat">
+<h2>스테이터스</h2>
+<p>공략에 필요한 능력을 5가지로 나누어 수치화하였습니다.</p>
+<ol>
+<li><b>HP</b> — 외부 충격으로부터 신체가 버틸 수 있는 최대 수준으로, 기본 100으로 시작하며 스탯 1 포인트 당 10이 오릅니다.</li>
+<li><b>MP</b> — 이능력을 사용할 수 있는 최대 수준으로, 기본 30으로 시작하며 스탯 1 포인트 당 5이 오릅니다.</li>
+<li><b>ATK</b> — 대상에게 얼마나 강한 타격을 줄 수 있는지에 대한 척도로, 기본 10으로 시작하며 스탯 1 포인트 당 1이 오릅니다.</li>
+<li><b>DEF</b> — 외부 충격을 얼마나 상쇄할 수 있는지에 대한 척도로, 기본 10으로 시작하며 스탯 1 포인트 당 1이 오릅니다.</li>
+<li><b>LUK</b> — 이능력을 얼마나 적재적소에 사용할 수 있는지에 대한 척도로, 높을수록 치명타 확률이 증가합니다. 던전에서 함정을 만날 경우, 해당 확률에 따라 회피할 수 있습니다. 기본 5로 시작하며 스탯 1포인트 당 1이 오릅니다.</li>
+</ol>
+</article>
+
+<article class="card prose" id="g-pos">
+<h2>포지션</h2>
+<p>이능력과 전투 스타일에 따라 크게 4가지, 세부적으로 8가지의 포지션으로 나누어 구분하고 있습니다.</p>
+<div class="table-scroll"><table>
+<thead><tr><th>포지션</th><th>설명</th><th>세부 포지션</th><th>특화 능력</th></tr></thead>
+<tbody>
+<tr><th rowspan="2">딜러</th><td rowspan="2">강한 힘으로 적을 먼저 제압하는 헌터.<br>선호 스테이터스 ATK·LUK</td><td><b>갤런트리</b><br>마주한 상대와 정면 승부를 즐기는 헌터.</td><td>주는 피해 +20%</td></tr>
+<tr><td><b>스카우트</b><br>넓은 시야를 가지고 상황을 주도하는 헌터.</td><td>공격횟수 +1 (회당 피해 60%)</td></tr>
+<tr><th rowspan="2">탱커</th><td rowspan="2">적의 공격에도 무너지지 않는 헌터.<br>선호 스테이터스 HP·DEF</td><td><b>뱅가드</b><br>가장 앞으로 나가 적의 시선을 끄는 헌터.</td><td>도발 (가장 취약한 아군 1명 대신 피격)<br>*1인 공략 때는 10% 확률로 공격 회피</td></tr>
+<tr><td><b>시타델</b><br>적의 공격으로부터 수호하는 헌터.</td><td>아군의 받는 피해 -20%</td></tr>
+<tr><th rowspan="2">서포터</th><td rowspan="2">상대의 능력을 전략적으로 가감하는 헌터.<br>선호 스테이터스 MP·LUK</td><td><b>카탈리스트</b><br>아군을 극대화하는 헌터.</td><td>아군 1명의 ATK·DEF +20%</td></tr>
+<tr><td><b>아티피스</b><br>적을 무력화시키는 헌터.</td><td>적 1명의 ATK·DEF -20%</td></tr>
+<tr><th rowspan="2">힐러</th><td rowspan="2">아군이 지치지 않도록 독려하는 헌터.<br>선호 스테이터스 MP·HP</td><td><b>리커버리</b><br>아군의 부상을 치유하는 헌터.</td><td>아군의 HP가 50% 미만일 경우 HP 30% 회복</td></tr>
+<tr><td><b>서플라이</b><br>아군의 이능력 한도를 늘리는 헌터.</td><td>아군의 MP가 30% 미만일 경우 MP 30% 회복</td></tr>
+</tbody>
+</table></div>
+<p>원활한 전략 수립을 위하여 등급 측정과 동시에 메인 포지션을 선택하도록 돕고 있습니다.</p>
+<p>가능성의 축적으로 25레벨이 될 경우, 서브 포지션을 선택할 수 있으며, 각 포지션 절반 수준의 특화 능력을 가질 수 있습니다. 메인 포지션과 동일한 포지션을 서브로 선택하실 경우, 특화 능력이 1.5배가 됩니다.</p>
+</article>
+
+<article class="card prose" id="g-profile">
+<h2>프로필 사진·소개</h2>
+<p>프로필 사진과 캐릭터 소개를 바꿀 수 있습니다.</p>
+<p>프로필 사진은 1:1의 이미지나 단색으로 설정이 가능하며, 소개는 공개 범위를 정하여 보여주고 싶은 사람에게만 보여줄 수 있습니다.</p>
+<h2>타이틀</h2>
+<p>모은 타이틀 조각으로 코드네임의 앞과 뒤를 꾸밀 수 있습니다. 가진 조각은 도감에서 확인 가능합니다.</p>
+</article>
+
+<article class="card prose" id="g-inf">
+<h2>무한 던전</h2>
+<p>2101년 전세계 지하철에서 특정 행동을 반복하여 진입이 가능한 지하철형 던전으로, 역마다 던전이 존재하고, 종착역이 없다는 점이 특징입니다. 2125년 연이은 헌터 실종·사망 사건으로 폐쇄 후 조사대를 파견하여 <span class="glitch-text">무̛̟͉̙̙̃͂́͌한̷͚͈͂̔ 던̬͍̩͓̅͒̊̇͡전̱̰͒̄͝의̴̝̭̗͑̏́ ■̵͓̦̗͐̒̅̑͛조̫͔̰̿̄́͘자̝̤̗̽̽͆͝와̙̞̾̊͠ ■̛̙̱̲͒̾̋■̴̻̭͎̇̅̃■̗̯͐̀͜ ■̴̟̺͇̼͌́̋͋■̡͙͙̈́̒■̸͓̦̆̽■̧̙̼̪̼̂̃̊͑■̛̭̠̃̈́͌ͅ 가̙̗̩͈͒͐̂͑͘■̞̩̱̦͒́̅̎͝성̥̟̌̚͡을̰̝̪͒̆̿͘ 모̰̻͈̂̒̿͜■͔͕͎̟̎͒̒̾̕에̷̩̜͉̅̍͊게̵̘̝͐̆ ■͇͖̔͂͘■̱̖̋͑͜■̼̲̪̇̃̊͟습̸̳͍̬́͒̏̊͛■͔͇̃́͠다̰̳̊̀͠.̫̤̪͒̄̾͡</span></p>
+<p>재개방된 무한 던전에서는 세 가지 활동이 가능합니다.</p>
+<h3>전투</h3>
+<p>각 역을 공략하며 한계까지 진입하는 공략 활동입니다. 최소 6시간부터 최대 12시간 동안 공략이 가능하며, 창을 닫아도 진행됩니다.</p>
+<ol>
+<li>진입 전, 최대 3가지의 아이템을 종류당 5개까지 보급품으로 챙겨갈 수 있습니다. 남은 아이템은 다시 인벤토리에 회수됩니다.</li>
+<li>역을 공략하며 HP·MP가 부족할 경우 보급품을 먼저 사용하고, 이후에는 역 공략이 끝난 뒤 휴식을 취하며 진입합니다.</li>
+<li>역마다 1~2마리의 몬스터 또는 보스 몬스터를 조우하여 전투를 진행합니다. 보스 몬스터의 난이도가 높지만 보상이 더 많습니다.</li>
+<li>시간이 다 되었거나, 더 버티기 어려우면 복귀합니다. 결과를 수령하기 전에, [조금 더 진입]으로 한계 이상까지 도전이 가능합니다. 50% 확률로 성공하면 추가 보상을 받을 수 있지만, 실패할 경우 보상의 20%를 잃고 던전 구조대의 구조를 받아 복귀합니다.</li>
+<li>매주 공략한 역의 수를 기록하여 순위가 기록됩니다. 순위에 따른 보상은 아직 준비 중입니다.</li>
+</ol>
+<h3>탐색</h3>
+<p>하루 최대 3번 무한 던전의 역 하나에 진입하여 아이템을 파밍할 수 있습니다.</p>
+<p>10×10의 맵 중 무작위 위치에서 시작하여 5+(레벨÷5)칸을 이동하며 도달한 칸에 있는 재화·가능성·아이템을 획득할 수 있습니다. 이동은 방향 버튼, 키보드 방향키, 맵 위의 칸을 눌러서 할 수 있습니다.</p>
+<p>탐색 중 [유한함]을 마주친 경우, 잔여 이동 칸이 남아있어도 탐색을 마치게 됩니다.</p>
+<h3>별의 무덤</h3>
+<p>2126년 재개방 이후 발견되는 특수 공간입니다. 헌터들의 이능력을 뛰어넘는 강력한 힘을 가졌던 별이 잠들어 묻힌 곳으로, 위험성을 감안하여 10레벨 이상부터 진입이 가능합니다.</p>
+<p>하루 최대 1번, 탐색과 별도로 기회를 가지며 방식은 탐색과 동일합니다. 다만, 별의 무덤에서는 별가루·별조각 사탕·은하수 이슬·가능성이 발견되는 것으로 보고되었습니다.</p>
+<p>탐색과 달리 별의 무덤에서는 헌터님이 2칸 움직일 때마다 1칸 움직이는 [별지기]라는 무덤의 수호 몬스터가 존재합니다. 별지기와 조우할 경우 즉시 마치게 되니 별지기의 위치를 확인하며 움직이시길 바랍니다.</p>
+</article>
+
+<article class="card prose" id="g-rg">
+<h2>지역 안정화</h2>
+<p>2024년부터 지금까지 세계 도시 곳곳에서 발생하는 게이트를 통해 진입 가능한 이공간, 던전을 주기적으로 공략하여 안정화를 시키는 것이 헌터의 기본 활동입니다.</p>
+<p>던전은 국제헌터연합에서 측정한 등급에 따라 현재 헌터 등급과 비슷한 등급의 던전만 진입이 가능합니다. 고등급 헌터가 저등급 던전에 진입하는 것은 가능하나 보상이 감소합니다.</p>
+<p>같은 활동 구역을 공유하는 헌터가 1~5명이 모여 공략할 수 있습니다. 던전의 난이도는 입장 헌터 수에 비례하오니 솔로 플레이를 즐기시는 헌터라면 혼자 진입하셔도 무방합니다.</p>
+<p>이미 공략 중인 던전은 안정화가 된 후 국제헌터연합에서 재관측 후 새로 입장할 수 있는 던전으로 안내드리오니 참고 부탁드립니다.</p>
+<p>던전 진입 전, 선택 후 헌터님의 전력으로 예상 성공률, 공략 시간, 획득 가능성, 획득 재화를 확인할 수 있으니 참고 부탁드립니다.</p>
+<p>도중에 쓰러진 경우, 그때까지 정리한 구역의 보상을 수령하고 던전은 그대로 잔존합니다.</p>
+<h3>대기실</h3>
+<p>던전을 고르고 [대기실 입장]을 누르면 그 던전의 대기실로 이동합니다. 대기실에는 최대 5명까지 들어올 수 있고, 입장한 헌터의 코드네임, 등급, 레벨, 포지션을 확인할 수 있습니다. 누군가 대기실에 들어간 던전은 지역 안정화 화면에 대기 인원이 표시됩니다.</p>
+<p>[준비 완료]를 누르면 30초 동안 다른 헌터의 준비를 기다립니다. 모두 준비 완료를 누르면 바로 출발하고, 30초가 지나면 그때 대기실에 있는 헌터와 함께 무조건 출발합니다. 누군가 준비 완료를 눌렀다면 30초가 지나기 전에 [바로 출발]로 먼저 출발할 수 있습니다. 혼자 있을 때 준비 완료를 누르면 바로 출발합니다.</p>
+<p>[나가기]로 언제든 대기실에서 퇴장할 수 있습니다. 대기실 채팅은 대기실에 있는 헌터에게만 보이며, 출발하면 사라집니다. 출발할 때 다른 활동 중인 헌터는 함께하지 못합니다. 파티에 있는 경우에는 대기실 대신 파티장이 파티로 출발합니다.</p>
+</article>
+
+<article class="card prose" id="g-union">
+<h2>국제헌터연합</h2>
+<p>국제헌터연합에서는 주간 무한 던전 랭킹 발표와 도감 기록을 제공하고 있습니다.</p>
+<h3>랭킹</h3>
+<p>무한 던전 랭킹은 형평성을 위해 개인 공략과 파티 공략으로 나누어 발표하며, 같은 수의 역을 공략한 경우, 먼저 도달한 헌터님이 높은 순위가 됩니다.</p>
+<p>한국 기준 매주 월요일 0시에 새로 시작되며, 그 이전 주 랭킹은 확정된 순위로 참고하여 주세요.</p>
+<h3>도감</h3>
+<p>던전, 몬스터, 조합식, 아이템, 타이틀, 스토리를 확인할 때마다 자동으로 기록하고 있습니다.</p>
+<p>몬스터의 경우 10번 쓰러뜨리면 강한 정도와 드롭 정보를 제공합니다(보스는 1번).</p>
+<p>도감 달성률은 다른 헌터가 확인할 수 있으며, 달성률에 따라 획득 가능한 타이틀도 존재합니다.</p>
+</article>
+
+<article class="card prose" id="g-inv">
+<h2>인벤토리</h2>
+<p>인벤토리 메뉴에서는 현재 가지고 있는 아이템, 상점, 조합, 거래소를 이용할 수 있습니다.</p>
+<h3>보유</h3>
+<p>현재 가지고 있는 장비, 소비, 재료 아이템을 확인 및 판매할 수 있습니다.</p>
+<p>장비의 경우 D급 1개부터 차례로 장비 등급이 오를 때마다 1개씩 더해지는 별가루와 재화를 소모하여 강화가 가능합니다. 6강부터는 동일한 장비를 추가 재료로 요구합니다.</p>
+<h3>조합</h3>
+<p>2~3개의 재료 아이템을 합쳐 새로운 아이템을 획득할 수 있습니다. 처음 성공한 조합식은 도감 및 조합 메뉴에 기록되어 계속 참고할 수 있습니다.</p>
+<p>조합식이 틀려도 아이템이 사라지진 않으나, 조합 중 1% 확률로 아이템이 대실패하여 재료 아이템이 모두 파괴되는 경우가 존재합니다. 반대로, 조합 성공 시 5% 확률로 아이템을 2개 획득할 수 있는 대성공 현상도 관측되고 있습니다.</p>
+<p>알게 된 조합식은 [칸 채우기] 기능을 통해 자동으로 재료 아이템을 채울 수 있습니다.</p>
+<h3>거래소</h3>
+<p>헌터들끼리 아이템을 사고 팔 수 있습니다. 상점에 팔지 않는 아이템을 등록할 수 있으며, 한 번에 10건, 7일 동안 팔리지 않으면 인벤토리에 회수됩니다.</p>
+<p>거래소 운영을 위해 판매가의 5%를 수수료로 국제헌터연합이 가져가고 있으니 양해 부탁드립니다.</p>
+<p>거래 기록을 통해 최근 30일간의 거래 기록을 확인할 수 있습니다.</p>
+</article>
+
+<article class="card prose" id="g-social">
+<h2>교류</h2>
+<p>헌터 간 교류를 활성화하기 위해서 SNS·길드, 친구·메시지, 파티, 선물함 기능을 지원하고 있습니다.</p>
+<h3>SNS</h3>
+<p>헌터 소셜네트워크서비스를 이용하여 실시간으로 게시글을 올리고, 댓글로 대화할 수 있습니다. 게시글 주제에 맞는 태그를 이용하여 주세요.</p>
+<h3>길드</h3>
+<p>마음이 맞는 헌터들끼리 모여 길드를 개설할 수 있습니다. 10레벨 이상, 5,000 Mh의 수수료를 내면 길드 개설이 가능하며, 길드원끼리는 전용 채팅이 가능합니다. 채팅은 30일 뒤 삭제됩니다.</p>
+<h3>친구·메시지</h3>
+<p>공략 중 친해진 헌터가 있다면 친구로 추가하여 1:1 메시지를 주고 받을 수 있습니다.</p>
+<p>친구 신청은 코드네임을 검색하여 가능하고, 상대가 수락하면 친구가 됩니다. 현재는 30명까지 친구를 추가할 수 있습니다.</p>
+<p>주고받은 메시지는 30일 뒤 삭제되지만, ☆를 눌러 계속 보관이 가능합니다. 1:1 메시지에서는 상호 조율 하에 오너 이입이 가능하오니 참고 부탁드립니다.</p>
+<p>불편한 헌터가 있다면 차단 및 신고가 가능합니다. 신고는 연합 운영 직원이 확인하여 처리합니다.</p>
+<h3>파티</h3>
+<p>함께 공략하고 싶은 헌터가 있다면 코드네임으로 초대하여 파티를 맺을 수 있습니다. 초대한 사람이 파티장으로 임명되며, 파티는 최대 5명이 참가할 수 있습니다.</p>
+<p>공략은 파티장의 조작으로 전원이 함께 합니다. 단, 파티 구성원 중 1명이라도 다른 활동을 하고 있거나, 파티원 내 최고·최저 레벨 차이가 25레벨 이상이면 공략 활동을 할 수 없습니다.</p>
+<p>무한 던전 파티 랭킹은 파티장의 코드네임이 대표로 올라가며, 세부 정보로 파티원 코드네임까지 확인할 수 있습니다.</p>
+<h3>선물함</h3>
+<p>친구끼리는 재화·아이템을 주고 받을 수 있습니다. 하루 10번까지 가능하며, 상대가 받지 않거나 거절하면 되돌아옵니다.</p>
+</article>`,
   },
   privacy: {
     title: "개인정보 수집 및 이용",
@@ -4563,7 +5010,7 @@ const DOCS = {
 };
 
 let docReturn = null;   // 문서를 닫으면 돌아갈 주소
-const docRoute = () => (location.hash.match(/^#\/(about|privacy)\b/) || [])[1] || null;
+const docRoute = () => (location.hash.match(/^#\/(about|guide|privacy)\b/) || [])[1] || null;
 function openDoc(id) {
   if (!docRoute()) docReturn = location.hash || "";
   location.hash = `#/${id}`;
@@ -4610,35 +5057,14 @@ document.querySelectorAll(".gate-box").forEach(box => box.append(
   h("nav", { class: "gate-links" },
     h("a", { href: "#/about", onclick: e => { e.preventDefault(); openDoc("about"); } }, "소개"),
     h("span", { "aria-hidden": "true" }, "·"),
+    h("a", { href: "#/guide", onclick: e => { e.preventDefault(); openDoc("guide"); } }, "가이드"),
+    h("span", { "aria-hidden": "true" }, "·"),
     h("a", { href: "#/privacy", onclick: e => { e.preventDefault(); openDoc("privacy"); } }, "개인정보 수집 및 이용"))));
 $("#btn-about").onclick = () => openDoc("about");
 $("#btn-legal").onclick = () => openDoc("privacy");
 addEventListener("keydown", e => { if (e.key === "Escape" && docRoute() && !document.querySelector("dialog[open]")) closeDoc(); });
 
-$("#btn-guide").onclick = () => info("가이드",
-  h("p", {}, "INFINITE DUNGEON은 방치형 게임입니다. 무한 던전에 6~12시간 진입해 두고, 돌아와 결과를 받으세요."),
-  h("p", {}, "· HP·MP가 부족해지면 쉬면서 회복하고 다시 나아갑니다. 깊은 역일수록 오래 걸려서, 진입 시간이 길수록 더 깊이 내려갑니다."),
-  h("p", {}, "· HP·DEF가 높을수록 덜 쉬고, 힐러는 전투 중 회복으로 휴식을 줄입니다."),
-  h("p", {}, "· 역마다 새로운 테마의 던전을 마주칩니다. 30역마다 테마 30곳을 무작위 순서로 한 번씩 모두 돌고, 한 바퀴가 지날 때마다 몬스터 이름 앞에 '어두운'(31~60역) → '아득한'(61~90역) → '심연의'(91~120역) → '나락의'(121~150역) → '이전의'(151역부터 계속)가 붙습니다. 역마다 일반 몬스터 1마리·2마리 또는 보스를 만납니다. 보스는 강하지만 보상이 큽니다. 진행 화면 위쪽의 전투 현황에서 아군(파티원 포함)과 적의 HP·MP를 볼 수 있습니다. 무한 던전 탭 옆의 '? 소개'를 누르면 국제헌터연합 안내 직원이 전투 · 탐색 · 별의 무덤 화면을 하나씩 짚어 설명합니다."),
-  h("p", {}, "· 복귀 후 '조금 더 진입'을 고르면 50% 확률로 더 깊이 들어가 1.5배 보상을 받고, 실패하면 이번 보상의 20%를 잃습니다."),
-  h("p", {}, "· 레벨이 오를 때마다 스탯 포인트 1개를 받아 자유롭게 분배할 수 있습니다."),
-  h("p", {}, "· 포지션: 시작할 때 메인 포지션을 고르고, 25레벨이 되면 서브 포지션을 한 번 고릅니다. 서브는 효과가 절반이고, 메인과 같은 포지션을 고르면 메인 효과가 1.5배가 됩니다."),
-  h("p", {}, "· 장비는 D~S 다섯 티어가 있고 무기·방어구·장신구 3칸에 끼웁니다. 착용 레벨은 D 1 · C 25 · B 40 · A 60 · S 90입니다. 메헨(Mh)과 별가루로 +10까지 강화하며, +6부터는 재료로 쓸 같은 장비 1개를 직접 고릅니다. 인벤토리의 조합에서 재료 2~3개를 섞어 새 아이템을 만들 수 있습니다. 던전에 소비 아이템을 최대 3종 챙겨 가면 쉬는 대신 먼저 씁니다."),
-  h("p", {}, "· 승급: 레벨 조건(E 10 · D 20 · C 35 · B 50 · A 70 · S 100)을 채우면 헌터 정보의 '승급하기' 버튼으로 원할 때 한 등급씩 올립니다. 자동으로 오르지 않으니, 낮은 등급 던전을 더 돌고 싶다면 미뤄 둘 수 있습니다. 처음 받은 각성 등급이 더 높으면 그대로 유지됩니다."),
-  h("p", {}, "· 지역 안정화: 활동 구역의 던전을 공략합니다. 지금은 E급(5구역 · 평균 30분)과 D급(6구역 · 평균 40분)이 열려 있고, C급부터는 준비 중입니다. 구역마다 E·D급 던전이 5곳씩 있고, 장소와 테마가 제각각입니다. 마지막 구역은 보스이며, 보스는 테마 재료를 떨어뜨립니다. 구역마다 보상을 얻고, 도중에 쓰러지면 그때까지의 보상만 받습니다. 입장 레벨은 E 1 · D 10이고, 성공률은 내 전력으로 미리 알려 줍니다. 안정화한 던전은 30분 뒤 다른 테마로 다시 나타납니다. 더 높은 등급에 들어갈 수 있으면 낮은 등급 보상은 줄어듭니다."),
-  h("p", {}, "· 탐색: 무한 던전의 '탐색' 탭에서 하루 3번, 보이지 않는 10×10 구역을 걸으며 메헨과 아이템을 줍습니다."),
-  h("p", {}, "· 별의 무덤: 10레벨부터 무한 던전의 '별의 무덤' 탭에서 하루 1번(탐색과 별도), 10×10 무덤을 걸으며 별가루·마석·별조각 사탕·은하수 이슬·가능성을 모읍니다. 내가 두 칸 움직일 때마다 별지기가 한 칸 다가오고, 마주치면 그 자리에서 끝납니다."),
-  h("p", {}, "· 무한 던전·지역 안정화·탐색·별의 무덤은 한 번에 하나만 할 수 있습니다."),
-  h("p", {}, "· 일일 퀘스트: 홈에서 확인합니다. 탐색 1회 · 지역 안정화 1회(가능성 레벨 × 15), 전력 분석 1회 · 상점 구매 1회 · 조합 1회(가능성 레벨 × 10)를 마치면 각각 보상을 받습니다. 매일 0시(한국 시간)에 새로 시작합니다."),
-  h("p", {}, "· 스토리 퀘스트: 홈에서 10단계를 순서대로 진행하며 게임의 기본을 익힙니다. 단계마다 장비 · 아이템 · 메헨 · 타이틀 보상이 있고, 이미 해 둔 활동도 조건으로 인정됩니다."),
-  h("p", {}, "· 전력 분석: 홈에서 스탯 하나를 골라 5~180분 동안 분석합니다. 다른 활동과 동시에 할 수 있고, 분석한 시간이 스탯마다 쌓여 단계(최대 10단계)가 오를 때마다 그 스탯이 영구로 +1 됩니다. 10단계를 마친 스탯은 분석할 때 가능성을 얻습니다."),
-  h("p", {}, "· 교류: 코드네임으로 친구 신청을 보내고, 상대가 수락하면 친구가 됩니다(최대 30명). 친구와는 1:1 메시지(30일 보관, ☆를 누르면 계속 보관)와 선물(하루 10번, 메헨·아이템·장비)을 주고받을 수 있습니다. SNS에는 분류를 골라 글과 댓글을 남깁니다(PC에서는 오른쪽 SNS 칸에서 분류별로 보고 바로 글을 쓸 수도 있습니다). 불편한 헌터는 차단하거나 신고할 수 있습니다."),
-  h("p", {}, "· 파티: 교류 → 파티 탭이나 헌터 정보 창에서 코드네임으로 초대하면 파티가 만들어지고 내가 파티장이 됩니다(1~5명, 해산하기 전까지 유지). 같은 파티는 언제나 같은 활동을 하며, 파티장이 출발을 누르면 무한 던전이나 지역 안정화에 모두 함께 들어갑니다. 파티원 중 누가 다른 활동 중이거나 결과를 받지 않았으면 출발할 수 없고, 최고·최저 레벨 차이가 25 이상이면 공략할 수 없습니다. 몬스터는 들어간 인원에 비례해 강해지고, 한 명이 쓰러져도 나머지가 계속하며, 보상은 모두 똑같이 받습니다. 뱅가드·힐러·서포터의 능력은 동료 1명에게 쓰입니다. 파티 무한 던전 기록은 국제헌터연합의 파티 랭킹에 파티장 이름으로 오릅니다."),
-  h("p", {}, "· 길드: 10레벨 이상이면 교류 → SNS → 길드에서 5,000 Mh로 길드를 만들 수 있습니다(최대 20명, 한 번에 한 길드). 길드장이 코드네임이나 헌터 정보 창으로 초대하고, 초대는 7일 동안 유효합니다. 길드원끼리는 길드 채팅으로 이야기하며, 채팅은 30일 뒤 지워집니다. 길드장은 소개 바꾸기 · 내보내기 · 길드장 넘기기 · 해산을 할 수 있고, 길드장이 나가려면 먼저 길드장을 넘겨야 합니다."),
-  h("p", {}, "· 타이틀: 앞말과 뒷말 조각을 하나씩 골라 '앞말 코드네임 뒷말' 모양으로 프로필에 표시합니다(랭킹에는 표시하지 않음). 조각은 활동 기록 · 도감 · 퀘스트 등 조건을 채우면 얻고 사라지지 않으며, 헌터 정보 창에서 언제든 바꾸거나 비워 둘 수 있습니다. 가진 조각과 얻은 조건은 국제헌터연합 → 도감 → 타이틀에서 볼 수 있고, 아직 얻지 못한 조각의 조건은 직접 찾아보세요."),
-  h("p", {}, "· 도감: 국제헌터연합 → 도감에서 만난 몬스터, 다녀온 던전, 알아낸 조합식, 얻은 아이템을 봅니다. 몬스터는 처치하면 설명이, 10번 처치하면(보스는 1번) 강함과 드롭이 열리고, 던전은 클리어하면 설명과 몬스터가, 5번 클리어하면 드롭이 열립니다. 달성률은 다른 헌터의 헌터 정보에서도 보입니다."),
-  h("p", {}, "· 배경음악: 헌터 정보 아래(모바일은 화면 위쪽)에서 재생 · 일시정지 · 볼륨 · 음악 선택을 합니다. '페이지 음악'이면 화면마다 어울리는 곡으로 바뀌고, 곡을 고르면 그 곡을 반복합니다. 내 유튜브 주소를 넣어 원하는 음악을 틀 수도 있습니다(유튜브 약관상 재생 중에는 영상이 함께 보이며, 모바일에서는 오른쪽 아래 작은 창으로 뜹니다). 브라우저가 소리를 막아 둔 경우 화면 어디든 한 번 누르면 바로 재생되고, 브라우저 사이트 설정에서 이 게임의 '소리'(크롬) 또는 '자동 재생'(사파리 · 파이어폭스)을 허용하면 접속하자마자 재생됩니다. 설정은 이 기기에만 저장됩니다. 같은 칸에서 효과음도 켜고 끄거나 크기를 바꿀 수 있습니다. 음악: zippysound (zippy)"),
-  h("p", { class: "hint" }, "콘텐츠가 열릴 때마다 가이드가 추가됩니다."));
+$("#btn-guide").onclick = () => openDoc("guide");
 
 document.querySelectorAll(".js-logout").forEach(b => b.onclick = async () => {
   stopSocial(); bgmStop(); sfxS.ready = false;
@@ -4987,6 +5413,65 @@ document.addEventListener("click", e => {
   sfx("push");
 }, true);
 
+/* ===== 스토리 (도감 · 처음 접속) =====
+   어두운 보라색 화면에서 한 문단씩 보여 준다. 누르거나 Enter/→로 다음 문단, 건너뛰기로 끝까지. */
+const STORIES = [
+  { key: "irto", title: "Irto.", when: "계정을 만든 뒤", paras: [
+    { t: "2125년 2월 16일.", cls: "date" },
+    { t: "전세계 어디서든, 모든 하늘에서 유성우를 관측할 수 있었습니다. 하늘에서 마치 별조각으로 만들어진 비가 떨어지는 듯한 풍경이었죠." },
+    { t: "그 다음날, 세상은 어둠에 잠겼습니다. 극지방에서만 관측할 수 있는 극야가 전세계에서 일어난 것입니다." },
+    { t: "이 이상 현상은 던전과 몬스터가 당연해진 시대에서 해프닝으로 지나갔습니다." },
+    { t: "하지만 당신은 알고 있습니다." },
+    { t: "무̵͇̥͍͖̼̱̭͚̳͌̀̈́̓̄͋̑͋̚̕̕수̧̯̳̰̼͉̠̠̝̑̀̃͆̈́́̆̔̈͜͞ͅ한̴̧̹͚̩̼̞̳̀̔̒̈́̄̽ 계͍̼͉̦̬̎͋̓͊́̕͜약̗̤͍͍̞̘͎̰̿̐̂̇̿̀̓͐͛̚̕͟͜이̴̛̙̦̞̙̩̪͖͊̃͊́́̄́ 계̵̧̦̩̱̙̠̺͊͑̔́̈́̋약̛͇͔͖͇̪̎̑̄̒̚͟자̛̺̥̦̺͉̬̘͊̋̈̓̋̌̈́̓͛͜͠의̷̡̮̳̞̦̩̠̝̲͐̿̅̽̿̀̌͊͜ 소̢̪̦̟̝̜̆́́̀̄͘멸̨̙̝̜̬̳͇̗͊̀̈́̌̀̒̐͠로̩̜̝̬̻̒̔͑͂̀͜͡ 파̴͚̮̗̦̩̤̠̟͓͋͆͒́̇͐̆̽̚͟͞기̸̠̪̻̱͙̰̓̿̿̀̇̓̌͛͟되̳̹̫̦͓̎̅̍͆̐͠͝었̛̜͕̗͖͈̈́̾̏̀̄͘고̧̮̻͈̹̫̈́̒̃̽͞,̡̠͎͔̹̦͍̾̐̌̑͆̊͟ 가̴͕̞̲̫͓̄̊̏͑̆͘능̨̥̜̱̪̻̠̽̔̓͊̈̚͘성̴̡̠̙̱̻̺͍̥̈́̄̐͂͌̆͋은̨̠̺̞̰̰̭̐̎̏̀̄̚͠ 온̶̢̛͖͎̟͙̗̜͎̪̻͑̌́̿̂̄̀̎̀ 우̷̧̯͖̪̮̖̋̓̓͑̿̔͛주̳͍̙̠̯̮͋̀̿̾̑͆͘͘에̳͉̥̼͔͎̂̏̅͌̍̑͟͡ 흩̨͈̩͔͖̰̳̱̾̐̃̒̃͂̋͟뿌̢̡͇̫̠̰͖̫̬́̀͊͐̾̊͒려̸̛͈̦̺͇̤̍̀̔̏̐졌̢̨̬̭̤͉̪̳̳̎̀́̿̐̀̂́͛͜습̴̨̟̖͕̭̰̖̀̔͆̓̽͂̾̿͛͛͠니̷̛̻̖̯͉͉̪̫̮̌̃̍̈̾̍̒̾͡다̵̨͕͉̹͙̮̺̑͒͒̀̍̒.̸̬̟̜͇̺̞́̍͑̊́̈̋͛͢", cls: "glitch" },
+    { t: "방금 무슨 일이 있었나요?" },
+    { t: "아무튼, 2126년 현재. 계속해서 지역 던전과 무한 던전의 안정성을 관측하고 분석한 국제헌터연합에서 드디어 무한 던전을 재개방했습니다." },
+    { t: "그 전에, 헌터 등록 및 등급 측정 기준을 대거 개편하여 새롭게 등록 및 측정을 한다고 하네요." },
+    { t: "당신에게 찾아온 별̷̪͈̻͍̤͖̠͊̈̀̍͌̑̈́̇͜͠ͅ의̶̴̨͉͓̫̻̦̳̭̂̿̔͐̐̽̃́͛ 무한한 가능성을 펼치기 위해 등록 절차를 시작하겠습니다." },
+    { t: "잘 부탁드립니다, 헌터님!", cls: "last" },
+  ] },
+];
+let storyNow = null;
+function playStory(key, onDone) {
+  const st = STORIES.find(x => x.key === key);
+  if (!st || storyNow) return onDone?.();
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let i = 0;
+  const lines = h("div", { class: "story-lines", "aria-live": "polite" });
+  const hint = h("p", { class: "story-hint" }, "화면을 누르면 다음으로");
+  const skip = h("button", { type: "button", class: "story-skip" }, "건너뛰기");
+  const fin = h("button", { type: "button", class: "story-go", hidden: true }, "시작하기");
+  const root = h("div", { class: "story", role: "dialog", "aria-modal": "true", "aria-label": `스토리 ${st.title}` },
+    skip, h("div", { class: "story-inner" }, h("h2", { class: "story-title" }, st.title), lines, fin), hint);
+  document.body.append(root);
+  document.documentElement.classList.add("story-on");
+  storyNow = root;
+  function add() {
+    if (i >= st.paras.length) return;
+    const p = st.paras[i++];
+    const el = h("p", { class: `story-p${p.cls ? " " + p.cls : ""}` }, p.t);
+    lines.append(el);
+    if (!reduce) requestAnimationFrame(() => el.classList.add("in")); else el.classList.add("in");
+    el.scrollIntoView({ block: "end", behavior: reduce ? "auto" : "smooth" });
+    if (i >= st.paras.length) { fin.hidden = false; hint.hidden = true; skip.hidden = true; setTimeout(() => fin.focus(), 50); }
+  }
+  function end() {
+    removeEventListener("keydown", onKey, true);
+    root.remove(); storyNow = null;
+    document.documentElement.classList.remove("story-on");
+    markTourSeen("story-" + key);
+    onDone?.();
+  }
+  const onKey = e => {
+    if (e.key === "Escape") { e.preventDefault(); end(); }
+    else if (e.key === "Enter" || e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); if (i < st.paras.length) add(); else end(); }
+  };
+  root.addEventListener("click", e => { if (e.target.closest("button")) return; if (i < st.paras.length) add(); });
+  skip.onclick = end;
+  fin.onclick = end;
+  addEventListener("keydown", onKey, true);
+  add();
+}
+
 /* ===== 화면 소개 (튜토리얼) =====
    국제헌터연합 안내 직원이 화면의 한 부분씩 밝혀 가며 설명한다. sel이 없거나 안 보이면 가운데에 말풍선만 띄운다. */
 const TOUR_GUIDE = { name: "국제헌터연합 안내 직원", role: "던전관리국 · 신규 헌터 지원" };
@@ -5001,7 +5486,7 @@ function tourBattleArt() {
 const TOURS = {
   home: [
     { text: "국제헌터연합에 오신 것을 환영합니다, 헌터님. 활동에 필요한 화면을 하나씩 안내해 드리겠습니다.\n안내를 원치 않으시다면 [건너뛰기]를 선택해주시기 바랍니다." },
-    { sel: "#hunter-card, #mobile-summary", text: "헌터님의 등급 · 레벨 · 스탯이에요. 가능성이 차면 레벨이 오르고, 레벨이 조건에 닿으면 여기서 직접 승급할 수 있습니다.\n[세부 정보]에서는 헌터님을 소개할 수 있는 타이틀과 특징을 바꿀 수 있습니다." },
+    { sel: "#hunter-card, #mobile-summary", text: "헌터님의 등급 · 레벨 · 스테이터스입니다. 가능성이 차면 레벨이 오르고, 레벨이 조건에 닿으면 여기서 직접 승급할 수 있습니다.\n[세부 정보]에서는 헌터님을 소개할 수 있는 타이틀과 특징을 바꿀 수 있습니다." },
     { sel: "#nav, #tabbar", text: "무한 던전, 지역 안정화, 국제헌터연합, 인벤토리, 교류로 이동하는 메뉴입니다." },
     { sel: '[data-tour="hm-act"]', text: "지금 하고 있는 활동 내역입니다. 무한 던전이나 지역 안정화는 창을 닫아도 서버에서 계속 진행되기 때문에 계속 보고 있지 않으셔도 괜찮습니다." },
     { sel: '[data-tour="hm-count"]', text: "필요한 재료를 얻을 수 있는 탐색과 별의 무덤은 하루 횟수가 정해져 있습니다.\n매일 0시(한국 시간)에 횟수가 초기화됩니다." },
@@ -5011,10 +5496,10 @@ const TOURS = {
     { sel: '[data-tour="hm-todo"]', text: "헌터님만 확인할 수 있는 메모장이에요. 할 일을 적어 두고 끝나면 체크하실 수 있습니다." },
     { sel: "#bgm", text: "배경음악과 효과음을 켜고 끄거나 크기를 바꿀 수 있어요. 듣고 싶은 음악이 있다면 유튜브 링크로 재생할 수 있습니다." },
     { sel: "#side-party, #side-sns", all: true, pc: true, text: "다른 헌터와 파티를 맺은 경우, 파티 현황이 이곳에 나타납니다.\n이곳에서 헌터 전용 SNS 새 글을 확인할 수 있습니다. 카테고리 별로 다른 탭을 사용하고, 원하시면 게시글을 올릴 수 있습니다." },
-    { text: "안내는 여기까지예요. 이용에 어려움이 생기시면 화면 아래 [가이드]나 각 화면의 [도움말]을 이용해주십시오.\n헌터님의 무한한 가능성을 기대하겠습니다." },
+    { text: "이용에 어려움이 생기시면 화면 아래 [가이드]나 각 화면의 [도움말]을 이용해주십시오.\n헌터님의 무한한 가능성을 기대하겠습니다." },
   ],
   "dungeon-battle": [
-    { text: "안녕하세요, 헌터님. 국제헌터연합 던전관리국의 안내 직원입니다. 무한 던전 이용 방법을 간단히 안내해 드리겠습니다.\n안내를 원치 않으시다면 [건너뛰기]를 선택해주시기 바랍니다." },
+    { text: "무한 던전 이용 방법을 간단히 안내해 드리겠습니다.\n안내를 원치 않으시다면 [건너뛰기]를 선택해주시기 바랍니다." },
     { sel: '[data-tour="dg-tabs"]', text: "무한 던전에 진입하셨다면 세 가지 활동을 하실 수 있습니다.\n각 역의 던전을 공략하며 한계까지 진입하는 '전투',\n하루 3번 무한 던전을 조사하는 '탐색',\n10레벨부터 하루 1번 진입할 수 있는 '별의 무덤'입니다.\n셋은 동시에 할 수 없으니 하나씩 진행해 주세요." },
     { sel: '[data-tour="dg-hours"]', text: "먼저 전투에서는 진입 시간을 설정합니다. 6~12시간 중에서 고르면 그동안 역을 하나씩 공략하며 진입합니다.\n창을 닫아도 계속 진행되니 안심하시기 바랍니다." },
     { sel: '[data-tour="dg-supplies"]', text: "진입 전 보급품을 챙길 수 있습니다.\n소비 아이템을 최대 3종, 종류당 5개까지 가능합니다.\nHP·MP가 부족해지면 쉬기 전에 먼저 사용하고, 남은 것은 다시 인벤토리에 들어갑니다." },
@@ -5028,11 +5513,11 @@ const TOURS = {
     { sel: '[data-tour="ex-rules"]', text: "탐색은 하루 3번, 한 번에 움직일 수 있는 칸 수는 5칸에 5레벨마다 1칸씩 늘어납니다.\n이미 지나간 칸에는 아무것도 없으니 신중히 갈 곳을 골라주시길 바랍니다." },
     { text: "걸어간 칸에서 발견된 것이 있다면 지도에 표시됩니다.", art: () => h("div", { class: "tour-legend" },
       ...["cur", "pot", "mat", "item", "gear"].map(k => h("span", {}, h("b", {}, EX_MARK[k][0]), EX_MARK[k][1]))) },
-    { text: "그리고 '!' 표시, 유한함과 마주치면 그 자리에서 탐색이 종료됩니다.\n그 전까지 습득한 재료는 가져가실 수 있습니다.", art: () => h("div", { class: "tour-legend" }, h("span", { class: "bad" }, h("b", {}, "!"), "유한함")) },
+    { text: "유한함과 마주치면 그 자리에서 탐색이 종료됩니다.\n그 전까지 습득한 재료는 가져가실 수 있습니다.", art: () => h("div", { class: "tour-legend" }, h("span", { class: "bad" }, h("b", {}, "!"), "유한함")) },
     { sel: '[data-tour="ex-start"]', text: "이동은 방향 버튼, 키보드 방향키, 또는 지도 위 움직일 수 있는 칸을 선택하여 가능합니다.\n그럼 무사히 다녀오시길 바랍니다." },
   ],
   "dungeon-star": [
-    { text: "무한 던전에서 특수하게 발견되는 별의 무덤 지역을 안내해드리겠습니다.\n잠든 별들이 묻힌 곳이라, 연합에서도 10레벨 이상 헌터에게만 출입을 허가하고 있습니다." },
+    { text: "무한 던전에서 특수하게 발견되는 별의 무덤 지역을 안내해드리겠습니다.\n아직 미확인 위험 구역이기 때문에, 연합에서도 10레벨 이상 헌터에게만 출입을 허가하고 있습니다." },
     { sel: '[data-tour="st-rules"]', text: "하루 1번, 탐색과는 따로 들어갈 수 있습니다.\n돌아볼 수 있는 곳은 세로 10칸, 가로 10칸의 구역 안으로, 시작 위치는 무작위로 정해집니다.\n별가루·마석·별조각 사탕·은하수 이슬·가능성이 발견되는 것으로 보고되었습니다." },
     { text: "별의 무덤이 위험한 이유는 이곳에 무덤을 지키는 별지기가 존재하기 때문입니다.\n별지기(◎)의 위치는 지도에 표시되며, 헌터님(●)이 두 칸 움직일 때마다 한 칸씩 이동합니다.", art: () => {
       const cells = []; for (let i = 0; i < 21; i++) cells.push(h("i", { class: i === 8 ? "me" : i === 12 ? "kp" : null }, i === 8 ? "●" : i === 12 ? "◎" : ""));
@@ -5045,9 +5530,24 @@ const TOURS = {
     { sel: '[data-tour="rg-tabs"]', text: "던전은 등급별로 나뉘어져 있습니다. 지금 등급까지 들어갈 수 있고, 더 높은 등급에 들어갈 수 있으면 낮은 등급의 보상은 감소합니다." },
     { sel: '[data-tour="rg-board"]', text: "같은 구역의 헌터들이 함께 출입하기 때문에 누군가 공략 중이거나 이미 안정화한 던전에는 진입이 불가합니다.\n안정화된 던전은 30분 뒤 국제헌터연합의 관측에 따라 새롭게 안내됩니다." },
     { sel: '[data-tour="rg-info"]', text: "던전을 선택하면 장소와 테마, 구역 수, 예상 성공률을 확인할 수 있습니다.\n성공률은 헌터님의 전력으로 미리 계산한 수치입니다." },
-    { sel: '[data-tour="rg-start"]', text: "공략을 시작하면 구역을 하나씩 지나며 몬스터를 물리칩니다.\n마지막 구역의 보스를 쓰러뜨리면 안정화 성공으로 간주합니다." },
+    { sel: '[data-tour="rg-start"]', text: "던전을 고르고 [대기실 입장]을 누르면 함께 공략할 헌터를 기다리는 대기실로 이동합니다.\n공략을 시작하면 구역을 하나씩 지나며 몬스터를 물리치고, 마지막 구역의 보스를 쓰러뜨리면 안정화 성공으로 간주합니다." },
     { text: "공략 중에는 아군과 적의 HP를 실시간으로 확인할 수 있습니다.\n도중에 쓰러질 경우, 그때까지 정리한 구역의 보상만 받고, 던전은 그대로 잔존합니다.", art: tourRegionalArt },
     { text: "파티로 들어가면 몬스터는 인원만큼 강해지지만 성공률이 오르고, 보상은 모두 똑같이 수령합니다.\n그럼 무운을 빕니다." },
+  ],
+  "regional-lobby": [
+    { text: "대기실입니다. 같은 던전의 대기실에 들어온 헌터와 최대 5명까지 함께 공략할 수 있습니다." },
+    { sel: '[data-tour="lb-members"]', text: "대기실에 입장한 헌터의 코드네임, 등급, 레벨, 포지션을 확인할 수 있습니다." },
+    { sel: '[data-tour="lb-btns"]', text: "[준비 완료]를 누르면 30초 동안 다른 헌터의 준비를 기다립니다. 모두 준비 완료면 바로 출발하고, 30초가 지나면 무조건 출발합니다.\n기다리지 않으려면 [바로 출발]을 눌러주세요. [나가기]로 언제든 퇴장할 수 있습니다." },
+    { sel: '[data-tour="lb-chat"]', text: "대기실 채팅은 대기실에 있는 헌터에게만 보이며, 출발하면 사라집니다." },
+    { text: "혼자서도 [준비 완료]를 누르면 바로 출발합니다. 파티에 있는 경우에는 대기실 대신 파티장이 파티로 출발합니다." },
+  ],
+  "inv-trade": [
+    { text: "거래소는 헌터끼리 물건을 사고파는 곳입니다. 판매자가 정한 가격에 누구나 바로 구매할 수 있습니다." },
+    { sel: ".mk-filter", text: "장비와 재료를 나눠 보거나 이름으로 찾을 수 있습니다." },
+    { sel: '[data-tour="mk-list"]', text: "재료는 원하는 수량만큼, 장비는 강화 단계 그대로 구매할 수 있습니다. 판매자 이름을 누르면 헌터 정보를 확인할 수 있습니다." },
+    { sel: '[data-tour="mk-sell"]', text: "상점에서 팔지 않는 장비·재료와 강화한 장비를 올릴 수 있습니다. 물건을 고르고 개당 가격을 정하면 됩니다. 한 번에 10건까지, 7일 안에 팔리지 않으면 인벤토리로 돌아옵니다." },
+    { text: "거래가 성사되면 판매 금액의 5%는 수수료로 차감되고, 나머지는 바로 판매자에게 지급됩니다. 팔리면 교류 메뉴에 알림이 뜹니다." },
+    { sel: '[data-tour="mk-hist"]', text: "최근 30일간 사고판 기록과 기한이 지나 돌아온 물건을 이곳에서 확인할 수 있습니다." },
   ],
   "union-rank": [
     { sel: '[data-tour="un-tabs"]', text: "국제헌터연합에서는 주간 랭킹과 도감을 확인하실 수 있습니다." },
@@ -5144,9 +5644,10 @@ function startTour(key) {
   const textEl = h("p", { class: "tour-text", "aria-live": "polite" });
   const artEl = h("div", { class: "tour-art" });
   const dots = h("div", { class: "tour-dots", "aria-hidden": "true" }, ...steps.map(() => h("i")));
-  const prev = h("button", { type: "button", class: "btn ghost small" }, "이전");
-  const next = h("button", { type: "button", class: "btn small" }, "다음");
-  const skip = h("button", { type: "button", class: "tour-skip" }, "건너뛰기");
+  const mob = isMobileView();   // 모바일은 글자 대신 기호로 (✕ · < · >)
+  const prev = h("button", { type: "button", class: "btn ghost small", "aria-label": "이전" }, mob ? "<" : "이전");
+  const next = h("button", { type: "button", class: "btn small", "aria-label": "다음" }, mob ? ">" : "다음");
+  const skip = h("button", { type: "button", class: "tour-skip", "aria-label": "건너뛰기" }, mob ? "✕" : "건너뛰기");
   const card = h("div", { class: "tour-card", role: "dialog", "aria-modal": "true", "aria-label": "화면 소개" },
     h("div", { class: "tour-who" }, h("div", { class: "tour-av sym", "aria-hidden": "true" }, "all_inclusive"),
       h("div", {}, h("b", {}, TOUR_GUIDE.name), h("small", {}, TOUR_GUIDE.role))),
@@ -5199,7 +5700,7 @@ function startTour(key) {
     artEl.replaceChildren(...(st.art ? [st.art()] : []));
     [...dots.children].forEach((d, k) => d.classList.toggle("on", k === i));
     prev.hidden = i === 0;
-    next.textContent = i === steps.length - 1 ? "확인" : "다음";
+    next.textContent = i === steps.length - 1 ? "확인" : (mob ? ">" : "다음");
     type(st.text);
     place();
     setTimeout(() => {   // 스크롤이 끝난 뒤 다시 맞춤. 모바일은 아래 말풍선에 가리지 않게 조금 더 올린다
@@ -5263,7 +5764,11 @@ async function boot() {
     return show("screen-banned");
   }
   if (!state.profile?.invited) return show("screen-invite");
-  if (!state.character) { setupCreate(); return show("screen-create"); }
+  if (!state.character) {
+    setupCreate(); show("screen-create");
+    if (!tourSeen("story-irto")) playStory("irto");   // 첫 스토리: 계정을 만든 뒤, 캐릭터를 만들기 전에 한 번
+    return;
+  }
   renderHunter();
   initSfx();
   initBgm();
