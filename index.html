@@ -5665,9 +5665,9 @@ function startTour(key) {
   const textEl = h("p", { class: "tour-text", "aria-live": "polite" });
   const artEl = h("div", { class: "tour-art" });
   const dots = h("div", { class: "tour-dots", "aria-hidden": "true" }, ...steps.map(() => h("i")));
-  const mob = isMobileView();   // 모바일은 글자 대신 기호로 (✕ · < · >)
-  const prev = h("button", { type: "button", class: "btn ghost small", "aria-label": "이전" }, mob ? "<" : "이전");
-  const next = h("button", { type: "button", class: "btn small", "aria-label": "다음" }, mob ? ">" : "다음");
+  const mob = isMobileView();   // 모바일은 글자 대신 기호로 (✕ · ← · →)
+  const prev = h("button", { type: "button", class: "btn ghost small", "aria-label": "이전" }, mob ? "←" : "이전");
+  const next = h("button", { type: "button", class: "btn small", "aria-label": "다음" }, mob ? "→" : "다음");
   const skip = h("button", { type: "button", class: "tour-skip", "aria-label": "건너뛰기" }, mob ? "✕" : "건너뛰기");
   const card = h("div", { class: "tour-card", role: "dialog", "aria-modal": "true", "aria-label": "화면 소개" },
     h("div", { class: "tour-who" }, h("div", { class: "tour-av sym", "aria-hidden": "true" }, "all_inclusive"),
@@ -5721,7 +5721,7 @@ function startTour(key) {
     artEl.replaceChildren(...(st.art ? [st.art()] : []));
     [...dots.children].forEach((d, k) => d.classList.toggle("on", k === i));
     prev.hidden = i === 0;
-    next.textContent = i === steps.length - 1 ? "확인" : (mob ? ">" : "다음");
+    next.textContent = i === steps.length - 1 ? "확인" : (mob ? "→" : "다음");
     type(st.text);
     place();
     setTimeout(() => {   // 스크롤이 끝난 뒤 다시 맞춤. 모바일은 아래 말풍선에 가리지 않게 조금 더 올린다
