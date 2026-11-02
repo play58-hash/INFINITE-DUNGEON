@@ -329,6 +329,14 @@ code.c { font-family: ui-monospace, Menlo, monospace; background: var(--surface-
 .dg-note { margin: 0; font-weight: 700; }
 .report-title { margin: 0 0 4px; font-size: 22px; }
 .report .kv:first-child { border-top: 0; }
+.online-dot { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-dim); white-space: nowrap; }
+.online-dot::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+.online-dot.on { color: var(--text); font-weight: 600; }
+.online-dot.on::before { background: #22c55e; box-shadow: 0 0 0 3px color-mix(in srgb, #22c55e 25%, transparent); }
+.hunter-search { display: flex; gap: 8px; margin: 0 0 12px; }
+.hunter-search .input { flex: 1; min-width: 0; }
+table.list.hunters td.hpos { color: var(--text-dim); font-size: 14px; }
+@media (max-width: 560px) { table.list.hunters th.hpos, table.list.hunters td.hpos { display: none; } }
 table.list.rank tr.me td { background: color-mix(in srgb, var(--primary) 10%, transparent); font-weight: 700; }
 .rank-n {
   display: inline-flex; width: 26px; height: 26px; border-radius: 50%; align-items: center; justify-content: center;
@@ -1719,11 +1727,14 @@ function paintSocialBadge() {
   });
   fitTopbar();
 }
+/* 접속 표시: 화면이 열려 있는 동안 마지막 접속 시각을 남긴다 (3분 안이면 '접속 중') */
+function touchPresence() { if (state.user && document.visibilityState === "visible") sb.rpc("touch_presence").then(() => {}, () => {}); }
+document.addEventListener("visibilitychange", touchPresence);
 function startSocial() {
   stopSocial();
   refreshSocial();
-  refreshSideSns(); refreshSideParty();
-  social.poll = setInterval(() => { refreshSocial(); refreshSideSns(); refreshSideParty(); }, 60000);
+  refreshSideSns(); refreshSideParty(); touchPresence();
+  social.poll = setInterval(() => { refreshSocial(); refreshSideSns(); refreshSideParty(); touchPresence(); }, 60000);
   // 새 메시지는 실시간으로 받는다
   social.chan = sb.channel("dm-" + state.user.id)
     .on("postgres_changes", { event: "INSERT", schema: "public", table: "dm_messages", filter: `recipient=eq.${state.user.id}` }, payload => {
@@ -4233,11 +4244,13 @@ function openStats() {
 /* ===== 국제헌터연합: 주간 랭킹 ===== */
 let unionMode = "solo";
 let unionView = "rank";
-const unionTabs = pane => h("div", { class: "tabs", style: "max-width:260px;margin:0 0 14px", "data-tour": "un-tabs" },
+const unionTabs = pane => h("div", { class: "tabs", style: "max-width:360px;margin:0 0 14px", "data-tour": "un-tabs" },
   h("button", { type: "button", class: unionView === "rank" ? "on" : null, onclick: () => { unionView = "rank"; renderUnion(pane); } }, "랭킹"),
-  h("button", { type: "button", class: unionView === "codex" ? "on" : null, onclick: () => { unionView = "codex"; renderCodex(pane); } }, "도감"));
+  h("button", { type: "button", class: unionView === "codex" ? "on" : null, onclick: () => { unionView = "codex"; renderCodex(pane); } }, "도감"),
+  h("button", { type: "button", class: unionView === "hunters" ? "on" : null, onclick: () => { unionView = "hunters"; renderHunters(pane); } }, "헌터"));
 async function renderUnion(pane, offset = 0, mode = unionMode) {
   if (unionView === "codex") return renderCodex(pane);
+  if (unionView === "hunters") return renderHunters(pane);
   unionMode = mode;
   const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
   pane.replaceChildren(
@@ -4281,6 +4294,52 @@ async function renderUnion(pane, offset = 0, mode = unionMode) {
         h("td", {}, mode === "party" ? h("span", { class: "rank-party" }, `${r.members.length}명`, h("small", {}, r.members.filter(m => !m.leader).map(m => m.codename).join(", "))) : `${r.grade}급 · Lv.${r.level}`),
         h("td", { style: "text-align:right;font-weight:700" }, `${r.best_station}역`))))));
   maybeTour("union-rank");
+}
+
+/* ===== 국제헌터연합: 헌터 ===== */
+let hunterQuery = "";
+async function renderHunters(pane) {
+  const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
+  const q = h("input", { class: "input", type: "search", maxlength: "20", placeholder: "코드네임 검색", "aria-label": "코드네임 검색", value: hunterQuery });
+  const go = h("button", { class: "btn small", type: "submit" }, "검색");
+  const reset = h("button", { class: "btn ghost small", type: "button", hidden: !hunterQuery }, "전체");
+  const form = h("form", { class: "hunter-search", "data-tour": "hu-search" }, q, go, reset);
+  form.onsubmit = e => { e.preventDefault(); hunterQuery = q.value.trim(); reset.hidden = !hunterQuery; load(0, true); };
+  reset.onclick = () => { q.value = ""; hunterQuery = ""; reset.hidden = true; load(0, true); };
+  pane.replaceChildren(paneHead("국제헌터연합", "union-hunters"), unionTabs(pane),
+    h("p", { class: "hint", style: "margin:0 0 14px" }, "등록된 헌터의 등급·레벨·포지션과 접속 여부를 확인할 수 있습니다. 코드네임을 누르면 헌터 정보를 보고 친구 신청이나 파티 초대를 할 수 있습니다."),
+    form, body);
+  const tbody = h("tbody", {});
+  const summary = h("p", { class: "hint", style: "margin:0 0 8px" });
+  const more = h("button", { class: "btn ghost block", type: "button", style: "margin-top:12px", hidden: true }, "더 보기");
+  let offset = 0;
+  const row = r => h("tr", { class: r.me ? "me" : null },
+    h("td", {}, h("button", { type: "button", class: "hunter-link", onclick: () => openPublicHunter(r.codename) }, r.codename)),
+    h("td", {}, `${r.grade}급 · Lv.${r.level}`),
+    h("td", { class: "hpos" }, (POSITIONS[r.main_position]?.name || r.main_position) + (r.sub_position ? ` / ${POSITIONS[r.sub_position]?.name || r.sub_position}` : "")),
+    h("td", { style: "text-align:right" }, h("span", { class: "online-dot" + (r.online ? " on" : "") }, r.online ? "접속 중" : "미접속")));
+  async function load(from, fresh) {
+    if (fresh) body.replaceChildren(h("p", { class: "hint" }, "불러오는 중…"));
+    more.disabled = true;
+    const { data, error } = await sb.rpc("hunter_list", { p_query: hunterQuery || null, p_offset: from });
+    more.disabled = false;
+    if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
+    if (fresh) {
+      tbody.replaceChildren();
+      if (!data.rows.length) return body.replaceChildren(h("div", { class: "soon" }, hunterQuery ? `'${hunterQuery}'이(가) 들어간 코드네임의 헌터가 없습니다.` : "아직 등록된 헌터가 없습니다."));
+      body.replaceChildren(summary,
+        h("table", { class: "list rank hunters", "data-tour": "hu-table" },
+          h("thead", {}, h("tr", {}, h("th", {}, "헌터"), h("th", {}, "등급"), h("th", { class: "hpos" }, "포지션"), h("th", { style: "text-align:right" }, "접속"))),
+          tbody), more);
+    }
+    summary.textContent = (hunterQuery ? `검색 결과 ${data.total}명` : `헌터 ${data.total}명`) + ` · 접속 중 ${data.online}명`;
+    tbody.append(...data.rows.map(row));
+    offset = from + data.rows.length;
+    more.hidden = offset >= data.total;
+  }
+  more.onclick = () => load(offset, false);
+  await load(0, true);
+  maybeTour("union-hunters");
 }
 
 /* 지역 안정화 도감 지도: 등장방형 세계 지도(1000×394, 경도 -180~180, 위도 84~-58) 위에 발견한 던전의 도시를 점으로 */
@@ -4826,7 +4885,7 @@ const DOCS = {
 
 <article class="card prose" id="g-union">
 <h2>국제헌터연합</h2>
-<p>국제헌터연합에서는 주간 무한 던전 랭킹 발표와 도감 기록을 제공하고 있습니다.</p>
+<p>국제헌터연합에서는 주간 무한 던전 랭킹 발표와 도감 기록, 헌터 명단을 제공하고 있습니다.</p>
 <h3>랭킹</h3>
 <p>무한 던전 랭킹은 형평성을 위해 개인 공략과 파티 공략으로 나누어 발표하며, 같은 수의 역을 공략한 경우, 먼저 도달한 헌터님이 높은 순위가 됩니다.</p>
 <p>한국 기준 매주 월요일 0시에 새로 시작되며, 그 이전 주 랭킹은 확정된 순위로 참고하여 주세요.</p>
@@ -4834,6 +4893,9 @@ const DOCS = {
 <p>던전, 몬스터, 조합식, 아이템, 타이틀, 스토리를 확인할 때마다 자동으로 기록하고 있습니다.</p>
 <p>몬스터의 경우 10번 쓰러뜨리면 강한 정도와 드롭 정보를 제공합니다(보스는 1번).</p>
 <p>도감 달성률은 다른 헌터가 확인할 수 있으며, 달성률에 따라 획득 가능한 타이틀도 존재합니다.</p>
+<h3>헌터</h3>
+<p>등록된 헌터의 코드네임, 등급, 레벨, 포지션과 접속 여부를 확인할 수 있으며, 코드네임으로 특정 헌터를 검색할 수 있습니다.</p>
+<p>코드네임을 누르면 헌터 정보를 확인하고 친구 신청과 파티 초대를 할 수 있습니다.</p>
 </article>
 
 <article class="card prose" id="g-inv">
@@ -4911,7 +4973,7 @@ const DOCS = {
 <tr><td>신고 내용</td><td>신고한 본인과 운영자 (신고당한 헌터에게 신고자를 알리지 않음)</td></tr>
 <tr><td>메헨 · 아이템 · 장비 · 전투 기록 · 할 일 목록</td><td>본인과 운영자</td></tr>
 <tr><td>활동 횟수 기록 · 도감 · 퀘스트 진행</td><td>본인과 운영자 (도감 달성률과 장착한 타이틀은 다른 헌터도 볼 수 있음)</td></tr>
-<tr><td>이메일 · 접속 기록</td><td>본인과 운영자</td></tr>
+<tr><td>이메일 · 접속 기록</td><td>본인과 운영자 (지금 접속 중인지는 국제헌터연합 헌터 명단에서 다른 헌터도 볼 수 있음)</td></tr>
 <tr><td>비밀번호</td><td><b>아무도 볼 수 없음.</b> 암호화(해시)되어 저장되며 운영자도 확인할 수 없습니다. 분실 시 ${contactHtml}으로 요청하면 운영자가 새 비밀번호로 재설정합니다.</td></tr>
 </tbody>
 </table></div>
@@ -5585,6 +5647,11 @@ const TOURS = {
     { sel: '[data-tour="cx-mon"]', text: "아직 모르는 몬스터는 ???로 표시합니다.\n한 번 쓰러뜨리면 설명이, 10번(보스는 1번) 쓰러뜨리면 강함과 드롭 정보를 확인할 수 있습니다." },
     { sel: ".codex-map", text: "지역 안정화 던전은 지도에 표시됩니다.\n발견한 도시에 점이 찍히고, 누르면 던전 정보 확인이 가능합니다. 5번 안정화하면 드롭 정보를 확인할 수 있습니다." },
     { text: "도감 달성률은 다른 헌터가 확인할 수 있습니다.\n달성률에 따라 타이틀 조각도 받을 수 있으니 참고 부탁드립니다." },
+  ],
+  "union-hunters": [
+    { sel: '[data-tour="hu-search"]', text: "등록된 헌터를 확인할 수 있습니다.\n코드네임 일부를 입력하여 특정 헌터를 검색할 수 있습니다." },
+    { sel: '[data-tour="hu-table"]', text: "헌터마다 등급, 레벨, 포지션과 지금 접속 중인지를 보여 줍니다.\n접속 중인 헌터가 먼저 나오고, 그다음은 레벨이 높은 순입니다." },
+    { text: "코드네임을 누르면 헌터 정보를 확인하고, 친구 신청과 파티 초대를 할 수 있습니다." },
   ],
   "inv-items": [
     { sel: '[data-tour="inv-tabs"]', text: "인벤토리에서는 가진 물건을 관리하고, 상점에서 사고, 조합으로 새 아이템을 만들 수 있습니다." },
