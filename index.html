@@ -4850,16 +4850,12 @@ function openHunter() {
   $("#e-vis").value = p.bio_visibility;
   $("#e-email").textContent = state.user?.email || "";
   regionOptions($("#e-region"), p.region);
-  $("#e-title-line").replaceChildren(titleLine(state.titles?.line, p.codename));
-  $("#e-grade-line").textContent = `${c.grade}급 · Lv.${c.level}`;
+  paintHunterGrade();
   paintTitlePicker();
   const pos = POSITIONS[c.main_position];
   $("#e-position").textContent = `메인 포지션: ${posLabel(c.main_position, c.main_option)} · 선호 ${prefText(c.main_position)}`
     + (c.sub_position ? ` / 서브: ${posLabel(c.sub_position, c.sub_option)}` : c.level >= 25 ? " / 서브 포지션 선택 가능" : " / 서브 포지션은 25레벨부터")
     + " · 변경 불가";
-  $("#e-start-grade").replaceChildren(`각성 등급: ${c.start_grade}급 · 다음 승급 ${nextPromotion(c.grade)}`,
-    !c.remeasured && c.grade === c.start_grade ? h("button", { type: "button", class: "btn ghost small", style: "margin-left:8px;min-height:30px;padding:2px 10px",
-      onclick: async e => { const d = await remeasureGrade(e.currentTarget); if (d) { toast(`각성 등급 재측정: ${d.before}급 → ${d.grade}급`); await loadAll(); renderHunter(); openHunter(); } } }, "재측정 (1회)") : null);
   $("#edit-error").textContent = "";
   const sbox = $("#e-stats");
   sbox.replaceChildren(
@@ -4873,6 +4869,27 @@ function openHunter() {
   renderEditAvatar();
   $("#dlg-hunter").showModal();
   maybeTour("hunter");
+}
+// 세부 정보 창의 등급 부분만 다시 그린다 (재측정 뒤 입력 중인 소개·구역 등은 그대로 둔다)
+function paintHunterGrade() {
+  const p = state.profile, c = state.character;
+  $("#e-title-line").replaceChildren(titleLine(state.titles?.line, p.codename));
+  $("#e-grade-line").textContent = `${c.grade}급 · Lv.${c.level}`;
+  $("#e-start-grade").replaceChildren(`각성 등급: ${c.start_grade}급 · 다음 승급 ${nextPromotion(c.grade)}`,
+    !c.remeasured && c.grade === c.start_grade ? h("button", { type: "button", class: "btn ghost small", style: "margin-left:8px;min-height:30px;padding:2px 10px",
+      onclick: async e => {
+        const d = await remeasureGrade(e.currentTarget);
+        if (!d) return;
+        toast(`각성 등급 재측정: ${d.before}급 → ${d.grade}급`);
+        // 타이틀 고르던 칸도 지켜 둔다 (거둬진 등급 타이틀은 빠진다)
+        const keep = { front: $("#e-title-front")?.value, back: $("#e-title-back")?.value };
+        await loadAll(); renderHunter();
+        paintHunterGrade(); paintTitlePicker();
+        for (const [k, v] of Object.entries(keep)) {
+          const sel = $(`#e-title-${k}`);
+          if (sel && v != null && [...sel.options].some(o => o.value === v)) { sel.value = v; sel.dispatchEvent(new Event("change")); }
+        }
+      } }, "재측정 (1회)") : null);
 }
 $("#e-help").onclick = () => startTour("hunter");
 function renderEditAvatar() {
