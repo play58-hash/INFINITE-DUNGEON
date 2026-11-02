@@ -2136,7 +2136,9 @@ async function renderParty(body, pane) {
     parts.push(h("div", { class: "fr-sec", "data-tour": "pt-members" },
       h("p", { class: "panel-title" }, `내 파티 ${p.size} / ${p.max}`,
         h("span", { class: "hint", style: "font-weight:500" }, ` · 몬스터 세기 ×${Number(p.scale).toFixed(3).replace(/\.?0+$/, "")}`)),
-      p.busy ? h("div", { class: "rg-notice" }, h("b", {}, "파티가 던전에 들어가 있습니다."), " 모두 결과를 받을 때까지 파티를 바꿀 수 없습니다.") : null,
+      p.busy ? h("div", { class: "rg-notice" }, h("b", {}, "파티가 던전에 들어가 있습니다."), " 공략이 끝날 때까지 파티를 바꿀 수 없습니다.") : null,
+      !p.busy && p.members.some(m => !m.me && /결과 대기/.test(m.activity || "")) ? h("div", { class: "rg-notice" }, h("b", {}, "결과를 받지 않은 파티원이 있어 출발할 수 없습니다."),
+        ` 기다리거나, 파티에서 나가 새 파티를 꾸릴 수 있습니다${ld ? "(파티장은 그 파티원을 내보낼 수도 있습니다)" : ""}. 받지 않은 결과는 파티를 떠나도 각자 나중에 받을 수 있습니다.`) : null,
       p.gap_ok ? null : h("p", { class: "error", style: "margin:0 0 8px" }, `파티원 레벨 차이가 ${p.gap}입니다. 25 이상이면 파티는 유지되지만 공략할 수 없습니다.`),
       ...p.members.map(m => {
         const right = [];
@@ -2145,7 +2147,7 @@ async function renderParty(body, pane) {
           h("button", { class: "btn ghost small", type: "button", onclick: async () => { if (confirm(`${m.codename}님을 파티에서 내보낼까요?`) && await partyRun("party_kick", { p_codename: m.codename }, "파티에서 내보냈습니다.")) reload(); } }, "내보내기"));
         return h("div", { class: "fr-row pt-mrow" }, miniAvatar(m),
           h("div", { class: "fr-main" }, h("div", {}, m.me ? h("b", {}, m.codename) : hunterLink(m), m.leader ? h("span", { class: "badge", style: "margin-left:6px" }, "파티장") : null),
-            h("div", { class: "hint" }, `${hunterSub(m)} · ${posName(m)}${m.sub_position ? ` / ${POSITIONS[m.sub_position]?.name || m.sub_position}` : ""} · ${m.activity || "대기 중"}`)),
+            h("div", { class: "hint" }, `${hunterSub(m)} · ${m.option ? posLabel(m.position, m.option) : posName(m)}${m.sub_position ? ` / ${m.sub_option ? POSITIONS[m.sub_position]?.[m.sub_option]?.name : POSITIONS[m.sub_position]?.name || m.sub_position}` : ""} · ${m.activity || "대기 중"}`)),
           right.length ? h("div", { class: "pt-acts" }, ...right) : null);
       }),
       p.invited.length ? h("div", { style: "margin-top:8px" }, h("p", { class: "panel-title" }, "보낸 초대 (하루 동안 유효)"),
@@ -2166,6 +2168,7 @@ async function renderParty(body, pane) {
     h("ul", { class: "hint", style: "margin:0;padding-left:18px;line-height:1.7" },
       h("li", {}, "1~5명. 파티는 해산하기 전까지 유지되고, 같은 파티는 언제나 같은 활동을 합니다."),
       h("li", {}, "파티장이 출발을 누르면 모두 함께 들어갑니다. 파티원 중 누가 다른 활동(무한 던전·지역 안정화·탐색·별의 무덤) 중이거나 결과를 받지 않았으면 출발할 수 없습니다."),
+      h("li", {}, "공략 시간이 끝나면 결과를 받지 않은 파티원이 있어도 파티를 나가거나 내보낼 수 있습니다. 받지 않은 결과는 파티를 떠나도 나중에 받을 수 있습니다."),
       h("li", {}, "몬스터의 HP·공격력은 들어간 인원에 비례해 강해지고, 보상(가능성·메헨·아이템)은 모두 똑같이 받습니다."),
       h("li", {}, "한 명이 쓰러져도 나머지가 계속 공략합니다. 무한 던전의 복귀는 파티장만 정할 수 있고, '조금 더 진입'은 없습니다."),
       h("li", {}, "뱅가드·힐러·서포터의 능력은 파티원 1명에게 쓰입니다. 뱅가드는 가장 위태로운 동료의 공격을 대신 받고, 힐러는 가장 다친 동료를 치유하며, 서포터는 가장 강한 동료를 강화하거나 가장 약한 동료가 받는 피해를 줄입니다."),
@@ -5087,7 +5090,8 @@ const DOCS = {
 <thead><tr><th>등급</th><th>F급</th><th>E급</th><th>D급</th><th>C급</th><th>B급</th><th>A급</th><th>S급</th></tr></thead>
 <tbody><tr><th>승급 레벨</th><td>1</td><td>10</td><td>20</td><td>35</td><td>50</td><td>70</td><td>100</td></tr></tbody>
 </table></div>
-<p>각성 등급은 <b>한 번 재측정</b>할 수 있습니다. 등록 때 재측정하지 않았다면 <b>승급하기 전까지는</b> 헌터 정보의 [재측정 (1회)]으로 언제든 다시 측정할 수 있습니다. 재측정 결과는 이전보다 낮더라도 새로 나온 등급으로 확정되며, 각성 등급 타이틀도 새 등급으로 바뀝니다.</p>
+<p>각성 등급은 <b>한 번 재측정</b>할 수 있습니다. 등록 때 재측정하지 않았다면 <b>승급하기 전까지는</b> 헌터 정보의 [재측정 (1회)]으로 언제든 다시 측정할 수 있습니다. 재측정 결과는 이전보다 낮더라도 새로 나온 등급으로 확정되며, 등급 타이틀도 새 등급에 맞춰 다시 정해집니다.</p>
+<p>등급 타이틀은 각성하거나 승급한 등급까지 <b>그 아래 등급의 타이틀을 모두</b> 받을 수 있습니다. 예를 들어 B급으로 각성하면 F·E·D·C·B급 타이틀을 함께 받으며, 재측정으로 등급이 낮아지면 그보다 높은 등급 타이틀은 회수됩니다.</p>
 </article>
 
 <article class="card prose" id="g-stat">
@@ -5218,6 +5222,7 @@ const DOCS = {
 <h3>파티</h3>
 <p>함께 공략하고 싶은 헌터가 있다면 코드네임으로 초대하여 파티를 맺을 수 있습니다. 초대한 사람이 파티장으로 임명되며, 파티는 최대 5명이 참가할 수 있습니다.</p>
 <p>공략은 파티장의 조작으로 전원이 함께 합니다. 단, 파티 구성원 중 1명이라도 다른 활동을 하고 있거나, 파티원 내 최고·최저 레벨 차이가 25레벨 이상이면 공략 활동을 할 수 없습니다.</p>
+<p>공략 시간이 끝난 뒤에는 결과를 받지 않은 파티원이 있어도 파티를 나가거나 내보낼 수 있습니다. 받지 않은 결과는 파티를 떠나도 각자 나중에 받을 수 있습니다.</p>
 <p>무한 던전 파티 랭킹은 파티장의 코드네임이 대표로 올라가며, 세부 정보로 파티원 코드네임까지 확인할 수 있습니다.</p>
 <h3>선물함</h3>
 <p>친구끼리는 재화·아이템을 주고 받을 수 있습니다. 하루 10번까지 가능하며, 상대가 받지 않거나 거절하면 되돌아옵니다.</p>
