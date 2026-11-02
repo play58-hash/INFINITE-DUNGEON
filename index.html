@@ -271,6 +271,9 @@ code.c { font-family: ui-monospace, Menlo, monospace; background: var(--surface-
 .ev-enter.ev-boss span { color: var(--danger); }
 .ev-down { color: var(--danger); font-weight: 700; }
 .ev-pdown { color: var(--danger); font-weight: 600; }
+.side-feed li.side-post { cursor: pointer; border-radius: 8px; transition: background .15s; }
+.side-feed li.side-post:hover, .side-feed li.side-post:focus-visible { background: color-mix(in srgb, var(--primary) 7%, transparent); outline: none; }
+.sns-post.focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 55%, transparent); transition: box-shadow .3s; }
 .side-sns-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .side-sns-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 8px; }
 .side-sns-tabs button { border: 1px solid var(--border); background: transparent; color: var(--text-dim); border-radius: 999px; padding: 2px 9px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
@@ -1829,6 +1832,8 @@ function paintNotifBadge() {
 function notifGo(link) {
   const [where, tab] = (link || "").split(":");
   if (where === "hunter") return openHunter();
+  const extra = (link || "").split(":")[2];
+  if (where === "social" && tab === "sns" && extra) { $("#dlg-notif").open && $("#dlg-notif").close(); return openSnsPost(extra, null); }
   if (where === "social") { nextSocialTab = tab || "sns"; if (tab === "sns") { snsView = "all"; snsCat = null; } return route() === "friends" ? renderSocial($("#main-pane"), nextSocialTab) : (location.hash = "#/friends"); }
   if (where === "inv") { nextInvTab = tab || null; return route() === "inventory" ? renderInventory($("#main-pane"), tab) : (location.hash = "#/inventory"); }
   if (["regional", "dungeon", "home"].includes(where)) location.hash = "#/" + where;
@@ -1995,9 +2000,16 @@ async function refreshSideSns() {
         h("div", { class: "side-feed-head" }, m.author ? miniAvatar(m.author, 22) : null, m.author ? hunterLink(m.author) : h("b", {}, "(떠난 헌터)"), h("span", { class: "hint" }, fmtWhen(m.at))),
         h("p", {}, m.body.length > 70 ? m.body.slice(0, 70) + "…" : m.body))))
       : h("p", { class: "hint", style: "margin:0 0 10px" }, "길드 채팅이 아직 없습니다."))
-    : (posts.length ? h("ul", { class: "side-feed" }, ...posts.map(p => h("li", {},
-        h("div", { class: "side-feed-head" }, miniAvatar(p.author, 22), hunterLink(p.author), catChip(p.category), h("span", { class: "hint" }, fmtWhen(p.at))),
-        h("p", {}, p.body.length > 70 ? p.body.slice(0, 70) + "…" : p.body))))
+    : (posts.length ? h("ul", { class: "side-feed" }, ...posts.map(p => {
+        const li = h("li", { class: "side-post", tabindex: "0", role: "link", "aria-label": `${p.author?.codename || ""}님의 글 열기` },
+          h("div", { class: "side-feed-head" }, miniAvatar(p.author, 22), hunterLink(p.author), catChip(p.category), h("span", { class: "hint" }, fmtWhen(p.at))),
+          h("p", {}, p.body.length > 70 ? p.body.slice(0, 70) + "…" : p.body),
+          p.comments ? h("span", { class: "hint", style: "font-size:12px" }, `댓글 ${p.comments}`) : null);
+        const open = e => { if (e.target.closest("button, a")) return; openSnsPost(p.id, sideSnsCat); };
+        li.onclick = open;
+        li.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); open(e); } };
+        return li;
+      }))
       : h("p", { class: "hint", style: "margin:0 0 10px" }, sideSnsCat ? `'${sideSnsCat}' 글이 아직 없습니다.` : "아직 글이 없습니다."));
   box.replaceChildren(
     h("div", { class: "side-sns-head" }, h("p", { class: "panel-title", style: "margin:0" }, "SNS"), toggle),
@@ -2466,6 +2478,11 @@ async function renderGifts(body) {
 let snsCat = null;
 /* SNS 탭: 전체 SNS · 길드 */
 let snsView = "all";
+let snsFocus = null;   // 열자마자 보여 줄 글 (오른쪽 SNS·알림에서 눌렀을 때)
+function openSnsPost(id, cat) {
+  snsFocus = Number(id); snsView = "all"; snsCat = cat ?? null; nextSocialTab = "sns";
+  route() === "friends" ? renderSocial($("#main-pane"), "sns") : (location.hash = "#/friends");
+}
 function renderSnsWrap(body, pane) {
   const s = social.summary || {};
   const sub = h("div", {});
@@ -2653,6 +2670,18 @@ async function renderSns(body) {
     posts = reset ? data.posts : [...posts, ...data.posts];
     moreBtn.hidden = data.posts.length < 20;
     feed.replaceChildren(...(posts.length ? posts.map(postCard) : [h("p", { class: "hint" }, "아직 글이 없습니다. 첫 글을 남겨 보세요.")]));
+    if (snsFocus) {
+      const el = feed.querySelector(`[data-post="${snsFocus}"]`);
+      if (el) {
+        snsFocus = null;
+        requestAnimationFrame(() => {
+          el.scrollIntoView({ block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+          el.classList.add("focus"); setTimeout(() => el.classList.remove("focus"), 2400);
+          el.querySelector(".sns-actions .link-btn:not([hidden])")?.textContent.startsWith("댓글") && el.querySelector(".sns-actions .link-btn").click();
+        });
+      } else if (!moreBtn.hidden && posts.length < 100) return load(false);   // 더 아래에 있으면 이어서 불러온다
+      else { snsFocus = null; toast("글을 찾을 수 없습니다. 지워졌거나 숨겨진 글일 수 있습니다."); }
+    }
   }
   function postCard(p) {
     const cbox = h("div", { class: "sns-comments", hidden: true });
@@ -2692,7 +2721,7 @@ async function renderSns(body) {
               loadComments(data); } }, "삭제")
           : h("button", { type: "button", class: "link-btn", onclick: () => openReport("comment", String(c.id), "댓글") }, "신고"))), replyBar, f);
     }
-    return h("article", { class: "sns-post" },
+    return h("article", { class: "sns-post", "data-post": String(p.id) },
       h("div", { class: "fr-row" }, miniAvatar(p.author),
         h("div", { class: "fr-main" }, h("div", {}, hunterLink(p.author), h("span", { class: "hint" }, ` · ${hunterSub(p.author)}`)), h("div", { class: "hint" }, fmtWhen(p.at))),
         catChip(p.category)),
@@ -2747,7 +2776,7 @@ async function openPublicHunter(codename) {
       titleLine(p.title, p.codename),
       h("div", { class: "grade-line" }, p.admin ? "운영자" : `${p.grade}급 · Lv.${p.level}`),
       p.admin ? (p.guild ? h("div", { class: "hint" }, `${p.guild} 길드`) : null)
-        : h("div", { class: "hint" }, (p.guild ? `${p.guild} 길드 · ` : "") + `${REGIONS[p.region] || p.region} 구역 · ${POSITIONS[p.main_position]?.name || p.main_position}${p.sub_position ? ` / ${POSITIONS[p.sub_position]?.name || p.sub_position}` : ""}`),
+        : h("div", { class: "hint" }, (p.guild ? `${p.guild} 길드 · ` : "") + `${REGIONS[p.region] || p.region} 구역 · ${p.main_option ? posLabel(p.main_position, p.main_option) : (POSITIONS[p.main_position]?.name || p.main_position)}${p.sub_position ? ` / 서브 ${p.sub_option ? posLabel(p.sub_position, p.sub_option) : (POSITIONS[p.sub_position]?.name || p.sub_position)}` : ""}`),
       p.friend ? h("span", { class: "badge", style: "margin-top:4px;display:inline-block" }, "친구") : null)),
     h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "특징"),
     h("p", { style: "margin:0;white-space:pre-wrap" }, p.bio || h("span", { class: "hint" }, "공개하지 않았습니다.")),
@@ -4552,7 +4581,7 @@ async function renderHunters(pane) {
   const row = r => h("tr", { class: r.me ? "me" : null },
     h("td", {}, h("button", { type: "button", class: "hunter-link", onclick: () => openPublicHunter(r.codename) }, r.codename)),
     h("td", {}, `${r.grade}급 · Lv.${r.level}`),
-    h("td", { class: "hpos" }, (POSITIONS[r.main_position]?.name || r.main_position) + (r.sub_position ? ` / ${POSITIONS[r.sub_position]?.name || r.sub_position}` : "")),
+    h("td", { class: "hpos" }, (r.main_option ? posLabel(r.main_position, r.main_option) : (POSITIONS[r.main_position]?.name || r.main_position)) + (r.sub_position ? ` / ${r.sub_option ? POSITIONS[r.sub_position]?.[r.sub_option]?.name : POSITIONS[r.sub_position]?.name}` : "")),
     h("td", { style: "text-align:right" }, h("span", { class: "online-dot" + (r.online ? " on" : "") }, r.online ? "접속 중" : "미접속")));
   async function load(from, fresh) {
     if (fresh) body.replaceChildren(h("p", { class: "hint" }, "불러오는 중…"));
