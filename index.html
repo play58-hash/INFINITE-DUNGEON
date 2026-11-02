@@ -1193,7 +1193,7 @@ const POSITIONS = {
     A: { name: "카탈리스트", en: "catalyst", tag: "촉매", desc: "아군을 극대화하는 헌터.", effect: "아군 1명의 ATK·DEF +20%" },
     B: { name: "아티피스", en: "artifice", tag: "계략", desc: "적을 무력화시키는 헌터.", effect: "적 1명의 ATK·DEF -20%" } },
   healer: { name: "힐러", desc: "아군이 지치지 않도록 독려하는 헌터.",
-    A: { name: "리커버리", en: "recovery", tag: "회복", desc: "아군의 부상을 치유하는 헌터.", effect: "아군의 HP가 50% 미만일 경우 HP 30% 회복" },
+    A: { name: "리커버리", en: "recovery", tag: "회복", desc: "아군의 부상을 치유하는 헌터.", effect: "아군의 HP가 50% 미만일 경우 HP 30% 회복 (지역 안정화는 공략마다 인원 수만큼, HP 15%)" },
     B: { name: "서플라이", en: "supply", tag: "공급", desc: "아군의 이능력 한도를 늘리는 헌터.", effect: "아군의 MP가 30% 미만일 경우 MP 30% 회복" } },
 };
 const posLabel = (pos, opt) => POSITIONS[pos] ? `${POSITIONS[pos].name} · ${POSITIONS[pos][opt]?.name || ""}` : "-";
@@ -2778,6 +2778,60 @@ function openReport(kind, target, label) {
     h("div", { class: "field" }, h("label", { for: "rp-reason" }, "사유"), sel),
     h("div", { class: "field" }, h("label", { for: "rp-detail" }, "설명"), detail),
     err, go);
+}
+
+/* 운영: 헌터 조회 (스탯·장비·최근 공략과 받은 피해) */
+function adminHunterSection() {
+  const q = h("input", { class: "input", id: "adm-hunter", autocomplete: "off", placeholder: "코드네임" });
+  const go = h("button", { class: "btn", type: "submit" }, "조회");
+  const out = h("div", {});
+  const form = h("form", { style: "display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;max-width:420px" },
+    h("div", { class: "field", style: "margin:0" }, h("label", { for: "adm-hunter" }, "코드네임"), q), go);
+  const STAT = ["hp", "mp", "atk", "def", "luk"], PER = { hp: 10, mp: 5, atk: 1, def: 1, luk: 1 };
+  const kindName = { regional: "지역 안정화", infinite: "무한 던전" };
+  form.onsubmit = async e => {
+    e.preventDefault();
+    const v = q.value.trim();
+    if (!v) return;
+    busy(go, true, "…");
+    out.replaceChildren(h("p", { class: "hint" }, "불러오는 중…"));
+    const { data: d, error } = await sb.rpc("admin_hunter", { p_codename: v });
+    busy(go, false);
+    if (error) return out.replaceChildren(h("p", { class: "error" }, koError(error)));
+    const c = d.character, pr = d.profile;
+    const gearOf = k => d.stats[k] - c.base[k];
+    const online = pr.last_seen_at && Date.now() - Date.parse(pr.last_seen_at) < 180000;
+    out.replaceChildren(h("div", { class: "rg-notice", style: "margin:12px 0 0" },
+      h("p", { style: "margin:0 0 4px;font-weight:700;font-size:17px" }, d.codename, " ", h("span", { class: "badge" }, `${c.grade}급 · Lv.${c.level}`)),
+      h("p", { class: "hint", style: "margin:0 0 10px" },
+        `${posLabel(c.main_position, c.main_option)}${c.sub_position ? ` / 서브 ${posLabel(c.sub_position, c.sub_option)}` : ""} · 이능력 ${c.skill_name || "(기본)"} · ${REGIONS[pr.region] || pr.region} 구역 · `,
+        `각성 ${c.start_grade}급${c.remeasured ? "(재측정함)" : ""} · 가입 ${fmtDay(pr.created_at)} · ${online ? "접속 중" : pr.last_seen_at ? `마지막 접속 ${fmtWhen(pr.last_seen_at)}` : "접속 기록 없음"}`),
+      h("div", { class: "table-scroll" }, h("table", { class: "list" },
+        h("thead", {}, h("tr", {}, h("th", {}, ""), ...STAT.map(k => h("th", { style: "text-align:right" }, k.toUpperCase())))),
+        h("tbody", {},
+          h("tr", {}, h("td", {}, "기본+분석"), ...STAT.map(k => h("td", { style: "text-align:right" }, String(c.base[k] - (c.alloc?.[k] || 0) * PER[k])))),
+          h("tr", {}, h("td", {}, "분배"), ...STAT.map(k => h("td", { style: "text-align:right" }, c.alloc?.[k] ? `+${c.alloc[k] * PER[k]} (${c.alloc[k]}P)` : "-"))),
+          h("tr", {}, h("td", {}, "장비"), ...STAT.map(k => h("td", { style: "text-align:right" }, gearOf(k) ? `+${gearOf(k)}` : "-"))),
+          h("tr", {}, h("td", {}, h("b", {}, "합계")), ...STAT.map(k => h("td", { style: "text-align:right;font-weight:700" }, String(d.stats[k]))))))),
+      h("p", { class: "hint", style: "margin:8px 0 0" },
+        `무한 던전 도달 역(성공률 계산 기준) ${d.reach}역 · 남은 스탯 포인트 ${c.stat_points} · 메헨 ${Number(c.currency).toLocaleString()} Mh · 가능성 ${Number(c.potential_level).toLocaleString()} / ${needFor(c.level).toLocaleString()}`),
+      h("p", { class: "hint", style: "margin:4px 0 0" }, "장착: " + (d.gear.length ? d.gear.map(g => `${g.name}${g.enhance ? ` +${g.enhance}` : ""}`).join(", ") : "없음")),
+      h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "최근 공략 10개"),
+      d.runs.length ? h("div", {}, ...d.runs.map(r => h("div", { style: "border-top:1px dashed var(--border);padding:8px 0" },
+        h("div", {}, h("b", {}, kindName[r.kind] || r.kind), " · " + [r.grade || r.place ? `${r.grade ? `${r.grade}급 ` : ""}${r.place || ""}`.trim() : null, r.party ? "파티" : null, fmtWhen(r.started_at)].filter(Boolean).join(" · ") + " · ",
+          r.status === "running" ? "진행 중" : r.kind === "infinite" ? (r.reached ? `${r.reached}역 도달` : "결과 대기") : r.success ? "성공" : "실패"),
+        r.members ? h("div", { class: "table-scroll" }, h("table", { class: "list", style: "font-size:13.5px;margin-top:4px" },
+          h("thead", {}, h("tr", {}, h("th", {}, "헌터"), h("th", {}, "포지션"), h("th", { style: "text-align:right" }, "HP/MP/DEF"), h("th", { style: "text-align:right" }, "도달 역"), h("th", { style: "text-align:right" }, "받은 피해 (횟수 · 1회 평균)"))),
+          h("tbody", {}, ...r.members.map(m => h("tr", { class: m.me ? "me" : null },
+            h("td", {}, m.me ? h("b", {}, m.name) : m.name),
+            h("td", {}, posLabel(m.position, m.option)),
+            h("td", { style: "text-align:right" }, `${m.hp}/${m.mp}/${m.def}`),
+            h("td", { style: "text-align:right" }, m.reach ?? "-"),
+            h("td", { style: "text-align:right" }, `${m.dmg} (${m.hits}회 · ${m.hits ? (m.dmg / m.hits).toFixed(1) : "-"})`)))))) : null)))
+        : h("p", { class: "hint", style: "margin:0" }, "공략 기록이 없습니다."),
+      h("p", { class: "hint", style: "margin:8px 0 0;font-size:13px" }, "HP·MP·DEF와 도달 역은 공략을 시작할 때의 값입니다. 받은 피해는 지역 안정화 기록에서 셉니다(함정 포함).")));
+  };
+  return h("div", {}, form, out);
 }
 
 /* 운영: 신고 처리 */
@@ -4731,7 +4785,10 @@ async function renderAdmin(pane) {
 
   pane.replaceChildren(
     h("h2", {}, "운영"),
-    h("p", { class: "panel-title", style: "margin:16px 0 8px" }, "신고 처리"),
+    h("p", { class: "panel-title", style: "margin:16px 0 8px" }, "헌터 조회"),
+    h("p", { class: "hint", style: "margin:0 0 10px" }, "헌터의 스탯(분배·장비 포함), 포지션, 최근 공략과 공략마다 받은 피해를 확인합니다. 파티 공략은 같은 판의 파티원과 나란히 보여 줍니다."),
+    adminHunterSection(),
+    h("p", { class: "panel-title", style: "margin:24px 0 8px" }, "신고 처리"),
     adminReportsSection(),
     h("p", { class: "panel-title", style: "margin:16px 0 8px" }, "가능성 획득률"),
     h("p", { class: "hint", style: "margin:0 0 10px" }, "모든 콘텐츠에서 얻는 가능성에 곱해집니다. 레벨과 등급이 오르는 속도가 함께 바뀌며, 이미 받은 가능성에는 영향이 없습니다. (0.05~2)"),
@@ -5010,7 +5067,7 @@ const DOCS = {
 <tr><td><b>시타델</b><br>적의 공격으로부터 수호하는 헌터.</td><td>받는 피해 -20%<br>*아군이 n명일 때, 전원 받는 피해 -(20/n)%</td></tr>
 <tr><th rowspan="2">서포터</th><td rowspan="2">상대의 능력을 전략적으로 가감하는 헌터.<br><b>선호 스테이터스 MP·LUK</b></td><td><b>카탈리스트</b><br>아군을 극대화하는 헌터.</td><td>아군 1명의 ATK·DEF +20%</td></tr>
 <tr><td><b>아티피스</b><br>적을 무력화시키는 헌터.</td><td>적 1명의 ATK·DEF -20%</td></tr>
-<tr><th rowspan="2">힐러</th><td rowspan="2">아군이 지치지 않도록 독려하는 헌터.<br><b>선호 스테이터스 MP·HP</b></td><td><b>리커버리</b><br>아군의 부상을 치유하는 헌터.</td><td>아군의 HP가 50% 미만일 경우 HP 30% 회복</td></tr>
+<tr><th rowspan="2">힐러</th><td rowspan="2">아군이 지치지 않도록 독려하는 헌터.<br><b>선호 스테이터스 MP·HP</b></td><td><b>리커버리</b><br>아군의 부상을 치유하는 헌터.</td><td>아군의 HP가 50% 미만일 경우 HP 30% 회복<br>*지역 안정화에서는 공략마다 인원 수만큼(혼자면 1번), HP 15% 회복</td></tr>
 <tr><td><b>서플라이</b><br>아군의 이능력 한도를 늘리는 헌터.</td><td>아군의 MP가 30% 미만일 경우 MP 30% 회복</td></tr>
 </tbody>
 </table></div>
