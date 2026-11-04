@@ -303,6 +303,9 @@ code.c { font-family: ui-monospace, Menlo, monospace; background: var(--surface-
 .bt-name span { font-size: 12px; color: var(--text-dim); font-variant-numeric: tabular-nums; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .bt-unit .gauge { width: 100%; max-width: 100%; box-sizing: border-box; }
 .tour-art .bt { margin: 0; }
+.bt-name .bt-fx { margin-left: 6px; display: inline-flex; gap: 4px; font-size: 11px; color: var(--accent-text); font-weight: 700; overflow: visible; cursor: help; }
+.bt-name .bt-fx span { color: inherit; font-size: inherit; }
+.bt-legend { margin: -8px 0 14px; font-size: 12px; color: var(--text-dim); }
 .bt-unit .gauge { margin: 0; height: 7px; background: var(--surface); }
 .bt-unit .gauge.mp { height: 4px; }
 .gauge.foe i { background: var(--danger); }
@@ -2049,9 +2052,10 @@ function partyBars(list) {
 /* ===== 전투 현황 (아군·적 HP/MP 바) =====
    로그 이벤트의 hp·mp·mhp·mmp(혼자), party(파티), foes·fh·fmax(적)를 따라가며 지금 상태를 만든다. */
 function battleState(events, mode, fallbackMe) {
-  let me = fallbackMe ? { ...fallbackMe } : null, foes = null, party = null;
+  let me = fallbackMe ? { ...fallbackMe } : null, foes = null, party = null, fx = null;
   for (const e of events || []) {
     if (e.party) party = e.party;
+    if (e.type === "enter" && e.fx !== undefined) fx = e.fx;   // 구역·역에 들어설 때의 효과 현황
     if (e.hp != null) {
       if (e.mhp != null) me = { ...(me || {}), hp: e.hp, mp: e.mp, mhp: e.mhp, mmp: e.mmp };
       else if (me) { me.hp = e.hp; if (e.mp != null) me.mp = e.mp; }
@@ -2064,23 +2068,37 @@ function battleState(events, mode, fallbackMe) {
     } else if (e.fh && foes) foes.forEach((f, i) => { f.hp = Number(e.fh[i] ?? f.hp); });
     if (e.type === "clear" && foes) foes.forEach(f => { f.hp = 0; });
   }
-  return { me, foes, party };
+  return { me, foes, party, fx };
+}
+// 버프/디버프 기호: ▲ 아군 지원 · ◇ 아티피스 보호 · ▣ 받는 피해 감소 · ▼ 적 약화
+const FX_INFO = { atk: ["▲", "아군 지원 (ATK·DEF +30%)"], grd: ["◇", "아티피스 보호 (받는 피해 -20%)"], cut: ["▣", "받는 피해 감소"], weak: ["▼", "적 약화 (ATK·DEF -20%)"] };
+function fxBadges(f, used) {
+  if (!f) return null;
+  const out = [];
+  if (f.atk) { used.add("atk"); out.push(h("span", { title: FX_INFO.atk[1] + (f.atk > 1 ? ` ×${f.atk}` : "") }, f.atk > 1 ? `▲${f.atk}` : "▲")); }
+  if (f.grd) { used.add("grd"); out.push(h("span", { title: FX_INFO.grd[1] }, "◇")); }
+  if (f.cut) { used.add("cut"); out.push(h("span", { title: `받는 피해 -${f.cut}%` }, `▣${f.cut}`)); }
+  return out.length ? h("span", { class: "bt-fx", "aria-label": out.map(x => x.title).join(", ") }, ...out) : null;
 }
 function battleBars(st, myName) {
   const pct = (a, b) => b > 0 ? Math.max(0, Math.min(100, a / b * 100)) : 0;
+  const used = new Set();
+  const myFx = st.fx && !st.party ? st.fx : null;
   const ally = m => h("div", { class: `bt-unit${m.down || m.hp <= 0 ? " down" : ""}` },
-    h("div", { class: "bt-name" }, h("b", {}, m.n), h("span", {}, m.down || m.hp <= 0 ? "쓰러짐" : `HP ${m.hp}/${m.mhp} · MP ${m.mp ?? "-"}/${m.mmp ?? "-"}`)),
+    h("div", { class: "bt-name" }, h("b", {}, m.n, m.down || m.hp <= 0 ? null : fxBadges(st.party ? st.fx?.[m.n] : myFx, used)), h("span", {}, m.down || m.hp <= 0 ? "쓰러짐" : `HP ${m.hp}/${m.mhp} · MP ${m.mp ?? "-"}/${m.mmp ?? "-"}`)),
     h("div", { class: "gauge hp", title: "HP" }, h("i", { style: `width:${m.down ? 0 : pct(m.hp, m.mhp)}%` })),
     m.mmp ? h("div", { class: "gauge mp", title: "MP" }, h("i", { style: `width:${pct(m.mp, m.mmp)}%` })) : null);
   const allies = st.party || (st.me ? [{ n: myName, ...st.me }] : []);
   const foe = f => h("div", { class: `bt-unit${f.hp <= 0 ? " dead" : ""}${f.boss ? " boss" : ""}` },
-    h("div", { class: "bt-name" }, h("b", {}, (f.boss ? "보스 " : "") + f.n), h("span", {}, f.hp <= 0 ? "처치" : f.max > 1 ? `HP ${Math.round(f.hp)}/${Math.round(f.max)}` : "")),
+    h("div", { class: "bt-name" }, h("b", {}, (f.boss ? "보스 " : "") + f.n,
+      f.hp > 0 && myFx?.weak ? (used.add("weak"), h("span", { class: "bt-fx", title: FX_INFO.weak[1] }, "▼")) : null), h("span", {}, f.hp <= 0 ? "처치" : f.max > 1 ? `HP ${Math.round(f.hp)}/${Math.round(f.max)}` : "")),
     h("div", { class: "gauge foe", title: "HP" }, h("i", { style: `width:${pct(f.hp, f.max)}%` })));
-  return h("div", { class: "bt", "aria-label": "전투 현황" },
-    h("div", { class: "bt-side" }, h("p", { class: "bt-title" }, st.party ? `아군 · 파티 ${allies.length}명` : "아군"),
-      ...(allies.length ? allies.map(ally) : [h("p", { class: "bt-empty" }, "준비 중")])),
-    h("div", { class: "bt-side" }, h("p", { class: "bt-title" }, "적"),
-      ...(st.foes?.length ? st.foes.map(foe) : [h("p", { class: "bt-empty" }, "아직 만난 적이 없습니다.")])));
+  const allySide = h("div", { class: "bt-side" }, h("p", { class: "bt-title" }, st.party ? `아군 · 파티 ${allies.length}명` : "아군"),
+    ...(allies.length ? allies.map(ally) : [h("p", { class: "bt-empty" }, "준비 중")]));
+  const foeSide = h("div", { class: "bt-side" }, h("p", { class: "bt-title" }, "적"),
+    ...(st.foes?.length ? st.foes.map(foe) : [h("p", { class: "bt-empty" }, "아직 만난 적이 없습니다.")]));
+  const legend = used.size ? h("p", { class: "bt-legend" }, [...used].map(k => `${FX_INFO[k][0]} ${FX_INFO[k][1]}`).join(" · ")) : null;
+  return h("div", {}, h("div", { class: "bt", "aria-label": "전투 현황" }, allySide, foeSide), legend);
 }
 const myStartBars = () => { const t = state.stats || {}, c = state.character || {}; const mhp = t.hp ?? c.hp, mmp = t.mp ?? c.mp; return mhp ? { hp: mhp, mhp, mp: mmp, mmp } : null; };
 const lastParty = (events, start) => [...(events || [])].reverse().find(e => e.party)?.party || start;
