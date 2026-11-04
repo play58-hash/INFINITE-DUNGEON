@@ -3499,7 +3499,7 @@ async function renderRegionalBoard(body, act) {
 
   const info = h("div", { class: "rg-info", "data-tour": "rg-info" });
   const board = h("div", { class: "rg-board", "data-tour": "rg-board" });
-  const note = h("p", { class: "hint", style: "margin:10px 0 0" });
+  const note = h("p", { class: "hint", style: "margin:10px 0 0;white-space:pre-line" });
   const err = h("div", { class: "error", role: "alert" });
   const btn = h("button", { class: "btn block", type: "button", disabled: true, "data-tour": "rg-start" }, "공략할 던전을 고르세요");
   const tabs = h("div", { class: "tabs rg-tabs", "data-tour": "rg-tabs" });
@@ -3521,7 +3521,7 @@ async function renderRegionalBoard(body, act) {
       statBox("가능성", `+${Number(g.pot).toLocaleString()}`),
       statBox("메헨", `+${Number(g.cur).toLocaleString()} Mh`));
     note.textContent = `던전마다 장소와 테마가 다릅니다. 구역 ${g.zones}개. 구역마다 몬스터·보물·함정·휴식 같은 일이 생기고, 마지막 구역에서 보스를 만납니다. 구역을 지날 때마다 보상을 얻고, 보스를 쓰러뜨리면 던전이 안정화됩니다. 도중에 쓰러지면 그때까지의 보상만 받습니다.`
-      + (g.reward_mult < 1 ? ` 지금은 ${rg.top_grade}급까지 들어갈 수 있어서, 이 등급의 보상은 ${Math.round(g.reward_mult * 100)}%만 받습니다.` : "");
+      + (g.reward_mult < 1 ? `\n\n현재 헌터님은 ${rg.top_grade}급 던전까지 진입할 수 있어 이 등급의 보상은 ${Math.round(g.reward_mult * 100)}%만 받게 됩니다.` : "");
   }
   function paintBoard() {
     const list = rg.dungeons.filter(d => d.grade === rgGrade);
@@ -3589,9 +3589,9 @@ async function renderRegionalBoard(body, act) {
             h("span", { class: "alloc-val", style: "min-width:28px" }, String(n)),
             h("button", { type: "button", class: "btn ghost small", disabled: tot >= 3, "aria-label": `${name} 더하기`, onclick: () => { want[c] = n + 1; changed(); } }, "+")));
       }),
-      h("p", { class: "hint", style: "margin:4px 0 0" },
-        "HP가 50% 이하가 되면 챙긴 보급품을 자동으로 씁니다(안정 앰플 → 별조각 사탕 → 은하수 이슬 순). 출발할 때 가진 만큼만 챙기고, 쓰지 않은 것은 결과를 받을 때 돌려받습니다. 파티·대기실로 들어가면 이 중 1개만 챙깁니다."
-        + (Object.keys(packed).length ? "" : " 지금은 챙길 보급품이 없습니다.")));
+      h("p", { class: "hint", style: "margin:4px 0 0;white-space:pre-line" },
+        "HP가 50% 이하가 되면 챙긴 보급품을 자동으로 사용합니다(안정 앰플 → 별조각 사탕 → 은하수 이슬 순).\n쓰지 않은 것은 결과를 수령할 때 인벤토리로 회수됩니다.\n다인 공략의 경우, 이 중 1개만 보급품으로 챙겨갑니다."
+        + (Object.keys(packed).length ? "" : "\n지금은 선택한 보급품이 없습니다.")));
   }
   function changed() {
     paintRgSupplies("저장 중…");
