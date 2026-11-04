@@ -1118,6 +1118,11 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
       </div>
     </div>
     <div class="field">
+      <label for="e-credit">프로필 사진 출처</label>
+      <input id="e-credit" class="input" maxlength="100" placeholder="선택 · 예) 그림 @작가명, 픽크루 링크">
+      <span class="hint">적지 않아도 됩니다. 적으면 모든 헌터에게 공개됩니다.</span>
+    </div>
+    <div class="field">
       <label for="e-region">활동 구역</label>
       <select id="e-region" class="input"></select>
     </div>
@@ -1187,17 +1192,17 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 /* ===== 게임 기준 데이터 ===== */
 const POSITIONS = {
   dealer: { name: "딜러", desc: "강한 힘으로 적을 먼저 제압하는 헌터.",
-    A: { name: "갤런트리", en: "gallantry", tag: "용맹", desc: "마주한 상대와 정면 승부를 즐기는 헌터.", effect: "주는 피해 +20%" },
-    B: { name: "스카우트", en: "scout", tag: "정찰병", desc: "넓은 시야를 가지고 상황을 주도하는 헌터.", effect: "공격횟수 +1 (회당 피해 60%)" } },
+    A: { name: "갤런트리", en: "gallantry", tag: "용맹", desc: "마주한 상대와 정면 승부를 즐기는 헌터.", effect: "주는 피해 +20% · 지역 안정화: 공격받을 때 40% 확률로 반격(그 공격 피해 절반)" },
+    B: { name: "스카우트", en: "scout", tag: "정찰병", desc: "넓은 시야를 가지고 상황을 주도하는 헌터.", effect: "공격횟수 +1 (회당 피해 60%) · 지역 안정화: 공격받을 때 40% 확률로 반격(그 공격 피해 절반)" } },
   tanker: { name: "탱커", desc: "적의 공격에도 무너지지 않는 헌터.",
-    A: { name: "뱅가드", en: "vanguard", tag: "선봉", desc: "가장 앞으로 나가 적의 시선을 끄는 헌터.", effect: "도발 (가장 취약한 아군 1명 대신 피격) · 1인 공략 때는 10% 확률로 공격 회피" },
-    B: { name: "시타델", en: "citadel", tag: "성채", desc: "적의 공격으로부터 수호하는 헌터.", effect: "받는 피해 -20% (아군과 함께면 20%를 인원수로 나눠 모두 -(20/n)%)" } },
+    A: { name: "뱅가드", en: "vanguard", tag: "선봉", desc: "가장 앞으로 나가 적의 시선을 끄는 헌터.", effect: "도발 (가장 취약한 아군 1명 대신 피격) · 1인 공략 때는 10% 확률로 공격 회피 · 무한 던전: 직전 역에서 회피하지 못했으면 휴식 회복 1.5배" },
+    B: { name: "시타델", en: "citadel", tag: "성채", desc: "적의 공격으로부터 수호하는 헌터.", effect: "받는 피해 -20% (아군과 함께면 20%를 인원수로 나눠 모두 -(20/n)%) · 지역 안정화: 절반은 늘 적용, 절반은 구역마다 MP 5로 다시 걸기, 최대 -30%" } },
   supporter: { name: "서포터", desc: "상대의 능력을 전략적으로 가감하는 헌터.",
-    A: { name: "카탈리스트", en: "catalyst", tag: "촉매", desc: "아군을 극대화하는 헌터.", effect: "아군 1명의 ATK·DEF +20%" },
-    B: { name: "아티피스", en: "artifice", tag: "계략", desc: "적을 무력화시키는 헌터.", effect: "적 1명의 ATK·DEF -20%" } },
+    A: { name: "카탈리스트", en: "catalyst", tag: "촉매", desc: "아군을 극대화하는 헌터.", effect: "아군 1명의 ATK·DEF +30% (같은 아군에게 2명까지) · 1인 공략: ATK + MP의 20%(최대 12), 주는 피해 +10% · 지역 안정화: 구역마다 MP 5로 다시 걸기" },
+    B: { name: "아티피스", en: "artifice", tag: "계략", desc: "적을 무력화시키는 헌터.", effect: "적 1명의 ATK·DEF -20% · 지역 안정화: 구역마다 MP 5로 다시 걸기" } },
   healer: { name: "힐러", desc: "아군이 지치지 않도록 독려하는 헌터.",
     A: { name: "리커버리", en: "recovery", tag: "회복", desc: "아군의 부상을 치유하는 헌터.", effect: "아군의 HP가 50% 미만일 경우 HP 30% 회복 (지역 안정화는 공략마다 인원 수만큼, HP 15%)" },
-    B: { name: "서플라이", en: "supply", tag: "공급", desc: "아군의 이능력 한도를 늘리는 헌터.", effect: "아군의 MP가 30% 미만일 경우 MP 30% 회복" } },
+    B: { name: "서플라이", en: "supply", tag: "공급", desc: "아군의 이능력 한도를 늘리는 헌터.", effect: "아군의 MP가 30% 미만일 경우 MP 30% 회복 · 그런 아군이 없고 자신의 MP가 30% 이상이면 HP가 가장 낮은 아군 HP 15% 회복 (구역·역마다 1번)" } },
 };
 const posLabel = (pos, opt) => POSITIONS[pos] ? `${POSITIONS[pos].name} · ${POSITIONS[pos][opt]?.name || ""}` : "-";
 // 포지션 고르기 (캐릭터 생성 · 서브 포지션 공용)
@@ -2171,7 +2176,7 @@ async function renderParty(body, pane) {
       h("li", {}, "공략 시간이 끝나면 결과를 받지 않은 파티원이 있어도 파티를 나가거나 내보낼 수 있습니다. 받지 않은 결과는 파티를 떠나도 나중에 받을 수 있습니다."),
       h("li", {}, "몬스터의 HP·공격력은 들어간 인원에 비례해 강해지고, 보상(가능성·메헨·아이템)은 모두 똑같이 받습니다."),
       h("li", {}, "한 명이 쓰러져도 나머지가 계속 공략합니다. 무한 던전의 복귀는 파티장만 정할 수 있고, '조금 더 진입'은 없습니다."),
-      h("li", {}, "뱅가드·힐러·서포터의 능력은 파티원 1명에게 쓰입니다. 뱅가드는 가장 위태로운 동료의 공격을 대신 받고, 힐러는 가장 다친 동료를 치유하며, 서포터는 가장 강한 동료를 강화하거나 가장 약한 동료가 받는 피해를 줄입니다."),
+      h("li", {}, "뱅가드·힐러·서포터의 능력은 파티원 1명에게 쓰입니다. 뱅가드는 가장 위태로운 동료의 공격을 대신 받고, 힐러는 가장 다친 동료를 치유하며, 서포터는 가장 강한 동료를 강화하거나 가장 약한 동료가 받는 피해를 줄입니다. 같은 포지션이 여럿이면 서로 다른 동료에게 씁니다(카탈리스트는 같은 동료에게 두 명까지)."),
       h("li", {}, "최고·최저 레벨 차이가 25 이상이면 파티는 만들 수 있지만 공략할 수 없습니다."),
       h("li", {}, "지역 안정화는 파티장의 활동 구역 던전을, 파티원 모두가 입장 레벨을 넘어야 들어갈 수 있습니다. 보상 비율은 가장 높은 레벨을 기준으로 합니다."),
       h("li", {}, "파티 무한 던전 기록은 국제헌터연합의 '파티' 랭킹에 파티장 이름으로 오릅니다."))));
@@ -2781,6 +2786,7 @@ async function openPublicHunter(codename) {
       p.admin ? (p.guild ? h("div", { class: "hint" }, `${p.guild} 길드`) : null)
         : h("div", { class: "hint" }, (p.guild ? `${p.guild} 길드 · ` : "") + `${REGIONS[p.region] || p.region} 구역 · ${p.main_option ? posLabel(p.main_position, p.main_option) : (POSITIONS[p.main_position]?.name || p.main_position)}${p.sub_position ? ` / 서브 ${p.sub_option ? posLabel(p.sub_position, p.sub_option) : (POSITIONS[p.sub_position]?.name || p.sub_position)}` : ""}`),
       p.friend ? h("span", { class: "badge", style: "margin-top:4px;display:inline-block" }, "친구") : null)),
+    p.avatar_credit ? h("p", { class: "hint", style: "margin:10px 0 0;overflow-wrap:anywhere" }, `프로필 사진 출처: ${p.avatar_credit}`) : null,
     h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "특징"),
     h("p", { style: "margin:0;white-space:pre-wrap" }, p.bio || h("span", { class: "hint" }, "공개하지 않았습니다.")),
     p.codex ? h("p", { class: "panel-title", style: "margin:14px 0 6px" }, `도감 달성률 ${p.codex.all ?? 0}%`) : null,
@@ -2939,11 +2945,13 @@ async function renderHome(pane) {
     const left = h("span", { class: "home-big" });
     const bar = h("i", { style: "width:0%" });
     const btnWrap = h("div", { style: "margin-top:10px" }, goBtn(isRg ? "공략 보기" : "던전 보기", isRg ? "#/regional" : "#/dungeon", isRg ? null : "battle", true));
-    const start = Date.parse(a.started_at), end = Date.parse(a.ends_at);
+    // 무한 던전은 던전 화면처럼 정한 진입 시간(planned_end)까지 센다. 실제 복귀(ends_at)가 더 이르면 그때 '복귀 완료'로 바뀐다.
+    const start = Date.parse(a.started_at), back = Date.parse(a.ends_at);
+    const end = !isRg && a.planned_end ? Math.max(back, Date.parse(a.planned_end)) : back;
     let doneShown = false;
     ticks.push(() => {
-      const ms = end - nowS();
-      bar.style.width = Math.max(0, Math.min(100, (nowS() - start) / (end - start) * 100)) + "%";
+      const ms = nowS() >= back ? 0 : end - nowS();
+      bar.style.width = (ms <= 0 ? 100 : Math.max(0, Math.min(100, (nowS() - start) / (end - start) * 100))) + "%";
       if (ms > 0) left.textContent = fmtDur(ms);
       else if (!doneShown) {
         doneShown = true;
@@ -2953,7 +2961,7 @@ async function renderHome(pane) {
       }
     });
     actBox.append(h("div", { class: "home-act" },
-      h("div", { class: "row" }, h("strong", {}, title), h("span", { class: "hint" }, `${fmtTime(a.ends_at)} 복귀`)),
+      h("div", { class: "row" }, h("strong", {}, title), h("span", { class: "hint" }, `${fmtTime(new Date(end).toISOString())} 복귀`)),
       h("div", { class: "row", style: "margin-top:4px" }, h("span", { class: "hint" }, "남은 시간"), left),
       h("div", { class: "bar", style: "margin-top:8px" }, bar), btnWrap));
   }
@@ -3562,7 +3570,40 @@ async function renderRegionalBoard(body, act) {
   } else if (busyElsewhere) parts.push(exploring ? exploreNotice() : starring ? starNotice() : h("div", { class: "rg-notice" },
     h("p", { style: "margin:0 0 8px;font-weight:700" }, "무한 던전에 진입해 있어 지금은 공략할 수 없습니다."),
     h("a", { class: "btn small", href: "#/dungeon" }, "무한 던전으로 가기")));
-  parts.push(tabs, info, board, note);
+  // 보급품: HP 회복 소비 아이템 최대 3개 (파티는 이 중 1개). 정해 두면 출발할 때 가진 만큼 챙긴다.
+  const RG_SUP = [["coffee", "안정 앰플", "HP 30%"], ["medkit", "별조각 사탕", "HP 60%"], ["ampoule", "은하수 이슬", "HP·MP 50%"]];
+  const want = { ...(rg.rg_supplies || {}) }, have = rg.supplies_have || {};
+  const supBox = h("div", { class: "rg-supplies", "data-tour": "rg-supplies", style: "margin-top:14px" });
+  let supSave = null;
+  function paintRgSupplies(msg) {
+    const tot = RG_SUP.reduce((a, [c]) => a + (want[c] || 0), 0);
+    const packed = rg.supplies_packed || {};
+    supBox.replaceChildren(
+      h("div", { class: "kv", style: "border:0;padding:0 0 4px" }, h("span", {}, "보급품"), h("span", { class: "hint" }, msg || `${tot}/3개${pt ? " · 파티는 1개" : ""}`)),
+      ...RG_SUP.map(([c, name, eff]) => {
+        const n = want[c] || 0;
+        return h("div", { class: "sup-row" },
+          h("div", {}, h("strong", {}, name), h("span", { class: "hint" }, ` ${eff} 회복 · 보유 ${have[c] || 0}`)),
+          h("div", { class: "alloc-ctl" },
+            h("button", { type: "button", class: "btn ghost small", disabled: n === 0, "aria-label": `${name} 빼기`, onclick: () => { want[c] = n - 1; changed(); } }, "−"),
+            h("span", { class: "alloc-val", style: "min-width:28px" }, String(n)),
+            h("button", { type: "button", class: "btn ghost small", disabled: tot >= 3, "aria-label": `${name} 더하기`, onclick: () => { want[c] = n + 1; changed(); } }, "+")));
+      }),
+      h("p", { class: "hint", style: "margin:4px 0 0" },
+        "HP가 50% 이하가 되면 챙긴 보급품을 자동으로 씁니다(안정 앰플 → 별조각 사탕 → 은하수 이슬 순). 출발할 때 가진 만큼만 챙기고, 쓰지 않은 것은 결과를 받을 때 돌려받습니다. 파티·대기실로 들어가면 이 중 1개만 챙깁니다."
+        + (Object.keys(packed).length ? "" : " 지금은 챙길 보급품이 없습니다.")));
+  }
+  function changed() {
+    paintRgSupplies("저장 중…");
+    clearTimeout(supSave);
+    supSave = setTimeout(async () => {
+      const { error } = await sb.rpc("set_rg_supplies", { p: Object.fromEntries(Object.entries(want).filter(([, n]) => n > 0)) });
+      if (error) { err.textContent = koError(error); return paintRgSupplies(); }
+      renderRegionalBoard(body, act);   // 예상 성공률에 보급품 반영
+    }, 800);
+  }
+  paintRgSupplies();
+  parts.push(tabs, info, board, supBox, note);
   if (state.profile?.is_admin) {
     const sel = h("select", { class: "input", id: "rg-speed" },
       h("option", { value: "1" }, "실시간"),
@@ -3769,6 +3810,12 @@ function showRegionalReport(body, r) {
   ];
   kids.push(h("div", { class: "report" }, ...rows.map(([k, v]) => h("div", { class: "kv" }, h("span", {}, k), h("span", {}, v)))));
   if (r.drops?.length) kids.push(h("p", { class: "panel-title", style: "margin:18px 0 8px" }, "획득한 아이템"), dropList(r.drops));
+  if (r.supplies_used?.length || r.supplies_returned?.length) {
+    kids.push(h("p", { class: "panel-title", style: "margin:18px 0 8px" }, "사용한 보급품"),
+      r.supplies_used?.length ? dropList(r.supplies_used) : h("p", { class: "hint", style: "margin:0" }, "사용한 보급품이 없습니다."));
+    if (r.supplies_returned?.length) kids.push(h("p", { class: "hint", style: "margin:10px 0 0" },
+      "돌려받은 보급품: " + r.supplies_returned.map(x => `${x.name} ${x.qty}개`).join(", ")));
+  }
   if (r.points > 0) kids.push(h("button", { class: "btn ghost block", style: "margin-top:16px", type: "button", onclick: openStats }, "스탯 포인트 분배하기"));
   if (state.character && canPromote(state.character)) kids.push(h("button", { class: "btn ghost block", style: "margin-top:8px", type: "button", onclick: e => doPromote(e.currentTarget) }, `${nextGrade(state.character.grade)}급으로 승급하기`));
   kids.push(h("button", { class: "btn block", style: "margin-top:8px", type: "button", onclick: () => renderRegional($("#main-pane")) }, "확인"));
@@ -4850,6 +4897,7 @@ function openHunter() {
   $("#e-codename").value = p.codename;
   $("#e-skill").value = c.skill_name || "";
   $("#e-bio").value = p.bio || "";
+  $("#e-credit").value = p.avatar_credit || "";
   $("#e-vis").value = p.bio_visibility;
   $("#e-email").textContent = state.user?.email || "";
   regionOptions($("#e-region"), p.region);
@@ -4958,6 +5006,7 @@ $("#e-save").onclick = async () => {
     const { error } = await sb.from("profiles").update({
       codename, avatar_url, avatar_color: edit.color,
       bio: $("#e-bio").value.trim() || null,
+      avatar_credit: $("#e-credit").value.trim() || null,
       bio_visibility: $("#e-vis").value, region: $("#e-region").value,
     }).eq("user_id", state.user.id);
     if (error) {
@@ -5112,16 +5161,17 @@ const DOCS = {
 <div class="table-scroll"><table>
 <thead><tr><th>포지션</th><th>설명</th><th>세부 포지션</th><th>특화 능력</th></tr></thead>
 <tbody>
-<tr><th rowspan="2">딜러</th><td rowspan="2">강한 힘으로 적을 먼저 제압하는 헌터.<br><b>선호 스테이터스 ATK·LUK</b></td><td><b>갤런트리</b><br>마주한 상대와 정면 승부를 즐기는 헌터.</td><td>주는 피해 +20%</td></tr>
-<tr><td><b>스카우트</b><br>넓은 시야를 가지고 상황을 주도하는 헌터.</td><td>공격횟수 +1 (회당 피해 60%)</td></tr>
-<tr><th rowspan="2">탱커</th><td rowspan="2">적의 공격에도 무너지지 않는 헌터.<br><b>선호 스테이터스 HP·DEF</b></td><td><b>뱅가드</b><br>가장 앞으로 나가 적의 시선을 끄는 헌터.</td><td>도발 (가장 취약한 아군 1명 대신 피격)<br>*1인 공략 때는 10% 확률로 공격 회피</td></tr>
-<tr><td><b>시타델</b><br>적의 공격으로부터 수호하는 헌터.</td><td>받는 피해 -20%<br>*아군이 n명일 때, 전원 받는 피해 -(20/n)%</td></tr>
-<tr><th rowspan="2">서포터</th><td rowspan="2">상대의 능력을 전략적으로 가감하는 헌터.<br><b>선호 스테이터스 MP·LUK</b></td><td><b>카탈리스트</b><br>아군을 극대화하는 헌터.</td><td>아군 1명의 ATK·DEF +20%</td></tr>
-<tr><td><b>아티피스</b><br>적을 무력화시키는 헌터.</td><td>적 1명의 ATK·DEF -20%</td></tr>
+<tr><th rowspan="2">딜러</th><td rowspan="2">강한 힘으로 적을 먼저 제압하는 헌터.<br><b>선호 스테이터스 ATK·LUK</b></td><td><b>갤런트리</b><br>마주한 상대와 정면 승부를 즐기는 헌터.</td><td>주는 피해 +20%<br>*지역 안정화에서는 공격받을 때 40% 확률로 반격하고, 그 공격의 피해는 절반만 받음</td></tr>
+<tr><td><b>스카우트</b><br>넓은 시야를 가지고 상황을 주도하는 헌터.</td><td>공격횟수 +1 (회당 피해 60%)<br>*지역 안정화에서는 공격받을 때 40% 확률로 반격하고, 그 공격의 피해는 절반만 받음</td></tr>
+<tr><th rowspan="2">탱커</th><td rowspan="2">적의 공격에도 무너지지 않는 헌터.<br><b>선호 스테이터스 HP·DEF</b></td><td><b>뱅가드</b><br>가장 앞으로 나가 적의 시선을 끄는 헌터.</td><td>도발 (가장 취약한 아군 1명 대신 피격)<br>*1인 공략 때는 10% 확률로 공격 회피<br>*무한 던전에서는 직전 역에서 회피하지 못했다면 휴식 회복이 1.5배</td></tr>
+<tr><td><b>시타델</b><br>적의 공격으로부터 수호하는 헌터.</td><td>받는 피해 -20%<br>*아군이 n명일 때, 전원 받는 피해 -(20/n)%<br>*지역 안정화에서는 -(10/n)%는 늘 적용되고, 나머지 -(10/n)%는 구역마다 MP 5를 써서 다시 겁니다. 시타델이 여러 명이어도 최대 -30%</td></tr>
+<tr><th rowspan="2">서포터</th><td rowspan="2">상대의 능력을 전략적으로 가감하는 헌터.<br><b>선호 스테이터스 MP·LUK</b></td><td><b>카탈리스트</b><br>아군을 극대화하는 헌터.</td><td>아군 1명의 ATK·DEF +30%<br>*같은 아군에게는 카탈리스트 2명까지 겹칠 수 있음<br>*1인 공략 때는 ATK에 MP의 20%를 더하고(최대 +12), 주는 피해 +10%<br>*지역 안정화에서는 구역마다 MP 5를 써서 다시 겁니다</td></tr>
+<tr><td><b>아티피스</b><br>적을 무력화시키는 헌터.</td><td>적 1명의 ATK·DEF -20%<br>*지역 안정화에서는 구역마다 MP 5를 써서 다시 겁니다</td></tr>
 <tr><th rowspan="2">힐러</th><td rowspan="2">아군이 지치지 않도록 독려하는 헌터.<br><b>선호 스테이터스 MP·HP</b></td><td><b>리커버리</b><br>아군의 부상을 치유하는 헌터.</td><td>아군의 HP가 50% 미만일 경우 HP 30% 회복<br>*지역 안정화에서는 공략마다 인원 수만큼(혼자면 1번), HP 15% 회복</td></tr>
-<tr><td><b>서플라이</b><br>아군의 이능력 한도를 늘리는 헌터.</td><td>아군의 MP가 30% 미만일 경우 MP 30% 회복</td></tr>
+<tr><td><b>서플라이</b><br>아군의 이능력 한도를 늘리는 헌터.</td><td>아군의 MP가 30% 미만일 경우 MP 30% 회복<br>*그런 아군이 없고 자신의 MP가 30% 이상이면, MP 5를 써서 HP가 가장 낮은 아군(혼자면 자신)의 HP 15% 회복 (지역 안정화는 구역당, 무한 던전은 역당 1번)</td></tr>
 </tbody>
 </table></div>
+<p>같은 세부 포지션이 여럿이면 특화 능력은 서로 다른 아군(또는 적)에게 쓰입니다. 남는 대상이 없으면 쓰지 않습니다. 카탈리스트의 아군 지원만 같은 아군에게 두 명까지 겹칩니다.</p>
 <p>원활한 전략 수립을 위하여 등급 측정과 동시에 메인 포지션을 선택하도록 돕고 있습니다.</p>
 <p>가능성의 축적으로 <b>25레벨이 될 경우, 서브 포지션을 선택할 수 있으며, 각 포지션 절반 수준의 특화 능력</b>을 가질 수 있습니다. <b>메인 포지션과 동일한 포지션을 서브로 선택하실 경우, 특화 능력이 1.5배</b>가 됩니다.</p>
 </article>
@@ -5130,6 +5180,7 @@ const DOCS = {
 <h2>프로필 사진·소개</h2>
 <p>프로필 사진과 캐릭터 소개를 바꿀 수 있습니다.</p>
 <p>프로필 사진은 1:1의 이미지나 단색으로 설정이 가능하며, 소개는 공개 범위를 정하여 보여주고 싶은 사람에게만 보여줄 수 있습니다.</p>
+<p>사진을 직접 그리지 않았다면 세부 정보의 <b>프로필 사진 출처</b>에 그린 분이나 만든 곳을 적을 수 있습니다. 적지 않아도 되며, 적은 출처는 헌터 정보에서 모든 헌터에게 보입니다.</p>
 <h2>타이틀</h2>
 <p>모은 타이틀 조각으로 코드네임의 앞과 뒤를 꾸밀 수 있습니다. 가진 조각은 도감에서 확인 가능합니다.</p>
 </article>
@@ -5165,6 +5216,12 @@ const DOCS = {
 <p>이미 공략 중인 던전은 안정화가 된 후 국제헌터연합에서 재관측 후 새로 입장할 수 있는 던전으로 안내드리오니 참고 부탁드립니다.</p>
 <p>던전 진입 전, 선택 후 헌터님의 전력으로 예상 성공률, 공략 시간, 획득 가능성, 획득 재화를 확인할 수 있습니다.</p>
 <p>도중에 쓰러진 경우, 그때까지 정리한 구역의 보상을 수령하고 던전은 그대로 잔존합니다.</p>
+<h3>전투</h3>
+<p>몬스터는 턴마다 공격하므로, <b>적을 빠르게 처치할수록 받는 피해가 줄어듭니다.</b> 전투가 길어질수록 더 많이 공격받습니다.</p>
+<p>카탈리스트의 아군 지원, 아티피스의 적군 약화, 시타델의 추가 피해 감소는 <b>구역이 바뀌면 끝나며, 다음 구역에서 MP 5를 써서 다시 겁니다.</b> MP가 부족하면 그 구역에서는 효과가 없으므로, 다시 걸 MP는 공격보다 먼저 남겨 둡니다.</p>
+<h3>보급품</h3>
+<p>지역 안정화 화면에서 <b>HP를 회복하는 소비 아이템(안정 앰플·별조각 사탕·은하수 이슬)을 최대 3개까지 보급품으로 정해 둘 수 있습니다.</b> 출발할 때 가진 만큼 챙기며, <b>HP가 50% 이하가 되면 자동으로 사용</b>합니다(안정 앰플 → 별조각 사탕 → 은하수 이슬 순).</p>
+<p>대기실·파티로 여럿이 공략할 때는 정해 둔 것 중 <b>1개만</b> 각자 챙깁니다. 쓰지 않은 보급품은 결과를 받을 때 돌려받습니다. 예상 성공률은 챙길 보급품까지 넣어 계산합니다.</p>
 <h3>대기실</h3>
 <p>던전을 고르고 [대기실 입장]을 누르면 그 던전의 대기실로 이동합니다. 대기실에는 최대 5명까지 들어올 수 있고, 입장한 헌터의 코드네임, 등급, 레벨, 포지션을 확인할 수 있습니다. 누군가 대기실에 들어간 던전은 지역 안정화 화면에 대기 인원이 표시됩니다.</p>
 <p><b>[준비 완료]를 누르면 30초 동안 다른 헌터의 준비를 기다립니다.</b> 모두 준비 완료를 누르면 바로 출발하고, 30초가 지나면 그때 대기실에 있는 헌터와 함께 무조건 출발합니다. <b>누군가 준비 완료를 눌렀다면 30초가 지나기 전에 [바로 출발]로 먼저 출발</b>할 수 있습니다. 혼자 있을 때 준비 완료를 누르면 바로 출발합니다.</p>
@@ -5911,7 +5968,8 @@ const TOURS = {
     { text: "지역 안정화는 무한 던전이 발견되기 전부터 헌터의 기본 업무이기도 합니다. 헌터님의 활동 구역에 나타난 던전을 공략해 안정시킬 수 있습니다." },
     { sel: '[data-tour="rg-tabs"]', text: "던전은 등급별로 나뉘어져 있습니다. 지금 등급까지 들어갈 수 있고, 더 높은 등급에 들어갈 수 있으면 낮은 등급의 보상은 감소합니다." },
     { sel: '[data-tour="rg-board"]', text: "같은 구역의 헌터들이 함께 출입하기 때문에 누군가 공략 중이거나 이미 안정화한 던전에는 진입이 불가합니다.\n안정화된 던전은 30분 뒤 국제헌터연합의 관측에 따라 새롭게 안내됩니다." },
-    { sel: '[data-tour="rg-info"]', text: "던전을 선택하면 장소와 테마, 구역 수, 예상 성공률을 확인할 수 있습니다.\n성공률은 헌터님의 전력(무한 던전 도달 역, HP·DEF, 포지션)으로 미리 계산한 수치입니다." },
+    { sel: '[data-tour="rg-info"]', text: "던전을 선택하면 장소와 테마, 구역 수, 예상 성공률을 확인할 수 있습니다.\n성공률은 헌터님의 전력(무한 던전 도달 역, HP·DEF, 포지션)과 챙길 보급품으로 미리 계산한 수치입니다." },
+    { sel: '[data-tour="rg-supplies"]', text: "HP를 회복하는 소비 아이템을 최대 3개까지 보급품으로 정해 둘 수 있습니다.\nHP가 50% 이하가 되면 자동으로 쓰고, 쓰지 않은 것은 결과를 받을 때 돌려받습니다.\n여럿이 공략할 때는 이 중 1개만 챙깁니다." },
     { sel: '[data-tour="rg-start"]', text: "던전을 고르고 [대기실 입장]을 누르면 함께 공략할 헌터를 기다리는 대기실로 이동합니다.\n공략을 시작하면 구역을 하나씩 지나며 몬스터를 물리치고, 마지막 구역의 보스를 쓰러뜨리면 안정화 성공으로 간주합니다." },
     { text: "공략 중에는 아군과 적의 HP를 실시간으로 확인할 수 있습니다.\n도중에 쓰러질 경우, 그때까지 정리한 구역의 보상만 받고, 던전은 그대로 잔존합니다.", art: tourRegionalArt },
     { text: "파티로 들어가면 몬스터는 인원만큼 강해지지만 성공률이 오르고, 보상은 모두 똑같이 수령합니다.\n그럼 무운을 빕니다." },
