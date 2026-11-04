@@ -3069,12 +3069,12 @@ async function renderHome(pane) {
             busy(right, true, "…");
             const { data, error } = await sb.rpc("quest_claim", { p_code: q.code });
             if (error) { busy(right, false); return toast(koError(error)); }
-            toast(`가능성 +${data.pot}` + (data.level_after > data.level_before ? " — 레벨이 올랐습니다!" : ""));
+            toast(`가능성 +${data.pot}` + (data.items || []).map(it => ` · ${it.name} +${it.qty}`).join("") + (data.level_after > data.level_before ? " — 레벨이 올랐습니다!" : ""));
             await loadAll(); renderHunter(); paintQuests(); paintStory();
           };
         } else right = h("span", { class: "hint" }, "진행 전");
         return h("li", { class: q.claimed ? "done" : null },
-          h("div", { class: "fr-main" }, h("b", {}, q.name), h("div", { class: "hint" }, `${q.desc} · 가능성 +${q.reward}`)), right);
+          h("div", { class: "fr-main" }, h("b", {}, q.name), h("div", { class: "hint" }, `${q.desc} · 가능성 +${q.reward}` + (q.items || []).map(it => ` · ${it.name} ${it.qty}`).join(""))), right);
       })),
       h("p", { class: "hint", style: "margin:8px 0 0;font-size:13px" }, "매일 0시(한국 시간)에 새로 시작합니다."));
   }
@@ -5946,7 +5946,7 @@ const TOURS = {
     { sel: "#nav, #tabbar", text: "무한 던전, 지역 안정화, 국제헌터연합, 인벤토리, 교류로 이동하는 메뉴입니다." },
     { sel: '[data-tour="hm-act"]', text: "지금 하고 있는 활동 내역입니다. 무한 던전이나 지역 안정화는 창을 닫아도 서버에서 계속 진행되기 때문에 계속 보고 있지 않으셔도 괜찮습니다." },
     { sel: '[data-tour="hm-count"]', text: "필요한 재료를 얻을 수 있는 탐색과 별의 무덤은 하루 횟수가 정해져 있습니다.\n매일 0시(한국 시간)에 횟수가 초기화됩니다." },
-    { sel: '[data-tour="hm-quest"]', text: "꾸준한 활동을 격려하기 위한 일일 퀘스트가 마련되어 있습니다. 퀘스트를 완수하셨다면 하루가 끝나기 전, [받기]를 눌러 가능성을 수령해주시기 바랍니다." },
+    { sel: '[data-tour="hm-quest"]', text: "꾸준한 활동을 격려하기 위한 일일 퀘스트가 마련되어 있습니다. 퀘스트를 완수하셨다면 하루가 끝나기 전, [받기]를 눌러 가능성과 안정 앰플을 수령해주시기 바랍니다." },
     { sel: '[data-tour="hm-an"]', text: "스테이터스 하나를 골라 분석하면 단계마다 그 스테이터스가 상승합니다. 던전 공략이나 탐색 등 다른 활동과 동시에 할 수 있으니 주기적으로 확인하여 분석하시기를 권장드립니다." },
     { sel: '[data-tour="hm-story"]', text: "스토리 퀘스트에서는 순차적으로 현 상황에서 중요한 이야기를 확인하실 수 있습니다. 현재는 튜토리얼이 마련되어 있으므로 기본 활동을 익히면서 장비와 아이템도 받을 수 있습니다." },
     { sel: '[data-tour="hm-todo"]', text: "헌터님만 확인할 수 있는 메모장이에요. 할 일을 적어 두고 끝나면 체크하실 수 있습니다." },
