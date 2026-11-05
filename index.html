@@ -4153,9 +4153,9 @@ let invCat = "all", invSort = "default", invQ = "";
 const INV_CATS = [["all", "전체"], ["gear", "장비"], ["cons", "소비"], ["mats", "재료"]];
 const INV_SORTS = [["default", "기본 순"], ["high", "등급 높은 순"], ["low", "등급 낮은 순"], ["name", "이름 순"], ["qty", "많이 가진 순"]];
 const GRADE_RANK = { E: 1, D: 2, C: 3, B: 4, A: 5, S: 6 }, RARITY_RANK = { common: 1, normal: 2, rare: 3 };
-// 등급(희귀도): 장비는 티어 → 강화 단계, 재료는 희귀도 → 보스 재료 등급. 소비 아이템은 등급이 없어 기본 순서를 지킨다.
+// 등급(희귀도): 장비는 티어 → 강화 단계, 소비 아이템·재료는 희귀도 → 보스 재료 등급.
 const itemRank = x => x.slot ? x.tier * 100 + (x.enhance || 0)
-  : x.kind === "material" ? (RARITY_RANK[x.rarity] || 0) * 100 + (GRADE_RANK[x.grade] || 0) * 10 : 0;
+  : (RARITY_RANK[x.rarity] || 0) * 100 + (GRADE_RANK[x.grade] || 0) * 10;
 const itemLabel = x => x.slot ? gearName(x) : x.name;
 function invSorted(arr, word) {
   const w = (word || "").toLowerCase();
@@ -4196,7 +4196,7 @@ function renderOwned(body, inv, act, refresh) {
   const stackRow = x => h("div", { class: "item-row" },
     h("div", { class: "item-main" },
       h("strong", {}, `${x.name} × ${x.qty}`),
-      h("div", { class: "hint" }, (x.kind === "consumable" ? fmtEffect(x.effect) : matInfo(x)) + ` · 개당 ${x.sell_price}`),
+      h("div", { class: "hint" }, (x.kind === "consumable" ? (RARITY[x.rarity] ? `${RARITY[x.rarity]} · ` : "") + fmtEffect(x.effect) : matInfo(x)) + ` · 개당 ${x.sell_price}`),
       h("div", { class: "hint item-desc" }, x.description)),
     h("div", { class: "item-actions" },
       h("button", { class: "btn ghost small", type: "button", "data-sfx": "own",
@@ -5647,7 +5647,8 @@ const DOCS = {
 <p>인벤토리 메뉴에서는 현재 가지고 있는 아이템, 상점, 조합, 거래소를 이용할 수 있습니다.</p>
 <h3>보유</h3>
 <p>현재 가지고 있는 장비, 소비, 재료 아이템을 확인 및 판매할 수 있습니다. 전체 · 장비 · 소비 · 재료로 나누어 넘겨 볼 수 있고(휴대폰에서는 목록을 옆으로 밀어도 넘어갑니다), 아이템 이름으로 검색할 수 있습니다.</p>
-<p>등급 순으로 정렬하면 장비는 티어와 강화 단계, 재료는 희귀도(흔함 · 보통 · 희귀)와 보스 재료 등급 순으로 늘어섭니다. 소비 아이템은 등급이 없어 기본 순서를 따릅니다.</p>
+<p>등급 순으로 정렬하면 장비는 티어와 강화 단계, 소비 아이템은 희귀도(흔함 · 보통 · 희귀), 재료는 희귀도와 보스 재료 등급 순으로 늘어섭니다.</p>
+<p>소비 아이템의 희귀도는 안정 앰플 · 각성 앰플이 흔함, 별조각 사탕이 보통, 은하수 이슬 · 맥동하는 마석이 희귀입니다.</p>
 <p>장비의 경우 D급 1개부터 차례로 장비 등급이 오를 때마다 1개씩 더해지는 별가루와 재화를 소모하여 강화가 가능합니다. 6강부터는 동일한 장비를 추가 재료로 요구합니다.</p>
 <h3>조합</h3>
 <p>2~3개의 재료 아이템을 합쳐 새로운 아이템을 획득할 수 있습니다. 처음 성공한 조합식은 도감 및 조합 메뉴에 기록되어 계속 참고할 수 있습니다.</p>
