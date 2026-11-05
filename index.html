@@ -335,6 +335,30 @@ code.c { font-family: ui-monospace, Menlo, monospace; background: var(--surface-
 .dg-note { margin: 0; font-weight: 700; }
 .report-title { margin: 0 0 4px; font-size: 22px; }
 .report .kv:first-child { border-top: 0; }
+.rg-region-wrap { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.rg-region-wrap label { font-weight: 700; font-size: 14px; }
+.rg-region-wrap .input.rg-region { width: auto; min-width: 130px; padding-top: 6px; padding-bottom: 6px; }
+.inv-tools { margin: 18px 0 4px; }
+.inv-cats { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.inv-cats::-webkit-scrollbar { display: none; }
+.inv-n { margin-left: 6px; font-weight: 600; opacity: .7; font-size: 12px; }
+.inv-find { display: flex; gap: 8px; }
+.inv-find input { flex: 1 1 auto; min-width: 0; }
+.inv-find select { flex: 0 0 auto; width: auto; }
+.inv-list { touch-action: pan-y; }
+.craft-x { font-weight: 700; color: var(--accent-text); }
+mark { background: color-mix(in srgb, #FFC53D 45%, transparent); color: inherit; border-radius: 3px; padding: 0 1px; }
+/* 길드 색 동그라미 */
+.gdot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-left: 6px; vertical-align: middle; flex: none; box-shadow: 0 0 0 1px color-mix(in srgb, var(--text) 28%, transparent); }
+.gdot.lead { margin: 0 6px 0 0; }
+.gdot.big { width: 14px; height: 14px; }
+.fr-row.guild-row { align-items: flex-start; }
+.guild-row .gdot.big { margin: 4px 0 0; }
+.gcolor .swatch { position: relative; }
+.gcolor-own { overflow: hidden; background: conic-gradient(#E5484D, #FFC53D, #46A758, #00A2C7, #3E63DD, #D6409F, #E5484D); }
+.gcolor-own input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: 0; padding: 0; }
+.gd-settings { margin: 0 0 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; }
+.gd-settings summary { cursor: pointer; font-weight: 700; }
 .online-dot { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-dim); white-space: nowrap; }
 .online-dot::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
 .online-dot.on { color: var(--text); font-weight: 600; }
@@ -1013,11 +1037,6 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
       </div>
 
       <div class="field">
-        <label for="c-region">활동 구역</label>
-        <select id="c-region" class="input"></select>
-      </div>
-
-      <div class="field">
         <label for="c-bio">특징</label>
         <textarea id="c-bio" class="input" maxlength="300" placeholder="이름, 나이 등 간략한 캐릭터 소개 (300자 이내)"></textarea>
       </div>
@@ -1123,10 +1142,6 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
     <div class="field">
       <label for="e-credit">프로필 사진 출처</label>
       <input id="e-credit" class="input" maxlength="100" placeholder="예) 그림 @작가명, 픽크루 링크">
-    </div>
-    <div class="field">
-      <label for="e-region">활동 구역</label>
-      <select id="e-region" class="input"></select>
     </div>
     <div class="field">
       <label for="e-bio">특징</label>
@@ -1396,9 +1411,6 @@ function swatches(container, current, onPick) {
       },
     })));
 }
-function regionOptions(select, current) {
-  select.replaceChildren(...Object.entries(REGIONS).map(([v, n]) => h("option", { value: v, selected: v === current }, n)));
-}
 
 /* ===== 1. 로그인 / 가입 ===== */
 let authMode = "login";
@@ -1476,7 +1488,6 @@ function renderCreate() {
 }
 function setupCreate() {
   swatches($("#c-swatches"), draft.color, c => { draft.color = c; renderCreate(); });
-  regionOptions($("#c-region"), "asia");
   renderCreate();
 }
 $("#c-codename").oninput = () => renderCreate();
@@ -1504,7 +1515,6 @@ $("#form-create").onsubmit = async e => {
     p_avatar_color: draft.color,
     p_bio: $("#c-bio").value,
     p_bio_visibility: $("#c-vis").value,
-    p_region: $("#c-region").value,
     p_skill_name: skill,
   });
   if (error) { busy(btn, false); return (err.textContent = koError(error)); }
@@ -1722,6 +1732,11 @@ function miniAvatar(card, size = 34) {
 }
 const hunterLink = card => h("button", { type: "button", class: "hunter-link", onclick: e => { e.stopPropagation(); openPublicHunter(card.codename); } }, card.codename);
 const hunterSub = card => !card ? "" : card.admin ? "운영자" : `${card.grade || "-"}급 · Lv.${card.level ?? "-"}`;
+/* 길드: 가입 방식 · 색 · 코드네임 옆 동그라미 */
+const GUILD_MODE = { open: "상시 가입", apply: "가입 신청 후 수락", invite: "초대 가입" };
+const GUILD_MODE_HINT = "상시 가입은 누구나 바로 들어오고, 가입 신청 후 수락은 길드장이 수락해야 들어오며, 초대 가입은 길드장이 초대한 헌터만 들어올 수 있습니다.";
+const GUILD_PALETTE = ["#E5484D", "#F76B15", "#FFC53D", "#46A758", "#12A594", "#00A2C7", "#0090FF", "#3E63DD", "#8E4EC6", "#D6409F", "#AD7F58", "#8D8D86"];
+const gdot = g => g && g.color ? h("span", { class: "gdot", style: `background:${g.color}`, title: `${g.name} 길드`, role: "img", "aria-label": `${g.name} 길드` }) : null;
 
 /* 알림 숫자 (친구 신청 + 받은 선물 + 안 읽은 메시지, 운영자는 신고) */
 async function refreshSocial() {
@@ -1752,7 +1767,12 @@ function paintSocialBadge() {
   const s = social.summary || {};
   // 친구 신청·선물·파티/길드 초대가 새로 늘면 알림음
   // (새 친구 신청·선물·초대 소리는 알림 창이 낸다)
-  const n = (s.friend_requests || 0) + (s.gifts || 0) + (s.unread || 0) + (s.party_invites || 0) + (s.guild_invites || 0) + (s.guild_unread || 0);
+  const n = (s.friend_requests || 0) + (s.gifts || 0) + (s.unread || 0) + (s.party_invites || 0) + (s.guild_unread || 0);
+  const gn = (s.guild_invites || 0) + (s.guild_apps || 0);   // 길드 초대·가입 신청은 국제헌터연합 메뉴에
+  document.querySelectorAll('[data-menu="union"]').forEach(a => {
+    a.querySelector(".nbadge")?.remove();
+    if (gn > 0) a.append(h("span", { class: "nbadge", "aria-label": `길드 소식 ${gn}개` }, String(gn)));
+  });
   document.querySelectorAll('[data-menu="friends"]').forEach(a => {
     a.querySelector(".nbadge")?.remove();
     if (n > 0) a.append(h("span", { class: "nbadge", "aria-label": `새 소식 ${n}개` }, n > 99 ? "99+" : String(n)));
@@ -1842,6 +1862,7 @@ function notifGo(link) {
   const extra = (link || "").split(":")[2];
   if (where === "social" && tab === "sns" && extra) { $("#dlg-notif").open && $("#dlg-notif").close(); return openSnsPost(extra, null); }
   if (where === "social") { nextSocialTab = tab || "sns"; if (tab === "sns") { snsView = "all"; snsCat = null; } return route() === "friends" ? renderSocial($("#main-pane"), nextSocialTab) : (location.hash = "#/friends"); }
+  if (where === "union") { unionView = tab || "rank"; return route() === "union" ? renderUnion($("#main-pane")) : (location.hash = "#/union"); }
   if (where === "inv") { nextInvTab = tab || null; return route() === "inventory" ? renderInventory($("#main-pane"), tab) : (location.hash = "#/inventory"); }
   if (["regional", "dungeon", "home"].includes(where)) location.hash = "#/" + where;
 }
@@ -2232,7 +2253,7 @@ async function renderSocial(pane, tab) {
     paneHead("교류", { sns: "soc-sns", friends: "soc-friends", party: "soc-party", gifts: "soc-gifts" }[socialTab]),
     h("p", { class: "hint", style: "margin:0 0 16px" }, "SNS에서 다른 헌터들과 이야기를 나누고, 친구와 메시지·선물을 주고받고, 파티를 꾸려 함께 던전에 들어갑니다."),
     h("div", { class: "tabs soc-tabs", style: "max-width:540px", "data-tour": "soc-tabs" },
-      tabBtn("sns", "SNS", (s.guild_invites || 0) + (s.guild_unread || 0)),
+      tabBtn("sns", "SNS", s.guild_unread || 0),
       tabBtn("friends", h("span", {}, "친구", h("span", { class: "wide" }, " · 메시지")), (s.friend_requests || 0) + (s.unread || 0)),
       tabBtn("party", "파티", s.party_invites || 0),
       tabBtn("gifts", "선물함", s.gifts || 0)),
@@ -2511,7 +2532,7 @@ function openSnsPost(id, cat) {
 function renderSnsWrap(body, pane) {
   const s = social.summary || {};
   const sub = h("div", {});
-  const gN = (s.guild_invites || 0) + (s.guild_unread || 0);
+  const gN = s.guild_unread || 0;
   const btn = (id, label, n) => h("button", { type: "button", class: `cat-chip big${snsView === id ? " on" : ""}`, "aria-pressed": snsView === id ? "true" : "false",
     onclick: () => { snsView = id; renderSnsWrap(body, pane); } }, label, n > 0 ? h("span", { class: "nbadge" }, String(n)) : null);
   body.replaceChildren(h("div", { class: "cat-row", style: "margin-bottom:14px", "data-tour": "sns-view" }, btn("all", "전체 SNS", 0), btn("guild", "길드", gN)), sub);
@@ -2531,80 +2552,10 @@ async function renderGuild(body, reload) {
   const { data: d, error } = await sb.rpc("guild_state");
   if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
   const g = d.guild;
-  const invList = d.invites.length ? h("div", { class: "fr-sec" }, h("p", { class: "panel-title" }, `받은 길드 초대 ${d.invites.length}`),
-    ...d.invites.map(iv => h("div", { class: "fr-row" }, miniAvatar(iv.from),
-      h("div", { class: "fr-main" }, h("b", {}, iv.guild), h("div", { class: "hint" }, `${iv.from.codename}님의 초대 · ${iv.size}/20명${iv.intro ? ` · ${iv.intro}` : ""}`)),
-      h("button", { class: "btn small", type: "button", onclick: async () => { if (await guildRun("guild_respond", { p_id: iv.id, p_accept: true }, `${iv.guild} 길드에 들어갔습니다.`)) reload(); } }, "수락"),
-      h("button", { class: "btn ghost small", type: "button", onclick: async () => { if (await guildRun("guild_respond", { p_id: iv.id, p_accept: false })) reload(); } }, "거절")))) : null;
-
-  if (!g) {
-    const name = h("input", { class: "input", id: "gd-name", maxlength: "12", placeholder: "2~12자" });
-    const intro = h("input", { class: "input", id: "gd-intro", maxlength: "100", placeholder: "한 줄 소개 (선택, 100자까지)" });
-    const err = h("div", { class: "error", role: "alert" });
-    const can = d.level >= d.min_level, rich = d.currency >= d.cost;
-    const go = h("button", { class: "btn block", type: "button", disabled: !can || !rich }, `${d.cost.toLocaleString()} Mh로 길드 만들기`);
-    go.onclick = async () => {
-      err.textContent = "";
-      if (!confirm(`'${name.value.trim()}' 길드를 만들까요? ${d.cost.toLocaleString()} Mh가 들고, 돌려받을 수 없습니다.`)) return;
-      busy(go, true, "만드는 중…");
-      const { error } = await sb.rpc("guild_create", { p_name: name.value, p_intro: intro.value || null });
-      busy(go, false);
-      if (error) return (err.textContent = koError(error));
-      toast("길드를 만들었습니다.");
-      await loadAll(); renderHunter(); refreshSocial();
-      reload();
-    };
-    return body.replaceChildren(...[invList,
-      h("div", { class: "fr-sec" },
-        h("p", { class: "panel-title" }, "길드 만들기"),
-        h("p", { class: "hint", style: "margin:0 0 12px" }, `길드는 최대 ${d.max}명이 함께하는 모임으로, 길드원끼리만 보이는 길드 채팅을 씁니다. ${d.min_level}레벨 이상이면 ${d.cost.toLocaleString()} Mh로 만들 수 있고, 다른 길드의 초대를 받아 들어갈 수도 있습니다. 한 번에 한 길드에만 있을 수 있습니다.`),
-        h("div", { class: "field" }, h("label", { for: "gd-name" }, "길드 이름"), name),
-        h("div", { class: "field" }, h("label", { for: "gd-intro" }, "소개"), intro),
-        !can ? h("p", { class: "hint", style: "margin:0 0 10px" }, `지금 Lv.${d.level} — ${d.min_level}레벨부터 만들 수 있습니다.`)
-          : !rich ? h("p", { class: "hint", style: "margin:0 0 10px" }, `메헨이 부족합니다. (보유 ${fmtMh(d.currency)})`) : null,
-        err, go)].filter(Boolean));
-  }
-
-  // 길드원 목록 · 관리
-  const ms = g.master_is_me;
-  const inv = h("input", { class: "input", maxlength: "12", placeholder: "코드네임", "aria-label": "길드에 초대할 코드네임" });
-  const invBtn = h("button", { class: "btn small", type: "submit" }, "초대");
-  const invForm = h("form", { class: "todo-form" }, inv, invBtn);
-  invForm.onsubmit = async e => {
-    e.preventDefault();
-    if (!inv.value.trim()) return;
-    busy(invBtn, true, "…");
-    const r = await guildRun("guild_invite", { p_codename: inv.value.trim() }, "길드 초대를 보냈습니다.");
-    busy(invBtn, false);
-    if (r) reload();
-  };
-  const members = h("div", { class: "fr-list" },
-    h("p", { class: "panel-title" }, g.name, h("span", { class: "hint", style: "font-weight:500" }, ` · ${g.size}/${d.max}명`)),
-    h("p", { class: "hint", style: "margin:0 0 8px;white-space:pre-wrap" }, g.intro || "소개가 없습니다."),
-    ms ? h("button", { class: "link-btn", type: "button", style: "margin:0 0 8px", onclick: async () => {
-      const t = prompt("길드 소개 (100자까지)", g.intro || "");
-      if (t === null) return;
-      if (await guildRun("guild_set_intro", { p_intro: t }, "소개를 바꿨습니다.")) reload();
-    } }, "소개 바꾸기") : null,
-    ...g.members.map(m => h("div", { class: "fr-row pt-mrow" }, miniAvatar(m),
-      h("div", { class: "fr-main" }, h("div", {}, m.me ? h("b", {}, m.codename) : hunterLink(m), m.master ? h("span", { class: "badge", style: "margin-left:6px" }, "길드장") : null),
-        h("div", { class: "hint" }, hunterSub(m))),
-      ms && !m.me ? h("div", { class: "pt-acts" },
-        h("button", { class: "btn ghost small", type: "button", onclick: async () => { if (confirm(`${m.codename}님에게 길드장을 넘길까요?`) && await guildRun("guild_transfer", { p_codename: m.codename }, "길드장을 넘겼습니다.")) reload(); } }, "길드장 넘기기"),
-        h("button", { class: "btn ghost small", type: "button", onclick: async () => { if (confirm(`${m.codename}님을 길드에서 내보낼까요?`) && await guildRun("guild_kick", { p_codename: m.codename }, "길드에서 내보냈습니다.")) reload(); } }, "내보내기")) : null)),
-    g.invited.length ? h("div", { class: "fr-sec" }, h("p", { class: "panel-title" }, "보낸 초대 (7일 동안 유효)"),
-      ...g.invited.map(iv => h("div", { class: "fr-row" }, miniAvatar(iv), h("div", { class: "fr-main" }, hunterLink(iv), h("div", { class: "hint" }, hunterSub(iv))),
-        ms ? h("button", { class: "btn ghost small", type: "button", onclick: async () => { if (await guildRun("guild_cancel_invite", { p_id: iv.id }, "초대를 취소했습니다.")) reload(); } }, "취소") : null))) : null,
-    ms && g.size + g.invited.length < d.max ? h("div", { style: "margin-top:8px" }, invForm) : null,
-    h("div", { style: "display:flex;gap:8px;flex-wrap:wrap;margin-top:12px" },
-      !ms || g.size === 1 ? h("button", { class: "btn ghost small", type: "button", onclick: async () => {
-        if (!confirm(ms ? "혼자 남은 길드에서 나가면 길드가 해산됩니다. 나갈까요?" : "길드에서 나갈까요?")) return;
-        if (await guildRun("guild_leave", {}, "길드에서 나왔습니다.")) reload();
-      } }, ms ? "나가기 (해산)" : "길드 나가기") : null,
-      ms && g.size > 1 ? h("button", { class: "btn ghost small", type: "button", onclick: async () => {
-        if (!confirm(`${g.name} 길드를 해산할까요? 길드원 모두가 길드에서 나가고 채팅도 사라집니다. 되돌릴 수 없습니다.`)) return;
-        if (await guildRun("guild_disband", {}, "길드를 해산했습니다.")) reload();
-      } }, "길드 해산") : null));
+  const toUnion = () => { unionView = "guild"; route() === "union" ? renderUnion($("#main-pane")) : (location.hash = "#/union"); };
+  if (!g) return body.replaceChildren(
+    h("div", { class: "soon" }, "아직 길드에 들어가지 않았습니다.", h("br"), "국제헌터연합 → 길드에서 길드를 찾아 들어가거나 직접 만들 수 있습니다."),
+    h("div", { style: "text-align:center;margin-top:12px" }, h("button", { class: "btn small", type: "button", onclick: toUnion }, "길드 찾기")));
 
   // 길드 채팅
   const chat = h("div", { class: "chat" });
@@ -2642,9 +2593,10 @@ async function renderGuild(body, reload) {
     ta.value = "";
     if (!msgs.some(x => x.id === data.id)) { msgs.push(data); paint(); }
   };
-  chat.replaceChildren(h("div", { class: "chat-head" }, h("div", { class: "fr-main" }, h("b", {}, `${g.name} 길드 채팅`), h("div", { class: "hint" }, "길드원에게만 보입니다 · 30일 뒤 지워집니다"))),
+  chat.replaceChildren(h("div", { class: "chat-head" }, h("div", { class: "fr-main" }, h("b", {}, h("span", { class: "gdot lead", style: `background:${g.color}`, "aria-hidden": "true" }), `${g.name} 길드 채팅`), h("div", { class: "hint" }, `길드원 ${g.size}명에게만 보입니다 · 30일 뒤 지워집니다`)),
+    h("button", { class: "btn ghost small", type: "button", onclick: toUnion }, "길드 정보")),
     more, log, form);
-  body.replaceChildren(...[invList, h("div", { class: "soc-grid guild-grid" }, members, chat)].filter(Boolean));
+  body.replaceChildren(chat);
 
   const { data: c0, error: e0 } = await sb.rpc("guild_chat", { p_before: null });
   if (e0) return log.replaceChildren(h("li", { class: "error" }, koError(e0)));
@@ -2801,7 +2753,7 @@ async function openPublicHunter(codename) {
       titleLine(p.title, p.codename),
       h("div", { class: "grade-line" }, p.admin ? "운영자" : `${p.grade}급 · Lv.${p.level}`),
       p.admin ? (p.guild ? h("div", { class: "hint" }, `${p.guild} 길드`) : null)
-        : h("div", { class: "hint" }, (p.guild ? `${p.guild} 길드 · ` : "") + `${REGIONS[p.region] || p.region} 구역 · ${p.main_option ? posLabel(p.main_position, p.main_option) : (POSITIONS[p.main_position]?.name || p.main_position)}${p.sub_position ? ` / 서브 ${p.sub_option ? posLabel(p.sub_position, p.sub_option) : (POSITIONS[p.sub_position]?.name || p.sub_position)}` : ""}`),
+        : h("div", { class: "hint" }, p.guild ? h("span", { class: "gdot lead", style: `background:${p.guild_color}`, "aria-hidden": "true" }) : null, (p.guild ? `${p.guild} 길드 · ` : "") + `${REGIONS[p.region] || p.region} 구역 · ${p.main_option ? posLabel(p.main_position, p.main_option) : (POSITIONS[p.main_position]?.name || p.main_position)}${p.sub_position ? ` / 서브 ${p.sub_option ? posLabel(p.sub_position, p.sub_option) : (POSITIONS[p.sub_position]?.name || p.sub_position)}` : ""}`),
       p.friend ? h("span", { class: "badge", style: "margin-top:4px;display:inline-block" }, "친구") : null)),
     p.avatar_credit ? h("p", { class: "hint", style: "margin:10px 0 0;overflow-wrap:anywhere" }, `프로필 사진 출처: ${p.avatar_credit}`) : null,
     h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "특징"),
@@ -3485,7 +3437,7 @@ async function renderRegional(pane) {
   const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
   pane.replaceChildren(
     paneHead("지역 안정화", "regional"),
-    h("p", { class: "hint", style: "margin:0 0 16px;white-space:pre-line" }, "활동 구역에 나타난 던전을 공략합니다. 현재 E~D급까지 출입할 수 있습니다. 이미 공략 중이거나 안정화한 던전에는 들어갈 수 없습니다.\n활동 구역을 옮기고 싶은 경우 세부 정보에서 변경이 가능합니다."),
+    h("p", { class: "hint", style: "margin:0 0 16px;white-space:pre-line" }, "활동 구역에 나타난 던전을 공략합니다. 현재 E~D급까지 출입할 수 있습니다. 이미 공략 중이거나 안정화한 던전에는 들어갈 수 없습니다.\n활동 구역은 아래에서 옮길 수 있습니다."),
     body);
   const { data: act, error: e1 } = await sb.rpc("get_current_action");
   if (e1) return body.replaceChildren(h("p", { class: "error" }, koError(e1)));
@@ -3575,9 +3527,24 @@ async function renderRegionalBoard(body, act) {
     renderRegional($("#main-pane"));
   };
 
+  // 활동 구역 옮기기 (캐릭터 설정)
+  const myRegion = state.profile?.region || rg.region;
+  const regSel = h("select", { class: "input rg-region", id: "rg-region", "aria-label": "활동 구역" },
+    ...Object.entries(REGIONS).map(([v, n]) => h("option", { value: v, selected: v === myRegion }, `${n} 구역`)));
+  regSel.onchange = async () => {
+    err.textContent = "";
+    regSel.disabled = true;
+    const { error } = await sb.rpc("set_region", { p_region: regSel.value });
+    if (error) { regSel.disabled = false; regSel.value = myRegion; err.textContent = koError(error); return; }
+    if (state.profile) state.profile.region = regSel.value;
+    toast(`${REGIONS[regSel.value]} 구역으로 옮겼습니다.`);
+    rgGrade = null;
+    renderRegionalBoard(body, act);
+  };
   const parts = [
-    h("div", { class: "kv", style: "border:0;padding:0 0 10px" },
-      h("span", {}, pt ? `${REGIONS[rg.region] || rg.region} 구역 (파티장 ${pt.leader}님의 활동 구역)` : `${REGIONS[rg.region] || rg.region} 구역 · Lv.${rg.level}`),
+    h("div", { class: "kv rg-region-row", style: "border:0;padding:0 0 10px", "data-tour": "rg-region" },
+      h("div", { class: "rg-region-wrap" }, h("label", { for: "rg-region" }, "활동 구역"), regSel,
+        h("span", { class: "hint" }, pt && rg.region !== myRegion ? `파티는 파티장 ${pt.leader}님의 ${REGIONS[rg.region] || rg.region} 구역으로 들어갑니다` : pt ? `파티장 ${pt.leader}님의 활동 구역` : `Lv.${rg.level}`)),
       h("button", { type: "button", class: "btn ghost small", onclick: () => renderRegionalBoard(body, act) }, "새로 고침")),
   ];
   if (pt && !(act && act.kind !== "regional") && !exploring && !starring) {
@@ -4174,6 +4141,23 @@ async function renderInventory(pane, tab = "items") {
   renderOwned(body, inv, act, refresh);
 }
 
+let invCat = "all", invSort = "default", invQ = "";
+const INV_CATS = [["all", "전체"], ["gear", "장비"], ["cons", "소비"], ["mats", "재료"]];
+const INV_SORTS = [["default", "기본 순"], ["high", "등급 높은 순"], ["low", "등급 낮은 순"], ["name", "이름 순"], ["qty", "많이 가진 순"]];
+const GRADE_RANK = { E: 1, D: 2, C: 3, B: 4, A: 5, S: 6 }, RARITY_RANK = { common: 1, normal: 2, rare: 3 };
+// 등급(희귀도): 장비는 티어 → 강화 단계, 재료는 희귀도 → 보스 재료 등급. 소비 아이템은 등급이 없어 기본 순서를 지킨다.
+const itemRank = x => x.slot ? x.tier * 100 + (x.enhance || 0)
+  : x.kind === "material" ? (RARITY_RANK[x.rarity] || 0) * 100 + (GRADE_RANK[x.grade] || 0) * 10 : 0;
+const itemLabel = x => x.slot ? gearName(x) : x.name;
+function invSorted(arr, word) {
+  const w = (word || "").toLowerCase();
+  const a = arr.filter(x => !w || itemLabel(x).toLowerCase().includes(w));
+  if (invSort === "high") a.sort((x, y) => itemRank(y) - itemRank(x));
+  else if (invSort === "low") a.sort((x, y) => itemRank(x) - itemRank(y));
+  else if (invSort === "name") a.sort((x, y) => itemLabel(x).localeCompare(itemLabel(y), "ko"));
+  else if (invSort === "qty") a.sort((x, y) => (y.qty || 1) - (x.qty || 1));
+  return a;
+}
 function renderOwned(body, inv, act, refresh) {
   const equipped = Object.fromEntries(inv.gear.filter(g => g.equipped).map(g => [g.slot, g]));
   const slotCard = slot => {
@@ -4213,15 +4197,55 @@ function renderOwned(body, inv, act, refresh) {
         onclick: () => confirm(`${x.name} ${x.qty}개를 ${(x.qty * x.sell_price).toLocaleString()} Mh에 모두 팔까요?`)
           && act(() => sb.rpc("shop_sell", { p_code: x.code, p_qty: x.qty }), "모두 팔았습니다.", "sell") }, "모두 판매") : null));
 
-  const cons = inv.stacks.filter(x => x.kind === "consumable"), mats = inv.stacks.filter(x => x.kind === "material");
-  const group = (title, rows, empty, tour) => h("div", { class: "item-group", "data-tour": tour || null },
-    h("p", { class: "panel-title" }, title), rows.length ? rows : h("p", { class: "hint", style: "margin:0" }, empty));
+  // 분류(전체·장비·소비·재료)별로 넘겨 보기 · 이름 검색 · 정렬
+  const lists = { gear: inv.gear, cons: inv.stacks.filter(x => x.kind === "consumable"), mats: inv.stacks.filter(x => x.kind === "material") };
+  const META = {
+    gear: ["장비", gearRow, "장비가 없습니다. 상점에서 사거나 보스에게서 얻을 수 있습니다.", "inv-gear"],
+    cons: ["소비 아이템", stackRow, "소비 아이템이 없습니다.", "inv-cons"],
+    mats: ["재료", stackRow, "재료는 던전·탐색에서 얻고, 청정수는 상점에서 살 수 있습니다.", "inv-mats"],
+  };
+  const chips = h("div", { class: "cat-row inv-cats", role: "tablist", "aria-label": "아이템 분류" });
+  const q = h("input", { class: "input", type: "search", maxlength: "20", placeholder: "아이템 이름 검색", "aria-label": "아이템 이름 검색", value: invQ });
+  const sortSel = h("select", { class: "input", "aria-label": "정렬" },
+    ...INV_SORTS.map(([v, n]) => h("option", { value: v, selected: v === invSort }, n)));
+  const listBox = h("div", { class: "inv-list" });
+  q.oninput = () => { invQ = q.value; paint(); };
+  sortSel.onchange = () => { invSort = sortSel.value; paint(); };
+  function paint() {
+    const word = invQ.trim();
+    chips.replaceChildren(...INV_CATS.map(([id, label]) => h("button", {
+      type: "button", role: "tab", class: `cat-chip big${invCat === id ? " on" : ""}`, "aria-selected": invCat === id ? "true" : "false",
+      onclick: () => { invCat = id; paint(); } }, label, h("span", { class: "inv-n" }, String(id === "all" ? inv.gear.length + inv.stacks.length : lists[id].length)))));
+    const cats = invCat === "all" ? ["gear", "cons", "mats"] : [invCat];
+    const groups = cats.map(k => {
+      const [title, rowFn, empty, tour] = META[k];
+      const rows = invSorted(lists[k], word);
+      if (invCat === "all" && word && !rows.length) return null;
+      return h("div", { class: "item-group", "data-tour": tour },
+        h("p", { class: "panel-title" }, `${title} (${word ? `${rows.length} / ` : ""}${lists[k].length})`),
+        rows.length ? rows.map(rowFn) : h("p", { class: "hint", style: "margin:0" }, word ? "검색 결과가 없습니다." : empty));
+    }).filter(Boolean);
+    listBox.replaceChildren(...(groups.length ? groups : [h("p", { class: "hint", style: "margin:12px 0 0" }, `'${word}'이(가) 들어간 아이템이 없습니다.`)]));
+  }
+  // 휴대폰: 목록을 옆으로 밀면 다음 분류로
+  let sx = null, sy = null;
+  listBox.addEventListener("touchstart", e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+  listBox.addEventListener("touchend", e => {
+    if (sx == null) return;
+    const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+    sx = null;
+    if (Math.abs(dx) < 70 || Math.abs(dy) > 50) return;
+    const i = INV_CATS.findIndex(([id]) => id === invCat), n = i + (dx < 0 ? 1 : -1);
+    if (n < 0 || n >= INV_CATS.length) return;
+    invCat = INV_CATS[n][0]; paint();
+    chips.querySelector(".on")?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  });
+  paint();
   body.replaceChildren(
     h("p", { class: "panel-title", style: "margin-top:16px" }, "장착"),
     h("div", { class: "slots", "data-tour": "inv-slots" }, ...["weapon", "armor", "accessory"].map(slotCard)),
-    group(`장비 (${inv.gear.length})`, inv.gear.map(gearRow), "장비가 없습니다. 상점에서 사거나 보스에게서 얻을 수 있습니다.", "inv-gear"),
-    group(`소비 아이템 (${cons.length})`, cons.map(stackRow), "소비 아이템이 없습니다.", "inv-cons"),
-    group(`재료 (${mats.length})`, mats.map(stackRow), "재료는 던전·탐색에서 얻고, 청정수는 상점에서 살 수 있습니다.", "inv-mats"));
+    h("div", { class: "inv-tools", "data-tour": "inv-tools" }, chips, h("div", { class: "inv-find" }, q, sortSel)),
+    listBox);
   maybeTour("inv-items");
 }
 
@@ -4380,35 +4404,72 @@ async function renderTrade(body, inv, refresh) {
 
 /* ===== 조합 ===== */
 let craftMsg = null;
+let craftCat = "all", craftQ = "";
 async function renderCraft(body, inv, refresh) {
   const { data: known } = await sb.rpc("get_recipes");
   const picks = [];   // { kind: "stack", code, name } | { kind: "gear", id, name, tier }
+  let batch = null;   // 알게 된 조합식으로 칸을 채웠을 때 { r, times } — 여러 번 한꺼번에 조합
   const slots = h("div", { class: "craft-slots" });
-  const pickBox = h("div", { class: "craft-pick" });
+  const consBox = h("div", { class: "craft-pick" });
+  const matBox = h("div", { class: "craft-pick" });
   const gearBox = h("div", { class: "craft-pick" });
   const go = h("button", { class: "btn", type: "button", "data-sfx": "own", "data-tour": "craft-go" }, "조합하기");
   const used = code => picks.filter(p => p.code === code).length;
+  const freeGear = () => inv.gear.filter(g => !g.equipped);
+  // 이 조합식을 지금 가진 것으로 몇 번 할 수 있는지
+  function maxTimes(r) {
+    const need = {};
+    for (const x of r.ingredients) need[x.code] = (need[x.code] || 0) + 1;
+    let n = 99;
+    for (const [code, c] of Object.entries(need)) {
+      const ing = r.ingredients.find(x => x.code === code);
+      const have = ing.kind === "equip" ? freeGear().filter(g => g.code === code).length : (inv.stacks.find(x => x.code === code)?.qty || 0);
+      n = Math.min(n, Math.floor(have / c));
+    }
+    return n;
+  }
   function paint() {
     slots.replaceChildren(...[0, 1, 2].map(i => {
       const p = picks[i];
       return h("button", { type: "button", class: "craft-slot" + (p ? " filled" : ""), "aria-label": p ? `${p.name} 빼기` : `빈 칸 ${i + 1}`,
-        onclick: () => { if (p) { picks.splice(i, 1); paint(); } } },
-        p ? h("strong", { class: p.tier ? `tier${p.tier}` : null }, p.name) : h("small", {}, i < 2 ? "재료" : "재료 (선택)"),
+        onclick: () => { if (p) { picks.splice(i, 1); batch = null; paint(); } } },
+        p ? h("strong", { class: p.tier ? `tier${p.tier}` : null }, p.name, batch && batch.times > 1 ? h("span", { class: "craft-x" }, ` × ${batch.times}`) : null) : h("small", {}, i < 2 ? "재료" : "재료 (선택)"),
         p ? h("small", {}, "눌러서 빼기") : null);
     }), go);
     go.disabled = picks.length < 2;
-    const stacks = inv.stacks;
-    pickBox.replaceChildren(...(stacks.length ? stacks.map(x => h("button", {
+    go.textContent = batch && batch.times > 1 ? `${batch.times}번 조합하기` : "조합하기";
+    const pickBtn = x => h("button", {
       type: "button", disabled: picks.length >= 3 || used(x.code) >= x.qty,
-      onclick: () => { picks.push({ kind: "stack", code: x.code, name: x.name }); sfx("mix" + picks.length); paint(); },
-    }, `${x.name} ${x.qty - used(x.code)}`)) : [h("span", { class: "hint" }, "재료가 없습니다.")]));
-    const gears = inv.gear.filter(g => !g.equipped);
+      onclick: () => { batch = null; picks.push({ kind: "stack", code: x.code, name: x.name }); sfx("mix" + picks.length); paint(); },
+    }, `${x.name} ${x.qty - used(x.code)}`);
+    const cons = inv.stacks.filter(x => x.kind === "consumable"), mats = inv.stacks.filter(x => x.kind !== "consumable");
+    consBox.replaceChildren(...(cons.length ? cons.map(pickBtn) : [h("span", { class: "hint" }, "소비 아이템이 없습니다.")]));
+    matBox.replaceChildren(...(mats.length ? mats.map(pickBtn) : [h("span", { class: "hint" }, "재료가 없습니다.")]));
+    const gears = freeGear();
     gearBox.replaceChildren(...(gears.length ? gears.map(g => h("button", {
       type: "button", class: `tier${g.tier}`, disabled: picks.length >= 3 || picks.some(p => p.id === g.id),
-      onclick: () => { picks.push({ kind: "gear", id: g.id, name: gearName(g), tier: g.tier, code: g.code, enhance: g.enhance }); sfx("mix" + picks.length); paint(); },
+      onclick: () => { batch = null; picks.push({ kind: "gear", id: g.id, name: gearName(g), tier: g.tier, code: g.code, enhance: g.enhance }); sfx("mix" + picks.length); paint(); },
     }, gearName(g))) : [h("span", { class: "hint" }, "장착하지 않은 장비가 없습니다.")]));
   }
   go.onclick = async () => {
+    if (batch) {
+      // 여러 번: 서버가 강화 단계가 낮은 장비부터 넣는다
+      const { r, times } = batch;
+      const needG = {};
+      r.ingredients.filter(x => x.kind === "equip").forEach(x => { needG[x.code] = (needG[x.code] || 0) + times; });
+      const enh = Object.entries(needG).flatMap(([code, c]) => freeGear().filter(g => g.code === code).sort((a, b) => a.enhance - b.enhance || a.id - b.id).slice(0, c)).filter(g => g.enhance > 0);
+      if (enh.length && !confirm(`강화된 장비(${enh.map(gearName).join(", ")})가 재료로 들어가 강화 단계도 함께 사라집니다. 계속할까요?`)) return;
+      busy(go, true, "조합 중…");
+      const { data, error } = await sb.rpc("craft_known", { p_recipe: r.id, p_times: times });
+      busy(go, false);
+      if (error) return toast(koError(error));
+      if (data.success) sfx("mix"); else if (data.destroyed) sfx("fumble");
+      const extra = [data.great ? `대성공 ${data.great}번` : null, data.destroyed ? `재료가 부서짐 ${data.destroyed}번` : null].filter(Boolean).join(" · ");
+      craftMsg = (data.qty ? `${josa(`${data.name} ${data.qty}개`, "을", "를")} 만들었습니다.` : "재료가 빛을 내며 부서져 사라졌다…")
+        + ` (${data.done}번 조합${extra ? ` · ${extra}` : ""})`
+        + (data.done < times ? ` 재료가 모자라 ${data.done}번만 조합했습니다.` : "");
+      return refresh();
+    }
     const enh = picks.filter(p => p.kind === "gear" && p.enhance > 0);
     if (enh.length && !confirm(`강화된 장비(${enh.map(p => p.name).join(", ")})를 넣으면 강화 단계도 함께 사라집니다. 계속할까요?`)) return;
     busy(go, true, "조합 중…");
@@ -4425,34 +4486,75 @@ async function renderCraft(body, inv, refresh) {
       : "재료가 빛을 내며 부서져 사라졌다… (1% 확률)";
     refresh();
   };
-  // 아는 조합식으로 칸 채우기
-  function fill(r) {
-    picks.length = 0;
+  // 아는 조합식으로 칸 채우기 (수량만큼 한꺼번에)
+  function fill(r, times) {
+    picks.length = 0; batch = null;
     const left = Object.fromEntries(inv.stacks.map(x => [x.code, x.qty]));
-    const gearsLeft = inv.gear.filter(g => !g.equipped).sort((a, b) => a.enhance - b.enhance);
+    const gearsLeft = freeGear().sort((a, b) => a.enhance - b.enhance);
     for (const ing of r.ingredients) {
       if (left[ing.code] > 0) { left[ing.code]--; picks.push({ kind: "stack", code: ing.code, name: ing.name }); continue; }
       const gi = gearsLeft.findIndex(g => g.code === ing.code);
       if (gi >= 0) { const g = gearsLeft.splice(gi, 1)[0]; picks.push({ kind: "gear", id: g.id, name: gearName(g), tier: g.tier, code: g.code, enhance: g.enhance }); continue; }
       picks.length = 0; return toast(`${josa(ing.name, "이", "가")} 부족합니다.`);
     }
+    batch = { r, times: Math.max(1, Math.min(times, maxTimes(r))) };
     picks.forEach((_, i) => setTimeout(() => sfx("mix" + (i + 1)), i * 140));
     paint();
+    slots.scrollIntoView({ block: "nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   }
+  // 알게 된 조합식: 전체 · 장비 · 소비 / 이름 검색 (결과·재료 모두)
+  const rcChips = h("div", { class: "cat-row", role: "tablist", "aria-label": "조합식 분류" });
+  const rcQ = h("input", { class: "input", type: "search", maxlength: "20", placeholder: "아이템 이름으로 조합식 찾기 (결과·재료)", "aria-label": "조합식 검색", value: craftQ });
+  const rcList = h("div", {});
+  const RC_CATS = [["all", "전체"], ["equip", "장비"], ["consumable", "소비"]];
+  rcQ.oninput = () => { craftQ = rcQ.value; paintRecipes(); };
+  function recipeRow(r) {
+    const max = maxTimes(r);
+    const qty = h("input", { class: "input qty-input", type: "number", min: "1", max: String(Math.max(1, max)), value: "1", disabled: max < 1, "aria-label": `${r.name} 조합 횟수` });
+    const w = craftQ.trim().toLowerCase();
+    const mark = name => w && name.toLowerCase().includes(w) ? h("mark", {}, name) : name;
+    return h("div", { class: "item-row" },
+      h("div", { class: "item-main" }, h("strong", { class: r.tier ? `tier${r.tier}` : null }, mark(r.name), r.qty > 1 ? ` × ${r.qty}` : ""),
+        h("div", { class: "hint" }, ...r.ingredients.flatMap((x, i) => [i ? " + " : "", mark(x.name)])),
+        h("div", { class: "hint", style: "font-size:12px" }, max > 0 ? `지금 재료로 최대 ${max}번` : "재료가 부족합니다")),
+      h("div", { class: "item-actions", style: "align-items:center" }, qty,
+        h("button", { class: "btn ghost small", type: "button", "data-sfx": "own", disabled: max < 1,
+          onclick: () => fill(r, Math.max(1, Math.floor(Number(qty.value) || 1))) }, "칸 채우기")));
+  }
+  function paintRecipes() {
+    const all = known || [];
+    const w = craftQ.trim().toLowerCase();
+    const hit = r => !w || r.name.toLowerCase().includes(w) || r.ingredients.some(x => x.name.toLowerCase().includes(w));
+    const count = id => all.filter(r => id === "all" || r.kind === id).length;
+    rcChips.replaceChildren(...RC_CATS.map(([id, label]) => h("button", {
+      type: "button", role: "tab", class: `cat-chip big${craftCat === id ? " on" : ""}`, "aria-selected": craftCat === id ? "true" : "false",
+      onclick: () => { craftCat = id; paintRecipes(); } }, label, h("span", { class: "inv-n" }, String(count(id))))));
+    const rows = all.filter(r => (craftCat === "all" || r.kind === craftCat) && hit(r));
+    rcList.replaceChildren(...(rows.length ? rows.map(recipeRow)
+      : [h("p", { class: "hint", style: "margin:0" }, !all.length ? "아직 없습니다. 여러 재료를 넣어 보며 찾아보세요." : w ? `'${craftQ.trim()}'이(가) 들어간 조합식이 없습니다.` : "이 분류의 조합식은 아직 없습니다.")]));
+  }
+  let rsx = null, rsy = null;
+  rcList.addEventListener("touchstart", e => { rsx = e.touches[0].clientX; rsy = e.touches[0].clientY; }, { passive: true });
+  rcList.addEventListener("touchend", e => {
+    if (rsx == null) return;
+    const dx = e.changedTouches[0].clientX - rsx, dy = e.changedTouches[0].clientY - rsy;
+    rsx = null;
+    if (Math.abs(dx) < 70 || Math.abs(dy) > 50) return;
+    const i = RC_CATS.findIndex(([id]) => id === craftCat), n = i + (dx < 0 ? 1 : -1);
+    if (n >= 0 && n < RC_CATS.length) { craftCat = RC_CATS[n][0]; paintRecipes(); }
+  });
   const msg = craftMsg ? h("p", { class: "craft-msg", role: "status" }, craftMsg) : null;
   craftMsg = null;
   body.replaceChildren(
     h("p", { class: "hint", style: "margin:16px 0 10px" }, "재료를 2~3개 넣고 조합해 보세요. 맞는 조합식이면 아이템이 나오고, 처음 성공한 조합식은 아래에 기록됩니다. 맞지 않으면 재료는 그대로 돌아옵니다. 다만 어떤 조합이든 1% 확률로 재료가 부서지고, 성공하면 5% 확률로 2개가 나옵니다."),
     msg, slots,
-    h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "소비 아이템 · 재료"), pickBox,
+    h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "소비 아이템"), consBox,
+    h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "재료"), matBox,
     h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "장비 (장착하지 않은 것)"), gearBox,
     h("div", { class: "item-group", "data-tour": "craft-known" }, h("p", { class: "panel-title" }, `알게 된 조합식 (${(known || []).length})`),
-      (known || []).length ? known.map(r => h("div", { class: "item-row" },
-        h("div", { class: "item-main" }, h("strong", { class: r.tier ? `tier${r.tier}` : null }, r.name),
-          h("div", { class: "hint" }, r.ingredients.map(x => x.name).join(" + "))),
-        h("div", { class: "item-actions" }, h("button", { class: "btn ghost small", type: "button", "data-sfx": "own", onclick: () => fill(r) }, "칸 채우기"))))
-      : h("p", { class: "hint", style: "margin:0" }, "아직 없습니다. 여러 재료를 넣어 보며 찾아보세요.")));
+      rcChips, h("div", { style: "margin:0 0 10px" }, rcQ), rcList));
   paint();
+  paintRecipes();
   maybeTour("inv-craft");
 }
 
@@ -4576,13 +4678,16 @@ function openStats() {
 /* ===== 국제헌터연합: 주간 랭킹 ===== */
 let unionMode = "solo";
 let unionView = "rank";
-const unionTabs = pane => h("div", { class: "tabs", style: "max-width:360px;margin:0 0 14px", "data-tour": "un-tabs" },
+const unionTabs = pane => h("div", { class: "tabs", style: "max-width:440px;margin:0 0 14px", "data-tour": "un-tabs" },
   h("button", { type: "button", class: unionView === "rank" ? "on" : null, onclick: () => { unionView = "rank"; renderUnion(pane); } }, "랭킹"),
   h("button", { type: "button", class: unionView === "codex" ? "on" : null, onclick: () => { unionView = "codex"; renderCodex(pane); } }, "도감"),
-  h("button", { type: "button", class: unionView === "hunters" ? "on" : null, onclick: () => { unionView = "hunters"; renderHunters(pane); } }, "헌터"));
+  h("button", { type: "button", class: unionView === "hunters" ? "on" : null, onclick: () => { unionView = "hunters"; renderHunters(pane); } }, "헌터"),
+  h("button", { type: "button", class: unionView === "guild" ? "on" : null, onclick: () => { unionView = "guild"; renderUnionGuild(pane); } }, "길드",
+    ((social.summary?.guild_invites || 0) + (social.summary?.guild_apps || 0)) > 0 ? h("span", { class: "nbadge" }, String((social.summary.guild_invites || 0) + (social.summary.guild_apps || 0))) : null));
 async function renderUnion(pane, offset = 0, mode = unionMode) {
   if (unionView === "codex") return renderCodex(pane);
   if (unionView === "hunters") return renderHunters(pane);
+  if (unionView === "guild") return renderUnionGuild(pane);
   unionMode = mode;
   const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
   pane.replaceChildren(
@@ -4613,7 +4718,7 @@ async function renderUnion(pane, offset = 0, mode = unionMode) {
   const showMembers = r => info(`${r.codename}님의 파티`,
     h("p", { class: "hint", style: "margin:0 0 10px" }, `${r.best_station}역 도달 · 파티원 ${r.members.length}명 (현재 등급·레벨)`),
     ...r.members.map(m => h("div", { class: "fr-row" },
-      h("div", { class: "fr-main" }, h("div", {}, h("button", { type: "button", class: "hunter-link", onclick: () => openPublicHunter(m.codename) }, m.codename),
+      h("div", { class: "fr-main" }, h("div", {}, h("button", { type: "button", class: "hunter-link", onclick: () => openPublicHunter(m.codename) }, m.codename), gdot(m.guild),
         m.leader ? h("span", { class: "badge", style: "margin-left:6px" }, "파티장") : null),
         h("div", { class: "hint" }, m.grade ? `${m.grade}급 · Lv.${m.level}` : "")))));
   body.replaceChildren(
@@ -4622,10 +4727,216 @@ async function renderUnion(pane, offset = 0, mode = unionMode) {
       h("thead", {}, h("tr", {}, h("th", {}, "순위"), h("th", {}, mode === "party" ? "파티장" : "헌터"), h("th", {}, mode === "party" ? "파티" : "등급"), h("th", { style: "text-align:right" }, "최고 도달"))),
       h("tbody", {}, ...data.rows.map(r => h("tr", { class: r.me ? "me" : null },
         h("td", {}, h("span", { class: "rank-n" + (r.rank <= 3 ? " top" : "") }, String(r.rank))),
-        h("td", {}, h("button", { type: "button", class: "hunter-link", onclick: () => mode === "party" ? showMembers(r) : openPublicHunter(r.codename) }, r.codename)),
+        h("td", {}, h("button", { type: "button", class: "hunter-link", onclick: () => mode === "party" ? showMembers(r) : openPublicHunter(r.codename) }, r.codename), gdot(r.guild)),
         h("td", {}, mode === "party" ? h("span", { class: "rank-party" }, `${r.members.length}명`, h("small", {}, r.members.filter(m => !m.leader).map(m => m.codename).join(", "))) : `${r.grade}급 · Lv.${r.level}`),
         h("td", { style: "text-align:right;font-weight:700" }, `${r.best_station}역`))))));
   maybeTour("union-rank");
+}
+
+/* ===== 국제헌터연합: 길드 ===== */
+let guildQuery = "";
+// 길드 색 고르기: 기본 색 12개 + 직접 고르기
+function guildColorPicker(current) {
+  let val = current ? current.toUpperCase() : null;   // 고르지 않으면 서버가 남은 색을 정한다
+  const custom = h("input", { type: "color", class: "gcolor-custom", value: (val || "#7D42DB").toLowerCase(), "aria-label": "길드 색 직접 고르기", title: "직접 고르기" });
+  const wrap = h("div", { class: "swatches gcolor" });
+  const paint = () => wrap.replaceChildren(...GUILD_PALETTE.map(c => h("button", {
+      type: "button", class: "swatch" + (c === val ? " on" : ""), style: `background:${c}`, "aria-label": `길드 색 ${c}`, "aria-pressed": c === val ? "true" : "false",
+      onclick: () => { val = c; custom.value = c.toLowerCase(); paint(); } })),
+    h("label", { class: "swatch gcolor-own" + (val && !GUILD_PALETTE.includes(val) ? " on" : ""), style: val && !GUILD_PALETTE.includes(val) ? `background:${val}` : null, title: "직접 고르기" }, custom));
+  custom.oninput = () => { val = custom.value.toUpperCase(); paint(); };
+  paint();
+  return { el: wrap, get: () => val };
+}
+const guildModeSelect = (cur, id) => h("select", { class: "input", id }, ...Object.entries(GUILD_MODE).map(([v, n]) => h("option", { value: v, selected: v === cur }, n)));
+
+async function renderUnionGuild(pane) {
+  const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
+  pane.replaceChildren(paneHead("국제헌터연합", "union-guild"), unionTabs(pane),
+    h("p", { class: "hint", style: "margin:0 0 14px" }, "길드를 찾아 들어가거나 직접 만들 수 있습니다. 길드마다 정한 색이 랭킹과 헌터 목록의 코드네임 옆에 동그라미로 표시됩니다."),
+    body);
+  const reload = () => { refreshSocial(); renderUnionGuild(pane); };
+  const { data: d, error } = await sb.rpc("guild_state");
+  if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
+  const g = d.guild, admin = !!state.profile?.is_admin;
+  const parts = [];
+  if (g) parts.push(myGuildPanel(d, reload));
+  else {
+    if (d.invites.length) parts.push(h("div", { class: "fr-sec", "data-tour": "gd-inbox" }, h("p", { class: "panel-title" }, `받은 길드 초대 ${d.invites.length}`),
+      ...d.invites.map(iv => h("div", { class: "fr-row" }, miniAvatar(iv.from),
+        h("div", { class: "fr-main" }, h("div", {}, h("b", {}, iv.guild), gdot({ name: iv.guild, color: iv.color })),
+          h("div", { class: "hint" }, `${iv.from.codename}님의 초대 · ${iv.size}/20명${iv.intro ? ` · ${iv.intro}` : ""}`)),
+        h("button", { class: "btn small", type: "button", onclick: async () => { if (await guildRun("guild_respond", { p_id: iv.id, p_accept: true }, `${iv.guild} 길드에 들어갔습니다.`)) reload(); } }, "수락"),
+        h("button", { class: "btn ghost small", type: "button", onclick: async () => { if (await guildRun("guild_respond", { p_id: iv.id, p_accept: false })) reload(); } }, "거절")))));
+    if (d.my_applications.length) parts.push(h("div", { class: "fr-sec" }, h("p", { class: "panel-title" }, `보낸 가입 신청 ${d.my_applications.length}`),
+      ...d.my_applications.map(a => h("div", { class: "fr-row" },
+        h("div", { class: "fr-main" }, h("div", {}, h("b", {}, a.guild), gdot({ name: a.guild, color: a.color })),
+          h("div", { class: "hint" }, `${fmtWhen(a.at)} 신청 · 길드장이 수락하면 들어갑니다 (7일 동안 유효)`)),
+        h("button", { class: "btn ghost small", type: "button", onclick: async () => { if (await guildRun("guild_cancel_apply", { p_guild: a.guild_id }, "가입 신청을 취소했습니다.")) reload(); } }, "신청 취소")))));
+  }
+  parts.push(guildSearchBox(d, reload));
+  if (!g && !admin) parts.push(guildCreateBox(d, reload));
+  body.replaceChildren(...parts);
+  maybeTour("union-guild");
+}
+
+// 길드 찾기
+function guildSearchBox(d, reload) {
+  const inGuild = !!d.guild, admin = !!state.profile?.is_admin;
+  const q = h("input", { class: "input", type: "search", maxlength: "20", placeholder: "길드 이름 검색", "aria-label": "길드 이름 검색", value: guildQuery });
+  const go = h("button", { class: "btn small", type: "submit" }, "검색");
+  const reset = h("button", { class: "btn ghost small", type: "button", hidden: !guildQuery }, "전체");
+  const form = h("form", { class: "hunter-search" }, q, go, reset);
+  const list = h("div", { class: "fr-list guild-list" }, h("p", { class: "hint" }, "불러오는 중…"));
+  const summary = h("p", { class: "hint", style: "margin:0 0 8px" });
+  const more = h("button", { class: "btn ghost block", type: "button", style: "margin-top:10px", hidden: true }, "더 보기");
+  let offset = 0;
+  form.onsubmit = e => { e.preventDefault(); guildQuery = q.value.trim(); reset.hidden = !guildQuery; load(0, true); };
+  reset.onclick = () => { q.value = ""; guildQuery = ""; reset.hidden = true; load(0, true); };
+  const action = x => {
+    if (x.mine) return h("span", { class: "badge" }, "내 길드");
+    if (inGuild || admin) return null;
+    if (x.join_mode === "invite") return x.invite_id
+      ? h("button", { class: "btn small", type: "button", onclick: async () => { if (await guildRun("guild_respond", { p_id: x.invite_id, p_accept: true }, `${x.name} 길드에 들어갔습니다.`)) reload(); } }, "초대 수락")
+      : null;
+    if (x.size >= 20) return h("span", { class: "hint" }, "가득 참");
+    if (x.join_mode === "apply" && x.applied)
+      return h("button", { class: "btn ghost small", type: "button", onclick: async () => { if (await guildRun("guild_cancel_apply", { p_guild: x.id }, "가입 신청을 취소했습니다.")) reload(); } }, "신청 취소");
+    const b = h("button", { class: "btn small", type: "button" }, x.join_mode === "open" ? "가입" : "가입 신청");
+    b.onclick = async () => {
+      if (x.join_mode === "open" && !confirm(`${x.name} 길드에 들어갈까요?`)) return;
+      busy(b, true, "…");
+      const r = await guildRun("guild_join", { p_guild: x.id });
+      busy(b, false);
+      if (!r) return;
+      toast(r.result === "joined" ? `${x.name} 길드에 들어갔습니다.` : "가입 신청을 보냈습니다. 길드장이 수락하면 길드에 들어갑니다.");
+      reload();
+    };
+    return b;
+  };
+  const row = x => h("div", { class: "fr-row guild-row" },
+    h("span", { class: "gdot big", style: `background:${x.color}`, "aria-hidden": "true" }),
+    h("div", { class: "fr-main" },
+      h("div", {}, h("b", {}, x.name), h("span", { class: "cat-chip", style: "margin-left:8px" }, GUILD_MODE[x.join_mode])),
+      h("div", { class: "hint" }, `${x.size}/20명 · 길드장 ${x.master || "-"}`),
+      x.intro ? h("div", { class: "hint", style: "white-space:pre-wrap;overflow-wrap:anywhere" }, x.intro) : null),
+    action(x));
+  async function load(from, fresh) {
+    more.disabled = true;
+    const { data, error } = await sb.rpc("guild_list", { p_query: guildQuery || null, p_offset: from });
+    more.disabled = false;
+    if (error) return list.replaceChildren(h("p", { class: "error" }, koError(error)));
+    if (fresh) list.replaceChildren();
+    if (fresh && !data.rows.length) list.append(h("div", { class: "soon" }, guildQuery ? `'${guildQuery}'이(가) 들어간 이름의 길드가 없습니다.` : "아직 만들어진 길드가 없습니다."));
+    summary.textContent = guildQuery ? `검색 결과 ${data.total}곳` : `길드 ${data.total}곳`;
+    list.append(...data.rows.map(row));
+    offset = from + data.rows.length;
+    more.hidden = offset >= data.total;
+  }
+  more.onclick = () => load(offset, false);
+  load(0, true);
+  return h("div", { class: "fr-sec", style: "margin-top:22px", "data-tour": "gd-search" }, h("p", { class: "panel-title" }, "길드 찾기"), form, summary, list, more);
+}
+
+// 길드 만들기
+function guildCreateBox(d, reload) {
+  const name = h("input", { class: "input", id: "gd-name", maxlength: "12", placeholder: "2~12자" });
+  const intro = h("input", { class: "input", id: "gd-intro", maxlength: "100", placeholder: "한 줄 소개 (선택, 100자까지)" });
+  const mode = guildModeSelect("apply", "gd-mode");
+  const color = guildColorPicker(null);
+  const err = h("div", { class: "error", role: "alert" });
+  const can = d.level >= d.min_level, rich = d.currency >= d.cost;
+  const go = h("button", { class: "btn block", type: "button", disabled: !can || !rich }, `${d.cost.toLocaleString()} Mh로 길드 만들기`);
+  go.onclick = async () => {
+    err.textContent = "";
+    if (!confirm(`'${name.value.trim()}' 길드를 만들까요? ${d.cost.toLocaleString()} Mh가 들고, 돌려받을 수 없습니다.`)) return;
+    busy(go, true, "만드는 중…");
+    const { error } = await sb.rpc("guild_create", { p_name: name.value, p_intro: intro.value || null, p_color: color.get(), p_join_mode: mode.value });
+    busy(go, false);
+    if (error) return (err.textContent = koError(error));
+    toast("길드를 만들었습니다.");
+    await loadAll(); renderHunter();
+    reload();
+  };
+  return h("div", { class: "fr-sec", "data-tour": "gd-create" },
+    h("p", { class: "panel-title" }, "길드 만들기"),
+    h("p", { class: "hint", style: "margin:0 0 12px" }, `길드는 최대 ${d.max}명이 함께하는 모임으로, 길드원끼리만 보이는 길드 채팅을 씁니다. ${d.min_level}레벨 이상이면 ${d.cost.toLocaleString()} Mh로 만들 수 있습니다. 한 번에 한 길드에만 있을 수 있습니다.`),
+    h("div", { class: "field" }, h("label", { for: "gd-name" }, "길드 이름"), name),
+    h("div", { class: "field" }, h("label", { for: "gd-intro" }, "소개"), intro),
+    h("div", { class: "field" }, h("label", { for: "gd-mode" }, "가입 방식"), mode, h("p", { class: "hint", style: "margin:6px 0 0;font-size:13px" }, GUILD_MODE_HINT)),
+    h("div", { class: "field" }, h("label", {}, "길드 색"), color.el, h("p", { class: "hint", style: "margin:6px 0 0;font-size:13px" }, "다른 길드와 같은 색은 쓸 수 없습니다. 고르지 않으면 다른 길드가 쓰지 않는 색으로 정해집니다.")),
+    !can ? h("p", { class: "hint", style: "margin:0 0 10px" }, `지금 Lv.${d.level} — ${d.min_level}레벨부터 만들 수 있습니다.`)
+      : !rich ? h("p", { class: "hint", style: "margin:0 0 10px" }, `메헨이 부족합니다. (보유 ${fmtMh(d.currency)})`) : null,
+    err, go);
+}
+
+// 내 길드: 길드원 · 가입 신청 · 초대 · 설정
+function myGuildPanel(d, reload) {
+  const g = d.guild, ms = g.master_is_me;
+  const inv = h("input", { class: "input", maxlength: "12", placeholder: "코드네임", "aria-label": "길드에 초대할 코드네임" });
+  const invBtn = h("button", { class: "btn small", type: "submit" }, "초대");
+  const invForm = h("form", { class: "todo-form" }, inv, invBtn);
+  invForm.onsubmit = async e => {
+    e.preventDefault();
+    if (!inv.value.trim()) return;
+    busy(invBtn, true, "…");
+    const r = await guildRun("guild_invite", { p_codename: inv.value.trim() }, "길드 초대를 보냈습니다.");
+    busy(invBtn, false);
+    if (r) reload();
+  };
+  let settings = null;
+  if (ms) {
+    const mode = guildModeSelect(g.join_mode, "gd-set-mode");
+    const color = guildColorPicker(g.color);
+    const save = h("button", { class: "btn small", type: "button" }, "설정 저장");
+    save.onclick = async () => {
+      busy(save, true, "…");
+      const r = await guildRun("guild_settings", { p_join_mode: mode.value, p_color: color.get() }, "길드 설정을 바꿨습니다.");
+      busy(save, false);
+      if (r) reload();
+    };
+    settings = h("details", { class: "gd-settings", "data-tour": "gd-settings" }, h("summary", {}, "길드 설정 (가입 방식 · 색)"),
+      h("div", { class: "field", style: "margin-top:10px" }, h("label", { for: "gd-set-mode" }, "가입 방식"), mode, h("p", { class: "hint", style: "margin:6px 0 0;font-size:13px" }, GUILD_MODE_HINT)),
+      h("div", { class: "field" }, h("label", {}, "길드 색"), color.el, h("p", { class: "hint", style: "margin:6px 0 0;font-size:13px" }, "랭킹과 헌터 목록에서 길드원의 코드네임 옆에 이 색의 동그라미가 표시됩니다. 다른 길드와 같은 색은 쓸 수 없습니다.")),
+      save);
+  }
+  const apps = ms && g.applications?.length ? h("div", { class: "fr-sec", "data-tour": "gd-apps" }, h("p", { class: "panel-title" }, `가입 신청 ${g.applications.length}`),
+    ...g.applications.map(a => h("div", { class: "fr-row" }, miniAvatar(a),
+      h("div", { class: "fr-main" }, hunterLink(a), h("div", { class: "hint" }, `${hunterSub(a)} · ${fmtWhen(a.at)}`)),
+      h("button", { class: "btn small", type: "button", onclick: async () => { if (await guildRun("guild_review", { p_id: a.id, p_accept: true }, `${a.codename}님이 길드에 들어왔습니다.`)) reload(); } }, "수락"),
+      h("button", { class: "btn ghost small", type: "button", onclick: async () => { if (await guildRun("guild_review", { p_id: a.id, p_accept: false }, "가입 신청을 거절했습니다.")) reload(); } }, "거절")))) : null;
+  return h("div", { class: "fr-list my-guild", "data-tour": "gd-mine" },
+    h("p", { class: "panel-title" }, h("span", { class: "gdot big lead", style: `background:${g.color}`, "aria-hidden": "true" }), g.name,
+      h("span", { class: "hint", style: "font-weight:500" }, ` · ${g.size}/${d.max}명 · ${GUILD_MODE[g.join_mode]}`)),
+    h("p", { class: "hint", style: "margin:0 0 8px;white-space:pre-wrap" }, g.intro || "소개가 없습니다."),
+    h("div", { style: "display:flex;gap:12px;flex-wrap:wrap;margin:0 0 10px" },
+      ms ? h("button", { class: "link-btn", type: "button", onclick: async () => {
+        const t = prompt("길드 소개 (100자까지)", g.intro || "");
+        if (t === null) return;
+        if (await guildRun("guild_set_intro", { p_intro: t }, "소개를 바꿨습니다.")) reload();
+      } }, "소개 바꾸기") : null,
+      h("a", { class: "link-btn", href: "#/friends", onclick: () => { nextSocialTab = "sns"; snsView = "guild"; } }, "길드 채팅 열기")),
+    settings, apps,
+    h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "길드원"),
+    ...g.members.map(m => h("div", { class: "fr-row pt-mrow" }, miniAvatar(m),
+      h("div", { class: "fr-main" }, h("div", {}, m.me ? h("b", {}, m.codename) : hunterLink(m), m.master ? h("span", { class: "badge", style: "margin-left:6px" }, "길드장") : null),
+        h("div", { class: "hint" }, hunterSub(m))),
+      ms && !m.me ? h("div", { class: "pt-acts" },
+        h("button", { class: "btn ghost small", type: "button", onclick: async () => { if (confirm(`${m.codename}님에게 길드장을 넘길까요?`) && await guildRun("guild_transfer", { p_codename: m.codename }, "길드장을 넘겼습니다.")) reload(); } }, "길드장 넘기기"),
+        h("button", { class: "btn ghost small", type: "button", onclick: async () => { if (confirm(`${m.codename}님을 길드에서 내보낼까요?`) && await guildRun("guild_kick", { p_codename: m.codename }, "길드에서 내보냈습니다.")) reload(); } }, "내보내기")) : null)),
+    g.invited.length ? h("div", { class: "fr-sec" }, h("p", { class: "panel-title" }, "보낸 초대 (7일 동안 유효)"),
+      ...g.invited.map(iv => h("div", { class: "fr-row" }, miniAvatar(iv), h("div", { class: "fr-main" }, hunterLink(iv), h("div", { class: "hint" }, hunterSub(iv))),
+        ms ? h("button", { class: "btn ghost small", type: "button", onclick: async () => { if (await guildRun("guild_cancel_invite", { p_id: iv.id }, "초대를 취소했습니다.")) reload(); } }, "취소") : null))) : null,
+    ms && g.size + g.invited.length < d.max ? h("div", { style: "margin-top:8px" }, invForm) : null,
+    h("div", { style: "display:flex;gap:8px;flex-wrap:wrap;margin-top:12px" },
+      !ms || g.size === 1 ? h("button", { class: "btn ghost small", type: "button", onclick: async () => {
+        if (!confirm(ms ? "혼자 남은 길드에서 나가면 길드가 해산됩니다. 나갈까요?" : "길드에서 나갈까요?")) return;
+        if (await guildRun("guild_leave", {}, "길드에서 나왔습니다.")) reload();
+      } }, ms ? "나가기 (해산)" : "길드 나가기") : null,
+      ms && g.size > 1 ? h("button", { class: "btn ghost small", type: "button", onclick: async () => {
+        if (!confirm(`${g.name} 길드를 해산할까요? 길드원 모두가 길드에서 나가고 채팅도 사라집니다. 되돌릴 수 없습니다.`)) return;
+        if (await guildRun("guild_disband", {}, "길드를 해산했습니다.")) reload();
+      } }, "길드 해산") : null));
 }
 
 /* ===== 국제헌터연합: 헌터 ===== */
@@ -4646,7 +4957,7 @@ async function renderHunters(pane) {
   const more = h("button", { class: "btn ghost block", type: "button", style: "margin-top:12px", hidden: true }, "더 보기");
   let offset = 0;
   const row = r => h("tr", { class: r.me ? "me" : null },
-    h("td", {}, h("button", { type: "button", class: "hunter-link", onclick: () => openPublicHunter(r.codename) }, r.codename)),
+    h("td", {}, h("button", { type: "button", class: "hunter-link", onclick: () => openPublicHunter(r.codename) }, r.codename), gdot(r.guild)),
     h("td", {}, `${r.grade}급 · Lv.${r.level}`),
     h("td", { class: "hpos" }, (r.main_option ? posLabel(r.main_position, r.main_option) : (POSITIONS[r.main_position]?.name || r.main_position)) + (r.sub_position ? ` / ${r.sub_option ? POSITIONS[r.sub_position]?.[r.sub_option]?.name : POSITIONS[r.sub_position]?.name}` : "")),
     h("td", { style: "text-align:right" }, h("span", { class: "online-dot" + (r.online ? " on" : "") }, r.online ? "접속 중" : "미접속")));
@@ -4917,7 +5228,6 @@ function openHunter() {
   $("#e-credit").value = p.avatar_credit || "";
   $("#e-vis").value = p.bio_visibility;
   $("#e-email").textContent = state.user?.email || "";
-  regionOptions($("#e-region"), p.region);
   paintHunterGrade();
   paintTitlePicker();
   const pos = POSITIONS[c.main_position];
@@ -5024,7 +5334,7 @@ $("#e-save").onclick = async () => {
       codename, avatar_url, avatar_color: edit.color,
       bio: $("#e-bio").value.trim() || null,
       avatar_credit: $("#e-credit").value.trim() || null,
-      bio_visibility: $("#e-vis").value, region: $("#e-region").value,
+      bio_visibility: $("#e-vis").value,
     }).eq("user_id", state.user.id);
     if (error) {
       if (/duplicate|unique/i.test(error.message)) throw new Error("이미 사용 중인 코드네임입니다.");
@@ -5230,6 +5540,7 @@ const DOCS = {
 <p>2024년부터 지금까지 세계 도시 곳곳에서 발생하는 게이트를 통해 진입 가능한 이공간, 던전을 주기적으로 공략하여 안정화를 시키는 것이 헌터의 기본 활동입니다.</p>
 <p>던전은 국제헌터연합에서 측정한 등급에 따라 현재 헌터 등급과 비슷한 등급의 던전만 진입이 가능합니다. 고등급 헌터가 저등급 던전에 진입하는 것은 가능하나 보상이 감소합니다.</p>
 <p><b>같은 활동 구역을 공유하는 헌터가 1~5명이 모여 공략</b>할 수 있습니다. 던전의 난이도는 입장 헌터 수에 비례하오니 솔로 플레이를 즐기시는 헌터라면 혼자 진입하셔도 무방합니다.</p>
+<p>활동 구역은 지역 안정화 화면 위쪽에서 언제든 옮길 수 있으며, 옮긴 구역에 나타난 던전이 안내됩니다. 단, 대기실에 들어가 있는 동안에는 옮길 수 없고, 파티로 공략할 때는 파티장의 활동 구역 던전에 진입합니다.</p>
 <p>이미 공략 중인 던전은 안정화가 된 후 국제헌터연합에서 재관측 후 새로 입장할 수 있는 던전으로 안내드리오니 참고 부탁드립니다.</p>
 <p>던전 진입 전, 선택 후 헌터님의 전력으로 예상 성공률, 공략 시간, 획득 가능성, 획득 재화를 확인할 수 있습니다.</p>
 <p>도중에 쓰러진 경우, 그때까지 정리한 구역의 보상을 수령하고 던전은 그대로 잔존합니다.</p>
@@ -5249,7 +5560,7 @@ const DOCS = {
 
 <article class="card prose" id="g-union">
 <h2>국제헌터연합</h2>
-<p>국제헌터연합에서는 주간 무한 던전 랭킹 발표와 도감 기록, 헌터 명단을 제공하고 있습니다.</p>
+<p>국제헌터연합에서는 주간 무한 던전 랭킹 발표와 도감 기록, 헌터 명단, 길드 명단을 제공하고 있습니다.</p>
 <h3>랭킹</h3>
 <p>무한 던전 랭킹은 형평성을 위해 개인 공략과 파티 공략으로 나누어 발표하며, 같은 수의 역을 공략한 경우, 먼저 도달한 헌터님이 높은 순위가 됩니다.</p>
 <p>한국 기준 매주 월요일 0시에 새로 시작되며, 그 이전 주 랭킹은 확정된 순위로 참고하여 주세요.</p>
@@ -5260,18 +5571,30 @@ const DOCS = {
 <h3>헌터</h3>
 <p>등록된 헌터의 코드네임, 등급, 레벨, 포지션과 접속 여부를 확인할 수 있으며, 코드네임으로 특정 헌터를 검색할 수 있습니다.</p>
 <p>코드네임을 누르면 헌터 정보를 확인하고 친구 신청과 파티 초대를 할 수 있습니다.</p>
+<p>길드에 소속된 헌터는 랭킹과 헌터 명단에서 코드네임 오른쪽에 길드 색 동그라미가 표시됩니다.</p>
+<h3>길드</h3>
+<p>마음이 맞는 헌터들끼리 모여 길드를 개설할 수 있습니다. 10레벨 이상, 5,000 Mh의 수수료를 내면 길드 개설이 가능하며, 한 길드에는 최대 20명이 함께할 수 있습니다. 한 번에 한 길드에만 소속될 수 있습니다.</p>
+<p>길드 이름으로 길드를 검색할 수 있으며, 길드장이 정한 가입 방식에 따라 들어갈 수 있습니다.</p>
+<ul>
+<li><b>상시 가입</b>: 누구나 [가입]을 누르면 바로 들어갑니다.</li>
+<li><b>가입 신청 후 수락</b>: [가입 신청]을 보내고, 길드장이 수락하면 들어갑니다. 신청은 7일 동안 유효하며 동시에 5곳까지 보낼 수 있습니다.</li>
+<li><b>초대 가입</b>: 길드장에게 초대를 받은 헌터만 들어갈 수 있습니다.</li>
+</ul>
+<p>길드장은 길드마다 고유한 색을 정할 수 있습니다. 다른 길드가 쓰고 있는 색은 고를 수 없습니다. 가입 방식과 색은 길드 설정에서 언제든 바꿀 수 있습니다.</p>
 </article>
 
 <article class="card prose" id="g-inv">
 <h2>인벤토리</h2>
 <p>인벤토리 메뉴에서는 현재 가지고 있는 아이템, 상점, 조합, 거래소를 이용할 수 있습니다.</p>
 <h3>보유</h3>
-<p>현재 가지고 있는 장비, 소비, 재료 아이템을 확인 및 판매할 수 있습니다.</p>
+<p>현재 가지고 있는 장비, 소비, 재료 아이템을 확인 및 판매할 수 있습니다. 전체 · 장비 · 소비 · 재료로 나누어 넘겨 볼 수 있고(휴대폰에서는 목록을 옆으로 밀어도 넘어갑니다), 아이템 이름으로 검색할 수 있습니다.</p>
+<p>등급 순으로 정렬하면 장비는 티어와 강화 단계, 재료는 희귀도(흔함 · 보통 · 희귀)와 보스 재료 등급 순으로 늘어섭니다. 소비 아이템은 등급이 없어 기본 순서를 따릅니다.</p>
 <p>장비의 경우 D급 1개부터 차례로 장비 등급이 오를 때마다 1개씩 더해지는 별가루와 재화를 소모하여 강화가 가능합니다. 6강부터는 동일한 장비를 추가 재료로 요구합니다.</p>
 <h3>조합</h3>
 <p>2~3개의 재료 아이템을 합쳐 새로운 아이템을 획득할 수 있습니다. 처음 성공한 조합식은 도감 및 조합 메뉴에 기록되어 계속 참고할 수 있습니다.</p>
 <p>조합식이 틀려도 아이템이 사라지진 않으나, <b>조합 중 1% 확률로 아이템이 대실패하여 재료 아이템이 모두 파괴</b>되는 경우가 존재합니다. 반대로, <b>조합 성공 시 5% 확률로 아이템을 2개 획득할 수 있는 대성공</b> 현상도 관측되고 있습니다.</p>
-<p>알게 된 조합식은 [칸 채우기] 기능을 통해 자동으로 재료 아이템을 채울 수 있습니다.</p>
+<p>알게 된 조합식은 전체 · 장비 · 소비로 나누어 볼 수 있고, 아이템 이름으로 검색하면 결과뿐 아니라 재료에 그 아이템이 들어간 조합식도 찾아 줍니다.</p>
+<p>[칸 채우기] 기능을 통해 자동으로 재료 아이템을 채울 수 있으며, 옆 칸에 횟수를 정하면 가진 재료만큼 여러 번을 한꺼번에 조합할 수 있습니다. 한꺼번에 조합해도 대실패와 대성공은 한 번마다 따로 정해집니다. 장비가 재료로 들어가는 조합식은 강화 단계가 낮은 장비부터 사용합니다.</p>
 <h3>거래소</h3>
 <p>헌터들끼리 아이템을 사고 팔 수 있습니다. 상점에 팔지 않는 아이템을 등록할 수 있으며, 한 번에 10건, 7일 동안 팔리지 않으면 인벤토리에 회수됩니다.</p>
 <p>거래소 운영을 위해 판매가의 5%를 수수료로 국제헌터연합이 가져가고 있으니 양해 부탁드립니다.</p>
@@ -5280,14 +5603,14 @@ const DOCS = {
 
 <article class="card prose" id="g-social">
 <h2>교류</h2>
-<p>헌터 간 교류를 활성화하기 위해서 SNS·길드, 친구·메시지, 파티, 선물함 기능을 지원하고 있습니다.</p>
+<p>헌터 간 교류를 활성화하기 위해서 SNS·길드 채팅, 친구·메시지, 파티, 선물함 기능을 지원하고 있습니다.</p>
 <h3>알림</h3>
 <p>화면 위쪽의 [알림]에서 타이틀 획득, 친구 신청, 파티·길드 초대, 공지, SNS 댓글·답글, 거래소 판매, 선물 도착, 지역 안정화·무한 던전·전력 분석 완료 알림을 모아 볼 수 있습니다. 알림을 누르면 해당 화면으로 이동하며, 최근 30일 동안의 알림이 보관됩니다.</p>
 <p>[알림 설정]에서 받을 알림을 종류별로 켜고 끌 수 있습니다. PC에서는 컴퓨터 알림 팝업을 켜면 게임 창이 다른 창 뒤에 있을 때도 알림을 받을 수 있습니다. 단, 게임 탭은 열려 있어야 합니다.</p>
 <h3>SNS</h3>
 <p>헌터 소셜네트워크서비스를 이용하여 실시간으로 게시글을 올리고, 댓글로 대화할 수 있습니다. 게시글 주제에 맞는 태그를 이용하여 주세요.</p>
-<h3>길드</h3>
-<p>마음이 맞는 헌터들끼리 모여 길드를 개설할 수 있습니다. 10레벨 이상, 5,000 Mh의 수수료를 내면 길드 개설이 가능하며, 길드원끼리는 전용 채팅이 가능합니다. 채팅은 30일 뒤 삭제됩니다.</p>
+<h3>길드 채팅</h3>
+<p>SNS의 [길드]에서 길드원끼리만 보이는 전용 채팅을 할 수 있습니다. 채팅은 30일 뒤 삭제됩니다. 길드 가입과 개설, 길드 관리는 국제헌터연합의 [길드]에서 할 수 있습니다.</p>
 <h3>친구·메시지</h3>
 <p>공략 중 친해진 헌터가 있다면 친구로 추가하여 1:1 메시지를 주고 받을 수 있습니다.</p>
 <p>친구 신청은 코드네임을 검색하여 가능하고, 상대가 수락하면 친구가 됩니다. 현재는 30명까지 친구를 추가할 수 있습니다.</p>
@@ -5319,9 +5642,9 @@ const DOCS = {
 <thead><tr><th>구분</th><th>항목</th><th>수집 방법</th><th>이용 목적</th></tr></thead>
 <tbody>
 <tr><td>계정</td><td>이메일, 비밀번호, 사용한 초대코드</td><td>가입할 때 직접 입력</td><td>로그인, 본인 확인, 초대제 운영</td></tr>
-<tr><td>캐릭터</td><td>코드네임 · 포지션 · 활동 구역 · 아바타 색 · 프로필 이미지 · 캐릭터 소개와 공개 범위</td><td>캐릭터를 만들거나 고칠 때 직접 입력</td><td>프로필 표시, 게임 진행</td></tr>
+<tr><td>캐릭터</td><td>코드네임 · 포지션 · 활동 구역 · 아바타 색 · 프로필 이미지 · 캐릭터 소개와 공개 범위</td><td>캐릭터를 만들거나 고칠 때 직접 입력 (활동 구역은 지역 안정화 화면에서 선택)</td><td>프로필 표시, 게임 진행</td></tr>
 <tr><td>활동 기록</td><td>레벨 · 스탯 · 메헨(재화) · 아이템 · 장비, 무한 던전 · 지역 안정화 · 탐색 · 별의 무덤 기록과 로그, 조합 · 강화 기록, 주간 랭킹 기록, 홈 화면의 할 일 목록, 화면 설정(테마)</td><td>게임을 이용할 때 자동 저장</td><td>게임 진행, 보상 지급, 랭킹, 부정 이용 방지</td></tr>
-<tr><td>교류</td><td>친구 · 차단 목록, 1:1 메시지, 선물 기록(보낸 것 · 메시지 포함), 파티 구성 · 초대 기록과 파티 랭킹 기록, 길드 정보(이름 · 소개 · 길드원) · 초대 기록 · 길드 채팅(30일 보관, 신고된 메시지는 확인이 끝날 때까지), SNS 글 · 댓글, 신고 내용과 처리 기록</td><td>교류 기능을 이용할 때 직접 작성 · 자동 저장</td><td>친구 · 메신저 · 선물 · 파티 · 길드 · SNS 제공, 신고 처리</td></tr>
+<tr><td>교류</td><td>친구 · 차단 목록, 1:1 메시지, 선물 기록(보낸 것 · 메시지 포함), 파티 구성 · 초대 기록과 파티 랭킹 기록, 길드 정보(이름 · 소개 · 가입 방식 · 색 · 길드원) · 초대 · 가입 신청 기록 · 길드 채팅(30일 보관, 신고된 메시지는 확인이 끝날 때까지), SNS 글 · 댓글, 신고 내용과 처리 기록</td><td>교류 기능을 이용할 때 직접 작성 · 자동 저장</td><td>친구 · 메신저 · 선물 · 파티 · 길드 · SNS 제공, 신고 처리</td></tr>
 <tr><td>접속 기록</td><td>로그인 시각, 접속 IP 주소, 브라우저 정보</td><td>로그인 서비스(Supabase)가 자동 기록</td><td>보안, 부정 접속 확인</td></tr>
 <tr><td>브라우저 저장소</td><td>로그인 상태 유지용 정보(세션 토큰), 테마 설정, 배경음악 · 효과음 설정과 직접 넣은 유튜브 주소, 한 번 받은 배경음악 · 효과음 파일</td><td>이용자 브라우저에 저장</td><td>다시 로그인하지 않아도 되도록, 화면 · 소리 설정 유지, 음원을 매번 다시 받지 않도록</td></tr>
 </tbody>
@@ -5983,6 +6306,7 @@ const TOURS = {
   ],
   regional: [
     { text: "지역 안정화는 무한 던전이 발견되기 전부터 헌터의 기본 업무이기도 합니다. 헌터님의 활동 구역에 나타난 던전을 공략해 안정시킬 수 있습니다." },
+    { sel: '[data-tour="rg-region"]', text: "활동 구역은 이곳에서 옮길 수 있습니다. 구역마다 나타나는 던전이 다르고, 같은 구역의 헌터들과 던전을 함께 나눠 씁니다.\n대기실에 들어가 있는 동안에는 옮길 수 없고, 파티로 공략할 때는 파티장의 활동 구역 던전에 들어갑니다." },
     { sel: '[data-tour="rg-tabs"]', text: "던전은 등급별로 나뉘어져 있습니다. 지금 등급까지 들어갈 수 있고, 더 높은 등급에 들어갈 수 있으면 낮은 등급의 보상은 감소합니다." },
     { sel: '[data-tour="rg-board"]', text: "같은 구역의 헌터들이 함께 출입하기 때문에 누군가 공략 중이거나 이미 안정화한 던전에는 진입이 불가합니다.\n안정화된 던전은 30분 뒤 국제헌터연합의 관측에 따라 새롭게 안내됩니다." },
     { sel: '[data-tour="rg-info"]', text: "던전을 선택하면 장소와 테마, 구역 수, 예상 성공률을 확인할 수 있습니다.\n성공률은 헌터님의 전력(무한 던전 도달 역, HP·DEF, 포지션)과 챙길 보급품으로 미리 계산한 수치입니다." },
@@ -6007,7 +6331,7 @@ const TOURS = {
     { sel: '[data-tour="mk-hist"]', text: "최근 30일간 사고판 기록과 기한이 지나 돌아온 물건을 이곳에서 확인할 수 있습니다." },
   ],
   "union-rank": [
-    { sel: '[data-tour="un-tabs"]', text: "국제헌터연합에서는 주간 랭킹과 도감을 확인하실 수 있습니다." },
+    { sel: '[data-tour="un-tabs"]', text: "국제헌터연합에서는 주간 랭킹, 도감, 헌터 명단과 길드를 확인하실 수 있습니다." },
     { sel: '[data-tour="un-mode"]', text: "무한 던전 랭킹은 혼자 세운 기록과 파티로 세운 기록은 따로 책정하고 있습니다.\n파티 기록은 파티장 이름으로 오르며, 해당 파티를 눌러 파티원 목록을 확인할 수 있습니다." },
     { sel: '[data-tour="un-week"]', text: "랭킹은 매주 월요일 0시(한국 시간)에 새로 시작합니다.\n지난주 순위는 확정된 기록입니다." },
     { sel: '[data-tour="un-table"]', text: "무한 던전에서 가장 깊이 도달한 역으로 순위가 정해지고, 같은 역이면 먼저 도달한 헌터가 더 높은 순위로 올라섭니다.\n코드네임을 누르면 헌터 정보를 확인할 수 있으니 참고 부탁드립니다." },
@@ -6021,11 +6345,19 @@ const TOURS = {
   "union-hunters": [
     { sel: '[data-tour="hu-search"]', text: "등록된 헌터를 확인할 수 있습니다.\n코드네임 일부를 입력하여 특정 헌터를 검색할 수 있습니다." },
     { sel: '[data-tour="hu-table"]', text: "헌터마다 등급, 레벨, 포지션과 지금 접속 중인지를 보여 줍니다.\n접속 중인 헌터가 먼저 나오고, 그다음은 레벨이 높은 순입니다." },
-    { text: "코드네임을 누르면 헌터 정보를 확인하고, 친구 신청과 파티 초대를 할 수 있습니다." },
+    { text: "코드네임을 누르면 헌터 정보를 확인하고, 친구 신청과 파티 초대를 할 수 있습니다.\n길드에 소속된 헌터는 코드네임 옆에 길드 색 동그라미가 표시됩니다." },
+  ],
+  "union-guild": [
+    { text: "길드는 최대 20명이 함께하는 모임입니다. 이곳에서 길드를 찾아 들어가거나 직접 만들 수 있습니다." },
+    { sel: '[data-tour="gd-search"]', text: "길드 이름으로 검색할 수 있습니다.\n상시 가입 길드는 바로 들어가고, 가입 신청 후 수락 길드는 길드장이 수락하면 들어가며, 초대 가입 길드는 초대를 받아야 들어갈 수 있습니다." },
+    { sel: '[data-tour="gd-create"]', text: "10레벨부터 5,000 Mh로 길드를 만들 수 있습니다. 가입 방식과 길드 색을 정해 주세요.\n길드 색은 랭킹과 헌터 명단에서 길드원의 코드네임 옆에 표시됩니다." },
+    { sel: '[data-tour="gd-mine"]', text: "길드에 들어가면 길드원 목록을 확인할 수 있습니다. 길드장은 가입 신청을 수락하고, 헌터를 초대하고, 가입 방식과 색을 바꿀 수 있습니다." },
+    { text: "길드원끼리의 대화는 교류 → SNS → 길드 채팅에서 나눌 수 있습니다." },
   ],
   "inv-items": [
     { sel: '[data-tour="inv-tabs"]', text: "인벤토리에서는 가진 물건을 관리하고, 상점에서 사고, 조합으로 새 아이템을 만들 수 있습니다." },
     { sel: '[data-tour="inv-slots"]', text: "무기 · 방어구 · 장신구를 한 개씩 착용할 수 있습니다.\n장비마다 착용 레벨이 있으니 확인부탁드립니다." },
+    { sel: '[data-tour="inv-tools"]', text: "가진 아이템을 전체 · 장비 · 소비 · 재료로 나누어 넘겨 볼 수 있습니다.\n이름으로 검색하거나 등급 순으로 정렬할 수도 있습니다." },
     { sel: '[data-tour="inv-gear"]', text: "장비는 메헨과 별가루로 +10까지 강화할 수 있습니다. +6부터는 같은 장비 하나를 추가로 재료로 사용합니다.\n필요 없는 장비는 판매하여 메헨을 획득할 수 있습니다." },
     { sel: '[data-tour="inv-cons"], [data-tour="inv-mats"]', all: true, text: "소비 아이템은 던전에 보급품으로 챙겨 갈 수 있습니다.\n재료는 조합에 쓰거나 팔 수 있습니다." },
   ],
@@ -6036,7 +6368,7 @@ const TOURS = {
   "inv-craft": [
     { sel: ".craft-slots", text: "던전에서 얻은 재료를 2~3개를 조합하여 새로운 아이템을 얻을 수 있습니다.\n맞는 조합식이면 아이템이 나오고, 맞지 않으면 재료는 그대로 돌아옵니다." },
     { sel: '[data-tour="craft-go"]', text: "어떤 조합이든 1% 확률로 재료가 부서질 수 있고, 성공하면 5% 확률로 2개를 획득할 수 있습니다." },
-    { sel: '[data-tour="craft-known"]', text: "처음 성공한 조합식은 이곳에 기록됩니다.\n'칸 채우기'를 누르면 재료를 한 번에 넣을 수 있습니다." },
+    { sel: '[data-tour="craft-known"]', text: "처음 성공한 조합식은 이곳에 기록됩니다. 전체 · 장비 · 소비로 나누어 보거나 아이템 이름으로 찾을 수 있으며, 재료에 들어간 아이템으로도 찾아집니다.\n횟수를 정하고 '칸 채우기'를 누르면 그 횟수만큼 한꺼번에 조합할 수 있습니다." },
   ],
   "soc-friends": [
     { sel: '[data-tour="soc-tabs"]', text: "교류에서는 친구 · 메시지, 파티, 선물함, SNS를 이용하실 수 있습니다." },
@@ -6056,7 +6388,7 @@ const TOURS = {
   "soc-sns": [
     { sel: '[data-tour="sns-cats"]', text: "SNS에는 잡담 · 공략 · 질문 · 모집 · 거래 해시태그로 분류합니다. 태그를 골라 볼 수 있습니다." },
     { sel: '[data-tour="sns-write"]', text: "태그를 고르고 글을 남길 수 있으며, 다른 헌터의 글에는 댓글을 달 수 있습니다." },
-    { sel: '[data-tour="sns-view"]', text: "10레벨부터는 5,000 Mh의 수수료를 내고 길드 개설이 가능합니다. 길드원끼리는 길드 채팅으로 대화가 가능합니다. 채팅은 30일 뒤 삭제됩니다." },
+    { sel: '[data-tour="sns-view"]', text: "길드에 들어가 있다면 [길드]에서 길드원끼리 길드 채팅으로 대화할 수 있습니다. 채팅은 30일 뒤 삭제됩니다.\n길드 가입과 개설은 국제헌터연합 → 길드에서 할 수 있습니다." },
   ],
   hunter: [
     { sel: "#e-titles", text: "모은 타이틀 조각으로 코드네임의 앞과 뒤를 꾸밀 수 있습니다. 가진 조각은 도감에서 확인 가능합니다." },
