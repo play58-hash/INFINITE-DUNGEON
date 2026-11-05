@@ -348,6 +348,12 @@ code.c { font-family: ui-monospace, Menlo, monospace; background: var(--surface-
 .inv-list { touch-action: pan-y; }
 .craft-x { font-weight: 700; color: var(--accent-text); }
 mark { background: color-mix(in srgb, #FFC53D 45%, transparent); color: inherit; border-radius: 3px; padding: 0 1px; }
+.gd-desc { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); font-size: 14px; }
+.gd-desc-box { margin: 0 0 12px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; }
+.gd-members { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.gd-pin { margin: 0 0 8px; }
+.gd-pin summary { cursor: pointer; font-weight: 700; font-size: 14px; padding: 4px 0; }
+.gd-pin .gd-desc { margin-top: 6px; max-height: 220px; overflow: auto; }
 /* 길드 색 동그라미 */
 .gdot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-left: 6px; vertical-align: middle; flex: none; box-shadow: 0 0 0 1px color-mix(in srgb, var(--text) 28%, transparent); }
 .gdot.lead { margin: 0 6px 0 0; }
@@ -2595,6 +2601,8 @@ async function renderGuild(body, reload) {
   };
   chat.replaceChildren(h("div", { class: "chat-head" }, h("div", { class: "fr-main" }, h("b", {}, h("span", { class: "gdot lead", style: `background:${g.color}`, "aria-hidden": "true" }), `${g.name} 길드 채팅`), h("div", { class: "hint" }, `길드원 ${g.size}명에게만 보입니다 · 30일 뒤 지워집니다`)),
     h("button", { class: "btn ghost small", type: "button", onclick: toUnion }, "길드 정보")),
+    g.description ? h("details", { class: "gd-pin" }, h("summary", {}, "📌 길드 공지", g.description_at ? h("span", { class: "hint", style: "font-weight:500" }, ` · ${fmtWhen(g.description_at)}`) : null),
+      h("div", { class: "gd-desc" }, g.description)) : null,
     more, log, form);
   body.replaceChildren(chat);
 
@@ -4750,6 +4758,47 @@ function guildColorPicker(current) {
 }
 const guildModeSelect = (cur, id) => h("select", { class: "input", id }, ...Object.entries(GUILD_MODE).map(([v, n]) => h("option", { value: v, selected: v === cur }, n)));
 
+// 길드 목록 · 상세 창의 가입 버튼
+function guildAction(x, d, reload) {
+  const inGuild = !!d.guild, admin = !!state.profile?.is_admin;
+  if (x.mine) return h("span", { class: "badge" }, "내 길드");
+  if (inGuild || admin) return null;
+  if (x.join_mode === "invite") return x.invite_id
+    ? h("button", { class: "btn small", type: "button", onclick: async () => { if (await guildRun("guild_respond", { p_id: x.invite_id, p_accept: true }, `${x.name} 길드에 들어갔습니다.`)) reload(); } }, "초대 수락")
+    : null;
+  if (x.size >= 20) return h("span", { class: "hint" }, "가득 참");
+  if (x.join_mode === "apply" && x.applied)
+    return h("button", { class: "btn ghost small", type: "button", onclick: async () => { if (await guildRun("guild_cancel_apply", { p_guild: x.id }, "가입 신청을 취소했습니다.")) reload(); } }, "신청 취소");
+  const b = h("button", { class: "btn small", type: "button" }, x.join_mode === "open" ? "가입" : "가입 신청");
+  b.onclick = async () => {
+    if (x.join_mode === "open" && !confirm(`${x.name} 길드에 들어갈까요?`)) return;
+    busy(b, true, "…");
+    const r = await guildRun("guild_join", { p_guild: x.id });
+    busy(b, false);
+    if (!r) return;
+    toast(r.result === "joined" ? `${x.name} 길드에 들어갔습니다.` : "가입 신청을 보냈습니다. 길드장이 수락하면 길드에 들어갑니다.");
+    reload();
+  };
+  return b;
+}
+// 길드 상세: 가입 방식 · 소개 · 상세 설명(길드장이 쓰는 공지) · 길드원
+async function openGuildDetail(id, d, reload) {
+  const { data: x, error } = await sb.rpc("guild_detail", { p_guild: id });
+  if (error) return toast(koError(error));
+  const again = () => { $("#dlg-info").open && $("#dlg-info").close(); reload(); };
+  info(x.name,
+    h("div", { style: "display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 8px" },
+      h("span", { class: "gdot big lead", style: `background:${x.color}`, "aria-hidden": "true" }),
+      h("span", { class: "cat-chip" }, GUILD_MODE[x.join_mode]),
+      h("span", { class: "hint" }, `${x.size}/20명 · 길드장 ${x.master || "-"}`)),
+    x.intro ? h("p", { class: "hint", style: "margin:0 0 4px;white-space:pre-wrap;overflow-wrap:anywhere" }, x.intro) : null,
+    h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "상세 설명", x.description_at ? h("span", { class: "hint", style: "font-weight:500" }, ` · ${fmtWhen(x.description_at)} 수정`) : null),
+    x.description ? h("div", { class: "gd-desc" }, x.description) : h("p", { class: "hint", style: "margin:0" }, "아직 등록된 상세 설명이 없습니다."),
+    h("p", { class: "panel-title", style: "margin:14px 0 6px" }, `길드원 ${x.size}명`),
+    h("div", { class: "gd-members" }, ...(x.members || []).map(m => h("span", {}, hunterLink(m), m.master ? h("span", { class: "badge", style: "margin-left:4px" }, "길드장") : null))),
+    (() => { const a = guildAction(x, d, again); return a ? h("div", { style: "margin-top:16px;display:flex;justify-content:flex-end" }, a) : null; })());
+}
+
 async function renderUnionGuild(pane) {
   const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
   pane.replaceChildren(paneHead("국제헌터연합", "union-guild"), unionTabs(pane),
@@ -4793,34 +4842,12 @@ function guildSearchBox(d, reload) {
   let offset = 0;
   form.onsubmit = e => { e.preventDefault(); guildQuery = q.value.trim(); reset.hidden = !guildQuery; load(0, true); };
   reset.onclick = () => { q.value = ""; guildQuery = ""; reset.hidden = true; load(0, true); };
-  const action = x => {
-    if (x.mine) return h("span", { class: "badge" }, "내 길드");
-    if (inGuild || admin) return null;
-    if (x.join_mode === "invite") return x.invite_id
-      ? h("button", { class: "btn small", type: "button", onclick: async () => { if (await guildRun("guild_respond", { p_id: x.invite_id, p_accept: true }, `${x.name} 길드에 들어갔습니다.`)) reload(); } }, "초대 수락")
-      : null;
-    if (x.size >= 20) return h("span", { class: "hint" }, "가득 참");
-    if (x.join_mode === "apply" && x.applied)
-      return h("button", { class: "btn ghost small", type: "button", onclick: async () => { if (await guildRun("guild_cancel_apply", { p_guild: x.id }, "가입 신청을 취소했습니다.")) reload(); } }, "신청 취소");
-    const b = h("button", { class: "btn small", type: "button" }, x.join_mode === "open" ? "가입" : "가입 신청");
-    b.onclick = async () => {
-      if (x.join_mode === "open" && !confirm(`${x.name} 길드에 들어갈까요?`)) return;
-      busy(b, true, "…");
-      const r = await guildRun("guild_join", { p_guild: x.id });
-      busy(b, false);
-      if (!r) return;
-      toast(r.result === "joined" ? `${x.name} 길드에 들어갔습니다.` : "가입 신청을 보냈습니다. 길드장이 수락하면 길드에 들어갑니다.");
-      reload();
-    };
-    return b;
-  };
   const row = x => h("div", { class: "fr-row guild-row" },
     h("span", { class: "gdot big", style: `background:${x.color}`, "aria-hidden": "true" }),
     h("div", { class: "fr-main" },
-      h("div", {}, h("b", {}, x.name), h("span", { class: "cat-chip", style: "margin-left:8px" }, GUILD_MODE[x.join_mode])),
-      h("div", { class: "hint" }, `${x.size}/20명 · 길드장 ${x.master || "-"}`),
-      x.intro ? h("div", { class: "hint", style: "white-space:pre-wrap;overflow-wrap:anywhere" }, x.intro) : null),
-    action(x));
+      h("button", { type: "button", class: "hunter-link", onclick: () => openGuildDetail(x.id, d, reload) }, x.name),
+      h("span", { class: "hint", style: "margin-left:8px;font-size:13px" }, `${x.size}/20명`)),
+    guildAction(x, d, reload));
   async function load(from, fresh) {
     more.disabled = true;
     const { data, error } = await sb.rpc("guild_list", { p_query: guildQuery || null, p_offset: from });
@@ -4870,6 +4897,36 @@ function guildCreateBox(d, reload) {
     err, go);
 }
 
+// 상세 설명 (길드 공지) — 누구나 길드 상세에서 볼 수 있고, 길드장만 고친다
+function guildDescBox(g, ms, reload) {
+  const box = h("div", { class: "gd-desc-box", "data-tour": "gd-desc" });
+  const view = () => box.replaceChildren(
+    h("div", { style: "display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 6px" },
+      h("b", {}, "상세 설명 (길드 공지)", g.description_at ? h("span", { class: "hint", style: "font-weight:500" }, ` · ${fmtWhen(g.description_at)} 수정`) : null),
+      ms ? h("button", { class: "link-btn", type: "button", onclick: edit }, g.description ? "고치기" : "쓰기") : null),
+    g.description ? h("div", { class: "gd-desc" }, g.description)
+      : h("p", { class: "hint", style: "margin:0" }, ms ? "길드 목록에서 길드 이름을 누르면 보이는 설명입니다. 길드원에게 전할 공지로도 쓸 수 있습니다." : "아직 등록된 상세 설명이 없습니다."));
+  function edit() {
+    const ta = h("textarea", { class: "input", rows: "6", maxlength: "1000", "aria-label": "길드 상세 설명" });
+    ta.value = g.description || "";
+    const cnt = h("span", { class: "hint" }, `${ta.value.length} / 1000`);
+    ta.oninput = () => { cnt.textContent = `${ta.value.length} / 1000`; };
+    const save = h("button", { class: "btn small", type: "button" }, "저장");
+    save.onclick = async () => {
+      busy(save, true, "…");
+      const r = await guildRun("guild_set_description", { p_text: ta.value }, "상세 설명을 저장했습니다. 길드원에게 알림이 갑니다.");
+      busy(save, false);
+      if (r) reload();
+    };
+    box.replaceChildren(h("b", {}, "상세 설명 (길드 공지)"),
+      h("p", { class: "hint", style: "margin:4px 0 8px;font-size:13px" }, "길드 목록에서 누구나 볼 수 있습니다. 저장하면 길드원에게 알림이 갑니다. (1,000자까지)"),
+      ta, h("div", { style: "display:flex;align-items:center;gap:8px;justify-content:flex-end;margin-top:8px" }, cnt,
+        h("button", { class: "btn ghost small", type: "button", onclick: view }, "취소"), save));
+    ta.focus();
+  }
+  view();
+  return box;
+}
 // 내 길드: 길드원 · 가입 신청 · 초대 · 설정
 function myGuildPanel(d, reload) {
   const g = d.guild, ms = g.master_is_me;
@@ -4916,6 +4973,7 @@ function myGuildPanel(d, reload) {
         if (await guildRun("guild_set_intro", { p_intro: t }, "소개를 바꿨습니다.")) reload();
       } }, "소개 바꾸기") : null,
       h("a", { class: "link-btn", href: "#/friends", onclick: () => { nextSocialTab = "sns"; snsView = "guild"; } }, "길드 채팅 열기")),
+    guildDescBox(g, ms, reload),
     settings, apps,
     h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "길드원"),
     ...g.members.map(m => h("div", { class: "fr-row pt-mrow" }, miniAvatar(m),
@@ -5581,6 +5639,7 @@ const DOCS = {
 <li><b>초대 가입</b>: 길드장에게 초대를 받은 헌터만 들어갈 수 있습니다.</li>
 </ul>
 <p>길드장은 길드마다 고유한 색을 정할 수 있습니다. 다른 길드가 쓰고 있는 색은 고를 수 없습니다. 가입 방식과 색은 길드 설정에서 언제든 바꿀 수 있습니다.</p>
+<p>길드 목록에서 길드 이름을 누르면 가입 방식, 소개, 상세 설명, 길드원을 확인할 수 있습니다. 길드장은 상세 설명(1,000자까지)을 써서 길드 공지로 쓸 수 있으며, 고치면 길드원에게 알림이 가고 길드 채팅 위쪽에도 고정됩니다.</p>
 </article>
 
 <article class="card prose" id="g-inv">
@@ -6349,9 +6408,9 @@ const TOURS = {
   ],
   "union-guild": [
     { text: "길드는 최대 20명이 함께하는 모임입니다. 이곳에서 길드를 찾아 들어가거나 직접 만들 수 있습니다." },
-    { sel: '[data-tour="gd-search"]', text: "길드 이름으로 검색할 수 있습니다.\n상시 가입 길드는 바로 들어가고, 가입 신청 후 수락 길드는 길드장이 수락하면 들어가며, 초대 가입 길드는 초대를 받아야 들어갈 수 있습니다." },
+    { sel: '[data-tour="gd-search"]', text: "길드 이름으로 검색할 수 있고, 이름을 누르면 길드의 상세 설명과 길드원을 볼 수 있습니다.\n상시 가입 길드는 바로 들어가고, 가입 신청 후 수락 길드는 길드장이 수락하면 들어가며, 초대 가입 길드는 초대를 받아야 들어갈 수 있습니다." },
     { sel: '[data-tour="gd-create"]', text: "10레벨부터 5,000 Mh로 길드를 만들 수 있습니다. 가입 방식과 길드 색을 정해 주세요.\n길드 색은 랭킹과 헌터 명단에서 길드원의 코드네임 옆에 표시됩니다." },
-    { sel: '[data-tour="gd-mine"]', text: "길드에 들어가면 길드원 목록을 확인할 수 있습니다. 길드장은 가입 신청을 수락하고, 헌터를 초대하고, 가입 방식과 색을 바꿀 수 있습니다." },
+    { sel: '[data-tour="gd-mine"]', text: "길드에 들어가면 길드 공지(상세 설명)와 길드원 목록을 확인할 수 있습니다. 길드장은 상세 설명을 쓰고, 가입 신청을 수락하고, 헌터를 초대하고, 가입 방식과 색을 바꿀 수 있습니다." },
     { text: "길드원끼리의 대화는 교류 → SNS → 길드 채팅에서 나눌 수 있습니다." },
   ],
   "inv-items": [
