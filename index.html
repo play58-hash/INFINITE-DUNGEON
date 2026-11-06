@@ -374,6 +374,7 @@ mark { background: color-mix(in srgb, #FFC53D 45%, transparent); color: inherit;
 .cx-tools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 12px 0 4px; }
 .cx-tools input[type=search] { flex: 1 1 180px; min-width: 0; }
 .cx-tools select { flex: 0 0 auto; width: auto; }
+.cx-regions { margin: 0 0 10px; }
 .cx-only { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; white-space: nowrap; }
 .mini-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
 .gate-round { margin: 0 0 8px; font-weight: 700; }
@@ -5744,7 +5745,7 @@ let codexCat = "all";
 const CODEX_CATS = [["monster", "몬스터"], ["dungeon", "던전"], ["recipe", "조합식"], ["item", "아이템"]];
 const fmtDay = iso => { const d = new Date(iso); return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`; };
 // 도감 검색·정렬 (발견하지 못한 것은 이름으로 찾아지지 않는다)
-let codexQ = "", codexSort = "default", codexOnlyKnown = false;
+let codexQ = "", codexSort = "default", codexOnlyKnown = false, codexRegion = "all";
 const CX_SORTS = [["default", "기본 순"], ["name", "이름 순"], ["known", "발견한 것 먼저"], ["recent", "최근 발견 순"], ["count", "만난·클리어 횟수 순"]];
 function cxApply(arr, known, name, first, count) {
   const w = codexQ.trim().toLowerCase();
@@ -5797,13 +5798,25 @@ async function renderCodex(pane) {
     },
     dungeon(out) {
       const ds = cx.dungeons || [];
-      const rg = ds.filter(d => d.kind === "regional");
+      const rgAll = ds.filter(d => d.kind === "regional");
+      // 활동 구역별로 나누어 보기
+      const regs = Object.keys(REGIONS).filter(k => rgAll.some(d => d.region === k));
+      if (codexRegion !== "all" && !regs.includes(codexRegion)) codexRegion = "all";
+      const rg = codexRegion === "all" ? rgAll : rgAll.filter(d => d.region === codexRegion);
+      const chip = (k, label, arr) => h("button", { type: "button", role: "tab", class: `cat-chip big${codexRegion === k ? " on" : ""}`, "aria-selected": codexRegion === k ? "true" : "false",
+        onclick: () => { codexRegion = k; paint(); } }, label, h("span", { class: "inv-n" }, `${arr.filter(d => d.seen).length}/${arr.length}`));
+      out.push(h("p", { class: "codex-group" }, `지역 안정화 · 발견 ${rgAll.filter(d => d.seen).length}/${rgAll.length}`),
+        h("div", { class: "cat-row cx-regions", role: "tablist", "aria-label": "활동 구역", "data-tour": "cx-regions" },
+          chip("all", "전체", rgAll), ...regs.map(k => chip(k, REGIONS[k], rgAll.filter(d => d.region === k)))));
       const dSort = arr => cxApply(arr, d => !!d.seen, d => `${d.name || ""} ${d.place || ""}`, d => d.first_at, d => d.clears);
+      const dCell = d => cell(!!d.seen, d.name, d.seen ? `${d.grade}급 · ${d.place || ""}${d.clears ? ` · 클리어 ${d.clears}` : ""}` : `${d.grade}급`, () => dungeonInfo(d));
       const sec = (title, all) => { const arr = dSort(all); return (arr.length || (all.length && !cxFiltering())) && out.push(h("p", { class: "codex-group" }, `${title} · ${all.filter(d => d.seen).length}/${all.length}`),
         h("div", { class: "codex-grid" }, ...arr.map(d => cell(!!d.seen, d.name, d.seen ? `${d.place || ""}${d.clears ? ` · 클리어 ${d.clears}` : ""}` : null, () => dungeonInfo(d))))); };
-      // 검색·정렬 중에는 지도 대신 목록으로 보여 준다
-      if (cxFiltering() || codexSort !== "default") sec("지역 안정화", rg);
-      else out.push(h("p", { class: "codex-group" }, `지역 안정화 · 발견 ${rg.filter(d => d.seen).length}/${rg.length}`), codexMap(rg.filter(d => d.seen && d.place), dungeonInfo, rg.filter(d => !d.seen && d.loc)));
+      const regSec = (k, all) => { const arr = dSort(all); if (!arr.length && cxFiltering()) return;
+        out.push(h("p", { class: "codex-group" }, `${REGIONS[k] || k} 구역 · ${all.filter(d => d.seen).length}/${all.length}`), h("div", { class: "codex-grid" }, ...arr.map(dCell))); };
+      // 검색·정렬 중에는 지도 없이 목록만
+      if (!(cxFiltering() || codexSort !== "default")) out.push(codexMap(rg.filter(d => d.seen && d.place), dungeonInfo, rg.filter(d => !d.seen && d.loc)));
+      for (const k of (codexRegion === "all" ? regs : [codexRegion])) regSec(k, rgAll.filter(d => d.region === k));
       sec("무한 던전", ds.filter(d => d.kind === "infinite"));
       sec("별의 무덤", ds.filter(d => d.kind === "star"));
     },
@@ -6333,6 +6346,7 @@ const DOCS = {
 <p>던전, 몬스터, 조합식, 아이템, 타이틀, 스토리를 확인할 때마다 자동으로 기록하고 있습니다.</p>
 <p>몬스터의 경우 10번 쓰러뜨리면 강한 정도와 드롭 정보를 제공합니다(보스는 1번).</p>
 <p>도감 달성률은 다른 헌터가 확인할 수 있으며, 달성률에 따라 획득 가능한 타이틀도 존재합니다.</p>
+<p>던전 도감은 활동 구역별로 나누어 볼 수 있습니다. 세계 지도에는 발견한 던전이 점으로, 아직 발견하지 못한 던전이 ?로 표시되며 한 곳에 여럿이 있으면 숫자가 함께 표시됩니다.</p>
 <p>이름으로 기록을 찾을 수 있고, 이름 순 · 발견한 것 먼저 · 최근 발견 순 · 만난·클리어 횟수 순으로 정렬하거나 발견한 것만 볼 수 있습니다. 아직 발견하지 못한 것은 이름으로 찾아지지 않습니다.</p>
 <h3>헌터</h3>
 <p>등록된 헌터의 코드네임, 등급, 레벨, 포지션과 접속 여부를 확인할 수 있으며, 코드네임으로 특정 헌터를 검색할 수 있습니다.</p>
