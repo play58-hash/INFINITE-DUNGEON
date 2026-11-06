@@ -365,6 +365,7 @@ mark { background: color-mix(in srgb, #FFC53D 45%, transparent); color: inherit;
 .upd-list { display: flex; flex-direction: column; gap: 14px; }
 .upd-note { border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
 .upd-note.new { border-color: var(--accent); }
+.upd-note.draft { border-style: dashed; opacity: .9; }
 .upd-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .upd-head h3 { margin: 0 0 4px; font-size: 16px; }
 .upd-acts { display: flex; gap: 10px; flex: none; }
@@ -2158,22 +2159,27 @@ function paintUpdates(d) {
     const b = h("textarea", { class: "input", rows: "10", maxlength: "5000", placeholder: "내용 (5,000자까지)", "aria-label": "내용" });
     b.value = note?.body || "";
     const err = h("div", { class: "error", role: "alert" });
-    const save = h("button", { class: "btn small", type: "button" }, note ? "고친 내용 저장" : "올리기");
-    save.onclick = async () => {
+    const posted = note && !note.draft;   // 이미 올린 노트는 임시 저장으로 되돌리지 않는다
+    const send = async (btn, draft) => {
       err.textContent = "";
-      busy(save, true, "…");
-      const { data, error } = await sb.rpc("update_note_save", { p_id: note?.id ?? null, p_title: t.value, p_body: b.value });
-      busy(save, false);
+      if (!draft && !posted && !confirm("이 업데이트 노트를 모든 헌터에게 올릴까요?")) return;
+      busy(btn, true, "…");
+      const { data, error } = await sb.rpc("update_note_save", { p_id: note?.id ?? null, p_title: t.value, p_body: b.value, p_draft: draft });
+      busy(btn, false);
       if (error) return (err.textContent = koError(error));
-      toast(note ? "업데이트 노트를 고쳤습니다." : "업데이트 노트를 올렸습니다.");
+      toast(draft ? "임시 저장했습니다. 운영자에게만 보입니다." : posted ? "업데이트 노트를 고쳤습니다." : "업데이트 노트를 올렸습니다.");
       paintUpdates(data);
     };
+    const save = h("button", { class: "btn small", type: "button" }, posted ? "고친 내용 저장" : "올리기");
+    save.onclick = () => send(save, false);
+    const keep = posted ? null : h("button", { class: "btn ghost small", type: "button" }, "임시 저장");
+    if (keep) keep.onclick = () => send(keep, true);
     return h("div", { class: "upd-edit" }, h("div", { class: "field" }, t), h("div", { class: "field" }, b), err,
-      h("div", { style: "display:flex;gap:8px;justify-content:flex-end" }, h("button", { class: "btn ghost small", type: "button", onclick: () => paintUpdates(d) }, "취소"), save));
+      h("div", { style: "display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap" }, h("button", { class: "btn ghost small", type: "button", onclick: () => paintUpdates(d) }, "취소"), keep, save));
   };
   const edited = n => n.updated_at && Date.parse(n.updated_at) - Date.parse(n.at) > 60000;
-  const card = n => h("article", { class: "upd-note" + (n.new ? " new" : "") },
-    h("div", { class: "upd-head" }, h("h3", {}, n.title, n.new ? h("span", { class: "badge", style: "margin-left:8px" }, "새 소식") : null),
+  const card = n => h("article", { class: "upd-note" + (n.new ? " new" : "") + (n.draft ? " draft" : "") },
+    h("div", { class: "upd-head" }, h("h3", {}, n.title, n.draft ? h("span", { class: "badge", style: "margin-left:8px" }, "임시 저장") : n.new ? h("span", { class: "badge", style: "margin-left:8px" }, "새 소식") : null),
       d.admin ? h("div", { class: "upd-acts" },
         h("button", { class: "link-btn", type: "button", onclick: e => e.target.closest(".upd-note").replaceWith(editor(n)) }, "고치기"),
         h("button", { class: "link-btn", type: "button", onclick: async () => {
@@ -2182,7 +2188,7 @@ function paintUpdates(d) {
           if (error) return toast(koError(error));
           paintUpdates(data);
         } }, "지우기")) : null),
-    h("p", { class: "hint", style: "margin:0 0 8px" }, `${fmtDay(n.at)} 작성` + (edited(n) ? ` · ${fmtWhen(n.updated_at)} 수정` : "")),
+    h("p", { class: "hint", style: "margin:0 0 8px" }, n.draft ? `임시 저장 · ${fmtWhen(n.updated_at || n.at)} · 운영자에게만 보입니다` : `${fmtDay(n.at)} 작성` + (edited(n) ? ` · ${fmtWhen(n.updated_at)} 수정` : "")),
     h("div", { class: "upd-body" }, n.body));
   const list = h("div", { class: "upd-list" }, ...(d.notes.length ? d.notes.map(card) : [h("p", { class: "hint" }, "아직 올라온 업데이트 노트가 없습니다.")]));
   const writeBtn = d.admin ? h("button", { class: "btn small", type: "button", style: "margin:0 0 12px", onclick: () => { writeBtn.replaceWith(editor(null)); } }, "새 업데이트 노트 쓰기") : null;
