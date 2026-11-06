@@ -488,6 +488,10 @@ table.list.rank tr.me td { background: color-mix(in srgb, var(--primary) 10%, tr
 .codex-map-svg .pulse { fill: color-mix(in srgb, var(--primary) 18%, transparent); transition: r .15s; }
 .codex-map-svg .city:hover .pulse, .codex-map-svg .city:focus .pulse { r: 18; fill: color-mix(in srgb, var(--primary) 30%, transparent); }
 .codex-map-svg .cnt { font-size: 14px; font-weight: 800; fill: var(--accent-text); }
+.codex-map-svg .qdot { fill: var(--surface); stroke: var(--text-dim); stroke-width: 2; }
+.codex-map-svg .qmark { font-size: 16px; font-weight: 800; fill: var(--text-dim); pointer-events: none; }
+.codex-map-svg .city.unknown .cnt { fill: var(--text-dim); }
+.codex-map-svg .city.unknown:hover .qdot, .codex-map-svg .city.unknown:focus-visible .qdot { stroke: var(--primary); }
 :root[data-theme="dark"] .codex-map-svg .dot { stroke: #C4ADFF; } :root[data-theme="dark"] .codex-map-svg .dot.cleared { fill: #C4ADFF; }
 .codex-group { margin: 14px 0 6px; font-size: 14px; color: var(--text-dim); font-weight: 600; }
 .codex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
@@ -5686,7 +5690,7 @@ const CITY_LL = {
   "모로코 셰프샤우엔": [35.17, -5.27], "호주 브리즈번": [-27.47, 153.03],
 };
 const mapXY = ([la, lo]) => [(lo + 180) / 360 * 1000, (84 - la) / 360 * 1000];
-function codexMap(found, onPick) {
+function codexMap(found, onPick, unseen = []) {
   const NS = "http://www.w3.org/2000/svg";
   const el = (tag, attrs = {}) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); return e; };
   const svg = el("svg", { viewBox: "0 0 1000 394", class: "codex-map-svg", role: "img", "aria-label": "지역 안정화 던전을 발견한 도시 지도" });
@@ -5709,9 +5713,31 @@ function codexMap(found, onPick) {
     });
     svg.append(a);
   }
+  // 아직 발견하지 못한 던전: '?' (한 점에 여럿이면 숫자를 함께)
+  const qpts = unseen.map(d => ({ d, xy: CITY_LL[d.loc] ? mapXY(CITY_LL[d.loc]) : null })).filter(p => p.xy);
+  const qgroups = [];
+  for (const p of qpts) { const g = qgroups.find(g => Math.hypot(g.x - p.xy[0], g.y - p.xy[1]) < 16); if (g) g.items.push(p.d); else qgroups.push({ x: p.xy[0], y: p.xy[1], items: [p.d] }); }
+  for (const g of qgroups) {
+    // 발견한 점과 겹치면 조금 옆으로
+    if (groups.some(s => Math.hypot(s.x - g.x, s.y - g.y) < 16)) { g.x += 13; g.y += 9; }
+    const byGrade = {};
+    for (const d of g.items) byGrade[d.grade] = (byGrade[d.grade] || 0) + 1;
+    const gradeTxt = Object.entries(byGrade).sort().map(([k, n]) => `${k}급 ${n}곳`).join(", ");
+    const a = el("a", { href: "#", class: "city unknown", tabindex: "0", "aria-label": `아직 발견하지 못한 던전 ${g.items.length}곳 (${gradeTxt})` });
+    a.append(el("circle", { cx: g.x, cy: g.y, r: 11, class: "qdot" }));
+    const q = el("text", { x: g.x, y: g.y + 5.5, class: "qmark", "text-anchor": "middle" }); q.textContent = "?"; a.append(q);
+    if (g.items.length > 1) { const t = el("text", { x: g.x + 12, y: g.y - 9, class: "cnt" }); t.textContent = g.items.length; a.append(t); }
+    const ttl = el("title"); ttl.textContent = `아직 발견하지 못한 던전 ${g.items.length}곳 (${gradeTxt})`; a.append(ttl);
+    a.addEventListener("click", e => {
+      e.preventDefault();
+      info("아직 발견하지 못한 던전", h("p", { style: "margin:0 0 8px" }, `이 근처에 아직 발견하지 못한 던전이 ${g.items.length}곳 있습니다. (${gradeTxt})`),
+        h("p", { class: "hint", style: "margin:0" }, "그 도시가 있는 활동 구역에서 지역 안정화에 들어가면 도감에 기록됩니다."));
+    });
+    svg.append(a);
+  }
   return h("div", { class: "codex-map" }, svg,
-    found.length ? h("p", { class: "hint", style: "margin:6px 0 0;font-size:13px" }, "점을 누르면 던전 정보를 봅니다. 채워진 점은 안정화에 성공한 곳입니다.")
-      : h("p", { class: "hint", style: "margin:6px 0 0;font-size:13px" }, "아직 발견한 던전이 없습니다. 지역 안정화에 들어가면 도시에 점이 찍힙니다."));
+    h("p", { class: "hint", style: "margin:6px 0 0;font-size:13px" }, (found.length ? "점을 누르면 던전 정보를 봅니다. 채워진 점은 안정화에 성공한 곳입니다." : "아직 발견한 던전이 없습니다. 지역 안정화에 들어가면 도시에 점이 찍힙니다.")
+      + (qgroups.length ? " ?는 아직 발견하지 못한 던전이 있는 곳이며, 숫자는 그곳에 있는 던전 수입니다." : "")));
 }
 /* ===== 국제헌터연합: 도감 ===== */
 let codexCat = "all";
@@ -5777,7 +5803,7 @@ async function renderCodex(pane) {
         h("div", { class: "codex-grid" }, ...arr.map(d => cell(!!d.seen, d.name, d.seen ? `${d.place || ""}${d.clears ? ` · 클리어 ${d.clears}` : ""}` : null, () => dungeonInfo(d))))); };
       // 검색·정렬 중에는 지도 대신 목록으로 보여 준다
       if (cxFiltering() || codexSort !== "default") sec("지역 안정화", rg);
-      else out.push(h("p", { class: "codex-group" }, `지역 안정화 · 발견 ${rg.filter(d => d.seen).length}/${rg.length}`), codexMap(rg.filter(d => d.seen && d.place), dungeonInfo));
+      else out.push(h("p", { class: "codex-group" }, `지역 안정화 · 발견 ${rg.filter(d => d.seen).length}/${rg.length}`), codexMap(rg.filter(d => d.seen && d.place), dungeonInfo, rg.filter(d => !d.seen && d.loc)));
       sec("무한 던전", ds.filter(d => d.kind === "infinite"));
       sec("별의 무덤", ds.filter(d => d.kind === "star"));
     },
