@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>INFINITE DUNGEON</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#3300FF">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 -960 960 960'%3E%3Cstyle%3Epath{fill:%233300FF}%40media (prefers-color-scheme:dark){path{fill:%23B9A2FF}}%3C/style%3E%3Cpath d='M211.89-255.93q-91.56 0-153.76-66.7-62.2-66.7-62.2-159.37 0-91.67 62.7-156.87t153.26-65.2q36.72 0 70.96 12.24 34.24 12.23 60.78 37.72l90.85 87.61-48.22 47.5-85.81-83.87q-17.51-17.52-40.46-25.29t-47.98-7.77q-62.45 0-105.19 45.27-42.75 45.27-42.75 108.75 0 64.48 42.24 111.16 42.25 46.68 105.69 46.68 24.28 0 47.12-7.76 22.83-7.77 41.25-24.28l316-298q26.54-25.49 60.78-37.72 34.24-12.24 69.96-12.24 91.56 0 154.26 65.2 62.7 65.2 62.7 156.87 0 92.67-62.7 159.37t-154.26 66.7q-35.72 0-70.46-11.74-34.74-11.73-60.28-37.22l-88.61-87.61 47.98-47.5 83.88 83.89q16.53 16.52 39.81 24.28 23.29 7.76 47.57 7.76 63.44 0 106.19-46.72 42.74-46.72 42.74-111.13 0-63.41-43.24-108.71-43.25-45.3-105.69-45.3-24.28 0-47.12 8.76-22.83 8.77-40.25 25.28l-316 298q-26.54 24.49-61.28 36.22-34.74 11.74-70.46 11.74Z'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -354,6 +357,51 @@ mark { background: color-mix(in srgb, #FFC53D 45%, transparent); color: inherit;
 .gd-pin { margin: 0 0 8px; }
 .gd-pin summary { cursor: pointer; font-weight: 700; font-size: 14px; padding: 4px 0; }
 .gd-pin .gd-desc { margin-top: 6px; max-height: 220px; overflow: auto; }
+.hp-posts { display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto; }
+.hp-post { text-align: left; font: inherit; color: inherit; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
+.hp-post:hover { border-color: var(--accent); }
+.hp-post-head { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; }
+.hp-post-body { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-size: 14px; }
+.upd-list { display: flex; flex-direction: column; gap: 14px; }
+.upd-note { border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+.upd-note.new { border-color: var(--accent); }
+.upd-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.upd-head h3 { margin: 0 0 4px; font-size: 16px; }
+.upd-acts { display: flex; gap: 10px; flex: none; }
+.upd-body { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; font-size: 14px; }
+.upd-edit { border: 1px dashed var(--border); border-radius: 12px; padding: 12px; margin: 0 0 12px; }
+.cx-tools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 12px 0 4px; }
+.cx-tools input[type=search] { flex: 1 1 180px; min-width: 0; }
+.cx-tools select { flex: 0 0 auto; width: auto; }
+.cx-only { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; white-space: nowrap; }
+.mini-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
+.gate-round { margin: 0 0 8px; font-weight: 700; }
+.gate-bar { position: relative; height: 44px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); overflow: hidden; cursor: pointer; touch-action: manipulation; }
+.gate-zone { position: absolute; top: 0; bottom: 0; background: color-mix(in srgb, #FFC53D 55%, transparent); }
+.gate-core { position: absolute; top: 0; bottom: 0; background: #FFC53D; }
+.gate-mark { position: absolute; top: -2px; bottom: -2px; width: 4px; margin-left: -2px; background: var(--text); border-radius: 2px; }
+.gate-marks { display: flex; gap: 6px; min-height: 30px; margin: 10px 0; flex-wrap: wrap; }
+.gate-m { padding: 3px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; border: 1px solid var(--border); }
+.gate-m.perfect { background: #FFC53D; color: #3a2a00; border-color: #FFC53D; }
+.gate-m.good { background: color-mix(in srgb, #46A758 25%, transparent); }
+.gate-m.miss { opacity: .7; }
+.gate-press { min-height: 52px; font-size: 17px; }
+.rs-clock { margin: 0 0 8px; font-weight: 700; }
+.rs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 360px; margin: 0 auto; }
+.rs-cell { aspect-ratio: 1; border-radius: 12px; border: 1px solid var(--border); background: var(--surface-2); font: inherit; color: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; touch-action: manipulation; }
+.rs-cell b { font-size: 28px; line-height: 1; }
+.rs-cell small { font-size: 12px; font-weight: 700; }
+.rs-cell[data-kind="mob"] { background: color-mix(in srgb, #E5484D 22%, var(--surface)); border-color: #E5484D; }
+.rs-cell[data-kind="mob"] b { color: #E5484D; }
+.rs-cell[data-kind="hunter"] { background: color-mix(in srgb, #0090FF 18%, var(--surface)); border-color: #0090FF; }
+.rs-cell[data-kind="hunter"] b { color: #0090FF; }
+.rs-cell.rs-hit { outline: 3px solid #46A758; }
+.rs-cell.rs-bad { outline: 3px solid #E5484D; }
+.t-altar { color: #D9A000; }
+.ex-c.al { background: color-mix(in srgb, #FFC53D 26%, var(--surface)); color: #A67A00; font-size: 18px; font-weight: 800; }
+.ex-c.al-done { background: color-mix(in srgb, #FFC53D 55%, var(--surface)); color: #6b4f00; font-size: 18px; font-weight: 800; }
+.ex-c.al-trail { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--danger) 25%, transparent); color: color-mix(in srgb, var(--danger) 55%, transparent); }
+:root[data-theme="dark"] .ex-c.al, :root[data-theme="dark"] .ex-c.al-done { color: #FFD866; }
 /* 길드 색 동그라미 */
 .gdot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-left: 6px; vertical-align: middle; flex: none; box-shadow: 0 0 0 1px color-mix(in srgb, var(--text) 28%, transparent); }
 .gdot.lead { margin: 0 6px 0 0; }
@@ -547,6 +595,15 @@ html.doc-open, html.doc-open body { overflow: hidden; }
 .notif-set { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 14px; margin: 4px 0 12px; }
 .notif-set label { display: flex; gap: 8px; align-items: center; font-size: 14.5px; cursor: pointer; }
 @media (max-width: 720px) { .notif-btn .wide { display: none; } }
+@media (max-width: 1520px) { #btn-updates .upd-word { display: none; } }
+@media (max-width: 1440px) {
+  #btn-notif .wide { display: none; }
+  .nav a { padding: 8px 10px; }
+  .topbar .logo { font-size: 22px; margin-right: 8px; }
+}
+/* 좁은 PC 화면: 메뉴가 넘치면 메뉴 줄만 옆으로 밀린다 (페이지 전체가 넘치지 않게) */
+.nav { min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.nav::-webkit-scrollbar { display: none; }
 .m-pot { margin-top: 5px; }
 .m-pot .bar { height: 6px; margin: 0 0 2px; }
 .m-pot small { font-size: 11.5px; color: var(--text-dim); }
@@ -1081,6 +1138,8 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
     <a href="#/home" class="logo" aria-label="INFINITE DUNGEON 홈" style="text-decoration:none;color:var(--text)"><span class="mark" aria-hidden="true">all_inclusive</span>INFINITE <span class="word-b">DUNGEON</span></a>
     <nav class="nav" id="nav"></nav>
     <div class="top-actions">
+      <button class="btn ghost small notif-btn" id="btn-timer" type="button" aria-label="타이머 작은 창 열기" title="타이머 (작은 창으로 남은 시간 보기)" hidden><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M9 1h6v2H9V1Zm10.03 6.39 1.42-1.42-1.42-1.41-1.41 1.41-.01.01A8.96 8.96 0 0 0 12 4a9 9 0 1 0 9 9c0-2.12-.74-4.07-1.97-5.61ZM12 20a7 7 0 1 1 0-14 7 7 0 0 1 0 14Zm1-11h-2v5l4 2.5.9-1.5-2.9-1.75V9Z"/></svg></button>
+      <button class="btn ghost small notif-btn" id="btn-updates" type="button" aria-label="업데이트 노트" title="업데이트 노트" hidden><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm8 1.5V8h4.5L14 3.5ZM8 12v2h8v-2H8Zm0 4v2h6v-2H8Z"/></svg><span class="wide upd-word">업데이트</span></button>
       <button class="btn ghost small notif-btn" id="btn-notif" type="button" aria-label="알림" title="알림"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6V11a7 7 0 0 0-5.5-6.84V3.5a1.5 1.5 0 0 0-3 0v.66A7 7 0 0 0 5 11v5l-1.7 1.7A1 1 0 0 0 4 19.4h16a1 1 0 0 0 .7-1.7Z"/></svg><span class="wide">알림</span></button>
       <button class="btn ghost small" id="btn-theme" type="button" title="테마 바꾸기">테마</button>
       <button class="btn ghost small js-logout" type="button">로그아웃</button>
@@ -1738,6 +1797,10 @@ function miniAvatar(card, size = 34) {
 }
 const hunterLink = card => h("button", { type: "button", class: "hunter-link", onclick: e => { e.stopPropagation(); openPublicHunter(card.codename); } }, card.codename);
 const hunterSub = card => !card ? "" : card.admin ? "운영자" : `${card.grade || "-"}급 · Lv.${card.level ?? "-"}`;
+/* 11월 10일 업데이트: 그 전에는 운영자 계정에서만 열린다 (서버도 같은 시각으로 막음) */
+const RELEASE_1110 = Date.parse("2026-11-10T00:00:00+09:00");
+const released = () => Date.now() >= RELEASE_1110 || !!state.profile?.is_admin;
+const starMax = () => released() ? 3 : 1;
 /* 길드: 가입 방식 · 색 · 코드네임 옆 동그라미 */
 const GUILD_MODE = { open: "상시 가입", apply: "가입 신청 후 수락", invite: "초대 가입" };
 const GUILD_MODE_HINT = "상시 가입은 누구나 바로 들어오고, 가입 신청 후 수락은 길드장이 수락해야 들어오며, 초대 가입은 길드장이 초대한 헌터만 들어올 수 있습니다.";
@@ -1942,19 +2005,195 @@ function paintNotifSettings(box) {
     h("div", { class: "notif-set" }, ...boxes),
     h("p", { class: "hint", style: "margin:0 0 14px;font-size:13px" }, "끈 알림은 목록과 숫자에 나타나지 않고 소리도 나지 않습니다. 다시 켜면 그동안의 알림도 다시 보입니다. 알림 소리는 효과음 설정을 따릅니다."),
     h("div", { style: "border-top:1px dashed var(--border);padding-top:12px" },
-      h("label", { style: "display:flex;gap:8px;align-items:center;font-weight:600;cursor:pointer" }, dk, "컴퓨터 알림 팝업 (PC)"), dkHint));
+      h("label", { style: "display:flex;gap:8px;align-items:center;font-weight:600;cursor:pointer" }, dk, "컴퓨터 알림 팝업 (PC)"), dkHint),
+    released() ? pushSettings() : null);
 }
+/* 푸시 알림: 게임 창을 닫아도 지역 안정화·무한 던전·전력 분석이 끝나면 휴대폰·컴퓨터로 알려 준다 */
+const pushSupported = () => "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const isStandalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const b64u = s => { const p = "=".repeat((4 - s.length % 4) % 4); const b = atob((s + p).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(b, c => c.charCodeAt(0)); };
+async function pushCurrent() {
+  if (!pushSupported()) return null;
+  const reg = await navigator.serviceWorker.getRegistration("./");
+  return reg ? reg.pushManager.getSubscription() : null;
+}
+function pushSettings() {
+  const hint = h("p", { class: "hint", style: "margin:4px 0 0;font-size:13px" });
+  const btn = h("button", { class: "btn small", type: "button" }, "확인 중…");
+  const wrap = h("div", { style: "border-top:1px dashed var(--border);padding-top:12px;margin-top:12px" },
+    h("div", { style: "display:flex;align-items:center;justify-content:space-between;gap:8px" }, h("b", {}, "푸시 알림 (휴대폰·컴퓨터)"), btn), hint);
+  const base = "게임 창을 닫아도 지역 안정화 완료 · 무한 던전 복귀 · 전력 분석 완료를 이 기기로 알려 줍니다. 위에서 끈 알림은 보내지 않습니다.";
+  async function paint() {
+    btn.disabled = false;
+    if (!pushSupported()) {
+      btn.hidden = true;
+      hint.textContent = isIOS() && !isStandalone()
+        ? "아이폰·아이패드는 사파리에서 공유 버튼 → '홈 화면에 추가'로 게임을 추가한 뒤, 홈 화면의 아이콘으로 열면 푸시 알림을 켤 수 있습니다. (iOS 16.4 이상)"
+        : "이 브라우저는 푸시 알림을 지원하지 않습니다.";
+      return;
+    }
+    if (Notification.permission === "denied") { btn.hidden = true; hint.textContent = "이 사이트의 알림이 차단되어 있습니다. 브라우저·휴대폰 설정에서 알림을 허용한 뒤 다시 열어 주세요."; return; }
+    const sub = await pushCurrent().catch(() => null);
+    btn.hidden = false;
+    btn.textContent = sub ? "이 기기에서 끄기" : "이 기기에서 받기";
+    btn.className = sub ? "btn ghost small" : "btn small";
+    hint.textContent = (sub ? "이 기기로 푸시 알림을 받고 있습니다. " : "") + base;
+  }
+  btn.onclick = async () => {
+    btn.disabled = true;
+    try {
+      const sub = await pushCurrent();
+      if (sub) {
+        await sb.rpc("push_unsubscribe", { p_endpoint: sub.endpoint });
+        await sub.unsubscribe();
+        toast("이 기기의 푸시 알림을 껐습니다.");
+      } else {
+        const perm = await Notification.requestPermission();
+        if (perm !== "granted") { toast("알림을 허용해야 받을 수 있습니다."); return paint(); }
+        const { data: key, error: ke } = await sb.rpc("push_public_key");
+        if (ke || !key) { toast("푸시 알림을 준비하는 중입니다. 잠시 뒤에 다시 시도해 주세요."); return paint(); }
+        const reg = await navigator.serviceWorker.register("./sw.js", { scope: "./" });
+        await navigator.serviceWorker.ready;
+        const ns = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(key) });
+        const j = ns.toJSON();
+        const { error } = await sb.rpc("push_subscribe", { p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth });
+        if (error) { await ns.unsubscribe(); toast(koError(error)); return paint(); }
+        toast("이 기기로 푸시 알림을 받습니다.");
+      }
+    } catch (e) { toast("푸시 알림을 설정하지 못했습니다. 브라우저를 새로 고친 뒤 다시 시도해 주세요."); }
+    paint();
+  };
+  paint();
+  return wrap;
+}
+/* 타이머: 무한 던전 · 지역 안정화 · 전력 분석의 남은 시간을 작은 창으로 띄운다 (크롬·엣지는 항상 위에 뜨는 창) */
+const timer = { win: null, tick: null, poll: null, rows: [], off: 0 };
+async function timerFetch() {
+  const [{ data: home }, { data: an }] = await Promise.all([sb.rpc("get_home"), sb.rpc("analysis_state")]);
+  const rows = [];
+  if (home) {
+    timer.off = Date.parse(home.now) - Date.now();
+    const a = home.action;
+    if (a?.kind === "infinite") rows.push({ label: "무한 던전", end: Date.parse(a.planned_end || a.ends_at), sub: "복귀까지" });
+    else if (a?.kind === "regional") rows.push({ label: "지역 안정화", end: Date.parse(a.ends_at), sub: `${a.target?.grade || ""}급 ${a.target?.place || ""}`.trim() });
+  }
+  if (an?.running) rows.push({ label: "전력 분석", end: Date.parse(an.running.ends_at), sub: "분석 완료까지" });
+  timer.rows = rows;
+}
+function timerPaint() {
+  const w = timer.win;
+  if (!w || w.closed) return timerStop();
+  const d = w.document, list = d.getElementById("t-list");
+  if (!list) return;
+  const now = Date.now() + timer.off;
+  list.innerHTML = "";
+  if (!timer.rows.length) { const p = d.createElement("p"); p.className = "empty"; p.textContent = "진행 중인 활동이 없습니다."; list.append(p); return; }
+  for (const r of timer.rows) {
+    const left = r.end - now, row = d.createElement("div");
+    row.className = "row" + (left <= 0 ? " done" : "");
+    row.innerHTML = `<div><b></b><small></small></div><strong></strong>`;
+    row.querySelector("b").textContent = r.label;
+    row.querySelector("small").textContent = r.sub || "";
+    row.querySelector("strong").textContent = left > 0 ? fmtDur(left) : "완료";
+    list.append(row);
+  }
+}
+function timerStop() { clearInterval(timer.tick); clearInterval(timer.poll); timer.tick = timer.poll = null; timer.win = null; }
+async function openTimer() {
+  if (timer.win && !timer.win.closed) { try { timer.win.focus(); } catch {} return; }
+  const dark = document.documentElement.dataset.theme === "dark" || (!document.documentElement.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
+  let w = null;
+  try {
+    if ("documentPictureInPicture" in window) w = await documentPictureInPicture.requestWindow({ width: 300, height: 220 });
+  } catch {}
+  if (!w) w = window.open("", "id-timer", "popup,width=320,height=260");
+  if (!w) return toast("작은 창을 열 수 없습니다. 브라우저의 팝업 차단을 풀어 주세요.");
+  const d = w.document;
+  d.title = "INFINITE DUNGEON 타이머";
+  d.head.innerHTML = `<meta charset="utf-8"><meta name="viewport" content="width=device-width"><style>
+    body{margin:0;padding:12px 14px;font-family:Pretendard,system-ui,sans-serif;background:${dark ? "#0F0D18" : "#F6F4FC"};color:${dark ? "#EEEAF9" : "#1B1830"}}
+    h1{font-size:13px;margin:0 0 10px;letter-spacing:.04em;opacity:.7}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:10px;margin:0 0 8px;background:${dark ? "#181527" : "#fff"};border:1px solid ${dark ? "#322C4D" : "#E1DCF0"}}
+    .row b{display:block;font-size:14px}.row small{font-size:12px;opacity:.65}
+    .row strong{font-size:18px;font-variant-numeric:tabular-nums;white-space:nowrap}
+    .row.done strong{color:#46A758}.empty{font-size:13px;opacity:.7;margin:8px 0}
+  </style>`;
+  d.body.innerHTML = `<h1>INFINITE DUNGEON · 남은 시간</h1><div id="t-list" aria-live="polite"></div>`;
+  timer.win = w;
+  w.addEventListener("pagehide", timerStop);
+  await timerFetch(); timerPaint();
+  timer.tick = setInterval(timerPaint, 1000);
+  timer.poll = setInterval(() => timerFetch().then(timerPaint), 60000);
+}
+document.addEventListener("click", e => { if (e.target.closest?.("#btn-timer")) openTimer(); });
 
 /* 접속 표시: 화면이 열려 있는 동안 마지막 접속 시각을 남긴다 (3분 안이면 '접속 중') */
 function touchPresence() { if (state.user && document.visibilityState === "visible") sb.rpc("touch_presence").then(() => {}, () => {}); }
 document.addEventListener("visibilitychange", touchPresence);
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && notif.chan) notifPull(); });
 document.addEventListener("click", e => { if (e.target.closest?.("#btn-notif")) openNotif(); });
+/* 업데이트 노트: SNS 공지와 따로, 업데이트 내용을 모아 둔다. 운영자가 쓰고 고친다 (고친 시각 표시) */
+async function updatesPaint() {
+  const b = $("#btn-updates");
+  if (!b) return;
+  b.hidden = !released();
+  const tb = $("#btn-timer");
+  if (tb) tb.hidden = !released() || matchMedia("(max-width: 720px)").matches;
+  if (b.hidden) return;
+  const { data: n } = await sb.rpc("update_notes_unread");
+  b.querySelector(".nbadge")?.remove();
+  b.setAttribute("aria-label", n ? `업데이트 노트 · 새 소식 ${n}개` : "업데이트 노트");
+  if (n > 0) b.append(h("span", { class: "nbadge" }, n > 9 ? "9+" : String(n)));
+}
+async function openUpdates() {
+  const { data: d, error } = await sb.rpc("update_notes_list");
+  if (error) return toast(koError(error));
+  paintUpdates(d);
+  sb.rpc("update_notes_seen").then(updatesPaint);
+}
+function paintUpdates(d) {
+  const editor = note => {
+    const t = h("input", { class: "input", maxlength: "60", placeholder: "제목 (60자까지)", "aria-label": "제목", value: note?.title || "" });
+    const b = h("textarea", { class: "input", rows: "10", maxlength: "5000", placeholder: "내용 (5,000자까지)", "aria-label": "내용" });
+    b.value = note?.body || "";
+    const err = h("div", { class: "error", role: "alert" });
+    const save = h("button", { class: "btn small", type: "button" }, note ? "고친 내용 저장" : "올리기");
+    save.onclick = async () => {
+      err.textContent = "";
+      busy(save, true, "…");
+      const { data, error } = await sb.rpc("update_note_save", { p_id: note?.id ?? null, p_title: t.value, p_body: b.value });
+      busy(save, false);
+      if (error) return (err.textContent = koError(error));
+      toast(note ? "업데이트 노트를 고쳤습니다." : "업데이트 노트를 올렸습니다.");
+      paintUpdates(data);
+    };
+    return h("div", { class: "upd-edit" }, h("div", { class: "field" }, t), h("div", { class: "field" }, b), err,
+      h("div", { style: "display:flex;gap:8px;justify-content:flex-end" }, h("button", { class: "btn ghost small", type: "button", onclick: () => paintUpdates(d) }, "취소"), save));
+  };
+  const edited = n => n.updated_at && Date.parse(n.updated_at) - Date.parse(n.at) > 60000;
+  const card = n => h("article", { class: "upd-note" + (n.new ? " new" : "") },
+    h("div", { class: "upd-head" }, h("h3", {}, n.title, n.new ? h("span", { class: "badge", style: "margin-left:8px" }, "새 소식") : null),
+      d.admin ? h("div", { class: "upd-acts" },
+        h("button", { class: "link-btn", type: "button", onclick: e => e.target.closest(".upd-note").replaceWith(editor(n)) }, "고치기"),
+        h("button", { class: "link-btn", type: "button", onclick: async () => {
+          if (!confirm(`'${n.title}' 업데이트 노트를 지울까요?`)) return;
+          const { data, error } = await sb.rpc("update_note_delete", { p_id: n.id });
+          if (error) return toast(koError(error));
+          paintUpdates(data);
+        } }, "지우기")) : null),
+    h("p", { class: "hint", style: "margin:0 0 8px" }, `${fmtDay(n.at)} 작성` + (edited(n) ? ` · ${fmtWhen(n.updated_at)} 수정` : "")),
+    h("div", { class: "upd-body" }, n.body));
+  const list = h("div", { class: "upd-list" }, ...(d.notes.length ? d.notes.map(card) : [h("p", { class: "hint" }, "아직 올라온 업데이트 노트가 없습니다.")]));
+  const writeBtn = d.admin ? h("button", { class: "btn small", type: "button", style: "margin:0 0 12px", onclick: () => { writeBtn.replaceWith(editor(null)); } }, "새 업데이트 노트 쓰기") : null;
+  info("업데이트 노트", h("p", { class: "hint", style: "margin:0 0 12px" }, "게임에 새로 들어온 내용과 바뀐 점을 정리해 둡니다. 고친 노트는 고친 시각이 함께 표시됩니다."), writeBtn, list);
+}
+document.addEventListener("click", e => { if (e.target.closest?.("#btn-updates")) openUpdates(); });
 function startSocial() {
   stopSocial();
   refreshSocial();
-  refreshSideSns(); refreshSideParty(); touchPresence(); notifStart();
-  social.poll = setInterval(() => { refreshSocial(); refreshSideSns(); refreshSideParty(); touchPresence(); notifPull(); }, 60000);
+  refreshSideSns(); refreshSideParty(); touchPresence(); notifStart(); updatesPaint();
+  social.poll = setInterval(() => { refreshSocial(); refreshSideSns(); refreshSideParty(); touchPresence(); notifPull(); updatesPaint(); }, 60000);
   // 새 메시지는 실시간으로 받는다
   social.chan = sb.channel("dm-" + state.user.id)
     .on("postgres_changes", { event: "INSERT", schema: "public", table: "dm_messages", filter: `recipient=eq.${state.user.id}` }, payload => {
@@ -2768,7 +3007,40 @@ async function openPublicHunter(codename) {
     h("p", { style: "margin:0;white-space:pre-wrap" }, p.bio || h("span", { class: "hint" }, "공개하지 않았습니다.")),
     p.codex ? h("p", { class: "panel-title", style: "margin:14px 0 6px" }, `도감 달성률 ${p.codex.all ?? 0}%`) : null,
     p.codex ? h("div", { class: "codex-sum", style: "margin:0" }, ...CODEX_CATS.map(([k, n]) => h("div", {}, h("span", {}, n), h("b", {}, `${p.codex[k] ?? 0}%`)))) : null,
+    released() ? hunterPostsBox(p.codename) : null,
     btns.length ? h("div", { style: "display:flex;gap:8px;flex-wrap:wrap;margin-top:16px" }, ...btns) : null);
+}
+// 헌터 정보 창: 이 헌터가 SNS에 쓴 글 모아 보기 (누르면 SNS의 그 글로 이동)
+function hunterPostsBox(codename) {
+  const box = h("div", { class: "hp-posts" });
+  const more = h("button", { class: "btn ghost small", type: "button", hidden: true }, "더 보기");
+  let last = null, total = 0, shown = 0;
+  const item = x => h("button", { type: "button", class: "hp-post", onclick: () => { $("#dlg-info").close(); openSnsPost(x.id); } },
+    h("div", { class: "hp-post-head" }, catChip(x.category), h("span", { class: "hint" }, `${fmtWhen(x.at)}${x.category === "공지" ? "" : ` · 댓글 ${x.comments}`}`)),
+    h("p", { class: "hp-post-body" }, x.body));
+  async function load() {
+    more.disabled = true;
+    const { data, error } = await sb.rpc("sns_posts_by", { p_codename: codename, p_before: last });
+    more.disabled = false;
+    if (error) return box.replaceChildren(h("p", { class: "error" }, koError(error)));
+    if (last == null) box.replaceChildren();
+    total = data.total; shown += data.posts.length;
+    if (!data.posts.length && last == null) box.append(h("p", { class: "hint", style: "margin:0" }, "아직 작성한 글이 없습니다."));
+    box.append(...data.posts.map(item));
+    last = data.posts.at(-1)?.id ?? last;
+    title.textContent = `작성한 SNS 글 ${total}`;
+    more.hidden = shown >= total;
+  }
+  const title = h("span", {}, "작성한 SNS 글");
+  const open = h("button", { class: "btn ghost small", type: "button" }, "작성한 SNS 글 보기");
+  const wrap = h("div", {}, open);
+  open.onclick = () => {
+    wrap.replaceChildren(h("p", { class: "panel-title", style: "margin:14px 0 6px" }, title), box, more);
+    box.replaceChildren(h("p", { class: "hint", style: "margin:0" }, "불러오는 중…"));
+    load();
+  };
+  more.onclick = load;
+  return h("div", { style: "margin-top:14px" }, wrap);
 }
 
 /* 신고 */
@@ -2966,7 +3238,7 @@ async function renderHome(pane) {
     h("small", {}, label), h("b", { class: `home-big${n > 0 ? "" : " hint"}`, style: "display:block" }, `${n}`, h("span", { class: "hint", style: "font-size:15px;font-weight:600" }, ` / ${max}`)));
   const countBox = h("div", { class: "home-box", "data-tour": "hm-count" },
     h("p", { class: "panel-title" }, "오늘 남은 횟수"),
-    h("div", { class: "home-count" }, countTile("탐색", d.explore.left_today, 3, "explore"), countTile("별의 무덤", d.star.left_today, 1, "star")),
+    h("div", { class: "home-count" }, countTile("탐색", d.explore.left_today, 3, "explore"), countTile("별의 무덤", d.star.left_today, d.star.max_today || 1, "star")),
     h("p", { class: "hint", style: "margin:10px 0 0" }, "다시 채워지기까지 ", reset, " · 매일 0시(한국 시간)"));
 
   /* 할 일 */
@@ -3192,14 +3464,16 @@ async function renderDungeon(pane, tab = "battle") {
     h("h2", {}, "무한 던전"),
     h("p", { class: "hint", style: "margin:0 0 16px" }, "종착역을 알 수 없는 지하철형 던전, 무한 던전으로 진입하였습니다."),
     h("div", { class: "dg-tabrow" },
-      h("div", { class: "tabs", style: "max-width:400px;flex:1", "data-tour": "dg-tabs" },
+      h("div", { class: "tabs", style: `max-width:${released() ? 520 : 400}px;flex:1`, "data-tour": "dg-tabs" },
         h("button", { type: "button", class: tab === "battle" ? "on" : null, onclick: () => renderDungeon(pane, "battle") }, "전투"),
         h("button", { type: "button", class: tab === "explore" ? "on" : null, onclick: () => renderDungeon(pane, "explore") }, "탐색"),
-        h("button", { type: "button", class: tab === "star" ? "on" : null, onclick: () => renderDungeon(pane, "star") }, "별의 무덤")),
+        h("button", { type: "button", class: tab === "star" ? "on" : null, onclick: () => renderDungeon(pane, "star") }, "별의 무덤"),
+        released() ? h("button", { type: "button", class: tab === "altar" ? "on" : null, onclick: () => renderDungeon(pane, "altar") }, "별의 제단") : null),
       h("button", { type: "button", class: "btn ghost small tour-btn", "aria-label": "이 화면 도움말 보기", onclick: () => startTour("dungeon-" + tab) }, "? 도움말")),
     body);
   if (tab === "explore") return renderExplore(body);
   if (tab === "star") return renderStar(body);
+  if (tab === "altar") return renderAltar(body);
   const { data, error } = await sb.rpc("get_battle_log");
   if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
   if (!data) {
@@ -3298,6 +3572,7 @@ function renderDungeonRun(body, first) {
   let cur = first, shown = 0;
   const pty = first.party;
   const ptBox = h("div", {});
+  const rescueSlot = h("div", {});
 
   body.replaceChildren(
     h("div", { class: "dg-head" },
@@ -3306,7 +3581,9 @@ function renderDungeonRun(body, first) {
         cur.speed > 1 ? h("span", { class: "badge", style: "margin-left:6px" }, `테스트 ${cur.speed}배`) : null),
       timeLeft),
     h("div", { class: "bar" }, bar),
-    stats, ptBox, list, err, actions);
+    stats, ptBox, rescueSlot, list, err, actions);
+  const loadRescue = () => miniCard("rescue", loadRescue).then(b => b && rescueSlot.replaceChildren(b));
+  loadRescue();
 
   const statBox = (k, v) => h("div", { class: "dg-stat" }, h("small", {}, k), h("b", {}, v));
   function paintStats() {
@@ -3555,6 +3832,9 @@ async function renderRegionalBoard(body, act) {
         h("span", { class: "hint" }, pt && rg.region !== myRegion ? `파티는 파티장 ${pt.leader}님의 ${REGIONS[rg.region] || rg.region} 구역으로 들어갑니다` : pt ? `파티장 ${pt.leader}님의 활동 구역` : `Lv.${rg.level}`)),
       h("button", { type: "button", class: "btn ghost small", onclick: () => renderRegionalBoard(body, act) }, "새로 고침")),
   ];
+  const gateSlot = h("div", {});
+  parts.push(gateSlot);
+  miniCard("gate", () => miniCard("gate").then(b => b && gateSlot.replaceChildren(b))).then(b => b && gateSlot.replaceChildren(b));
   if (pt && !(act && act.kind !== "regional") && !exploring && !starring) {
     const ps = await getParty();
     if (ps?.party) parts.push(ptMember ? partyWaitNotice(ps.party, "지역 안정화") : partyRoster(ps.party));
@@ -3810,6 +4090,9 @@ function showRegionalReport(body, r) {
   }
   if (r.points > 0) kids.push(h("button", { class: "btn ghost block", style: "margin-top:16px", type: "button", onclick: openStats }, "스탯 포인트 분배하기"));
   if (state.character && canPromote(state.character)) kids.push(h("button", { class: "btn ghost block", style: "margin-top:8px", type: "button", onclick: e => doPromote(e.currentTarget) }, `${nextGrade(state.character.grade)}급으로 승급하기`));
+  if (r.gate) kids.push(h("div", { class: "rg-notice mini-card", style: "margin-top:16px" },
+    h("div", {}, h("b", {}, "작은 균열이 남았습니다"), h("p", { class: "hint", style: "margin:2px 0 0" }, "게이트 봉합으로 극소량의 가능성과 열매·청정수를 얻을 수 있습니다.")),
+    h("button", { class: "btn small", type: "button", onclick: () => playGate() }, "게이트 봉합")));
   kids.push(h("button", { class: "btn block", style: "margin-top:8px", type: "button", onclick: () => renderRegional($("#main-pane")) }, "확인"));
   body.replaceChildren(...kids);
 }
@@ -3995,10 +4278,12 @@ function starGains(s) {
 function renderStarIdle(body, s, last, act, exploring) {
   const lv = state.character?.level || 1;
   const err = h("div", { class: "error", role: "alert" });
-  const done = !!s?.done_today;
+  const maxT = s?.max_today || starMax();
+  const left = s?.left_today ?? (s?.done_today ? 0 : maxT);
+  const done = left <= 0;
   const locked = lv < 10;
   const btn = h("button", { class: "btn block", type: "button", "data-tour": "st-start", disabled: locked || done || !!act || !!exploring },
-    locked ? "10레벨부터 들어갈 수 있습니다" : done ? "오늘은 이미 다녀왔습니다" : "별의 무덤에 들어가기");
+    locked ? "10레벨부터 들어갈 수 있습니다" : done ? "오늘 기회를 모두 썼습니다" : `별의 무덤에 들어가기 (오늘 ${left}회 남음)`);
   btn.onclick = async () => {
     err.textContent = "";
     busy(btn, true, "준비 중…");
@@ -4016,7 +4301,7 @@ function renderStarIdle(body, s, last, act, exploring) {
     h("div", { "data-tour": "st-rules" },
     h("p", { style: "margin:0 0 8px" }, "잠든 별이 묻힌 무덤을 탐색하여 별가루와 아이템을 획득합니다. 무덤을 지키는 별지기에게 들키지 않도록 주의하세요."),
     h("ul", { class: "hint", style: "margin:0 0 16px;padding-left:18px;line-height:1.7" },
-      h("li", {}, `10레벨부터 · 하루 1번 · 한 번에 ${5 + Math.floor(lv / 5)}칸 이동 (5레벨마다 1칸 늘어남) · 탐색 3회와는 따로 셉니다`),
+      h("li", {}, `10레벨부터 · 하루 ${maxT}번 · 한 번에 ${5 + Math.floor(lv / 5)}칸 이동 (5레벨마다 1칸 늘어남) · 탐색 3회와는 따로 셉니다`),
       h("li", {}, "별가루, 맥동하는 마석, 별조각 사탕, 은하수 이슬, 가능성을 얻을 수 있습니다."),
       h("li", {}, "별지기(◎)는 지도에 보이며, 내가 두 칸 움직일 때마다 한 칸씩 다가옵니다."),
       h("li", {}, "별지기와 마주치면 이동이 남아 있어도 그 자리에서 끝납니다. 그때까지 얻은 것은 그대로 받습니다."),
@@ -4121,15 +4406,304 @@ function renderStarRun(body, s) {
   paint();
 }
 
+
+/* ===== 별의 제단: 별의 무덤의 어려움 버전 ===== */
+const AL_MARK = { altar: ["☆", "제단"], altarDone: ["★", "봉헌한 제단"], trail: ["·", "별지기의 잔상"] };
+async function renderAltar(body) {
+  const [{ data, error }, { data: act }, { data: ex }, { data: st }] = await Promise.all([sb.rpc("altar_state"), sb.rpc("get_current_action"), sb.rpc("explore_state"), sb.rpc("star_state")]);
+  if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
+  if (data?.status === "running") return renderAltarRun(body, data);
+  renderAltarIdle(body, data, null, act, ex?.status === "running" || st?.status === "running");
+}
+function renderAltarIdle(body, s, last, act, busyElse) {
+  const lv = state.character?.level || 1;
+  const err = h("div", { class: "error", role: "alert" });
+  const done = !!s?.done_today, locked = lv < 20, needStar = !done && s && s.star_today === false;
+  const btn = h("button", { class: "btn block", type: "button", "data-tour": "al-start", disabled: locked || done || needStar || !!act || !!busyElse },
+    locked ? "20레벨부터 들어갈 수 있습니다" : done ? "오늘은 이미 다녀왔습니다" : needStar ? "오늘 별의 무덤을 먼저 다녀와 주세요" : "별의 제단에 들어가기");
+  btn.onclick = async () => {
+    err.textContent = "";
+    busy(btn, true, "준비 중…");
+    const { data, error } = await sb.rpc("altar_start");
+    busy(btn, false);
+    if (error) return (err.textContent = koError(error));
+    renderAltarRun(body, data);
+  };
+  const kids = [];
+  if (last) kids.push(h("h3", { class: "report-title" }, last.end_reason === "keeper" ? "별지기에게 들켜 쫓겨났습니다" : last.end_reason === "quit" ? "별의 제단을 떠났습니다" : "별의 제단 탐색을 마쳤습니다"),
+    h("p", { class: "hint", style: "margin:0 0 8px" }, `봉헌한 제단 ${last.offered ?? 0} / 4`), starGains(last), h("div", { style: "height:18px" }));
+  kids.push(h("div", { "data-tour": "al-rules" },
+    h("p", { style: "margin:0 0 8px" }, "별의 무덤 깊은 곳, 별빛을 바치는 제단이 있습니다. 제단에 닿으면 별가루와 귀한 아이템을 받을 수 있습니다. 이곳의 별지기는 움직임을 읽기 어렵습니다."),
+    h("ul", { class: "hint", style: "margin:0 0 16px;padding-left:18px;line-height:1.7" },
+      h("li", {}, `20레벨부터 · 하루 1번 · 오늘 별의 무덤을 한 번 다녀온 뒤 열립니다 · 한 번에 ${8 + Math.floor(lv / 5)}칸 이동`),
+      h("li", {}, "지도에 처음부터 제단(☆) 4개가 보입니다. 제단 하나에 별가루 3~5개와 별조각 사탕·은하수 이슬·마석 중 하나, 4개를 모두 봉헌하면 맥동하는 마석을 더 받습니다."),
+      h("li", {}, "별지기(◎)는 언제, 어느 쪽으로 움직일지 알 수 없습니다. 한 걸음에 가만히 있거나 1~2칸 움직이며, 판마다 정해진 두 가지 움직임을 번갈아 씁니다."),
+      h("li", {}, "별지기가 지나온 자리에는 잔상(·)이 남습니다. 다음 움직임을 짐작하는 단서로 쓰세요."),
+      h("li", {}, "별지기와 마주치면 그 자리에서 끝나고, 그때까지 얻은 것은 그대로 받습니다."))));
+  if (locked) kids.push(h("div", { class: "rg-notice" }, h("p", { style: "margin:0;font-weight:700" }, `별의 제단은 20레벨부터 들어갈 수 있습니다. 지금 Lv.${lv}`)));
+  if (act) kids.push(h("div", { class: "rg-notice" }, h("p", { style: "margin:0" }, "던전에서 돌아와 결과를 받은 뒤에 들어갈 수 있습니다.")));
+  if (busyElse) kids.push(h("div", { class: "rg-notice" }, h("p", { style: "margin:0" }, "탐색이나 별의 무덤을 마친 뒤에 들어갈 수 있습니다.")));
+  kids.push(err, btn);
+  body.replaceChildren(...kids);
+  if (!last) maybeTour("dungeon-altar");
+}
+function renderAltarRun(body, s) {
+  const grid = h("div", { class: "ex-grid", role: "grid", "aria-label": "별의 제단 지도" });
+  const msg = h("p", { class: "ex-msg", "aria-live": "polite" }, "제단의 별빛이 희미하게 깜빡인다. 별지기의 숨결이 어디선가 느껴진다.");
+  const movesEl = h("b", {}), altarEl = h("b", {});
+  const gainBox = h("div", {});
+  const err = h("div", { class: "error", role: "alert" });
+  let moving = false;
+  const DIRS = { up: [0, -1, "↑", "위"], left: [-1, 0, "←", "왼쪽"], down: [0, 1, "↓", "아래"], right: [1, 0, "→", "오른쪽"] };
+  const padBtn = d => h("button", { type: "button", class: "btn ghost", "aria-label": `${DIRS[d][3]}로 이동`, onclick: () => move(d), "data-dir": d }, DIRS[d][2]);
+  const pad = h("div", { class: "ex-pad" }, h("span"), padBtn("up"), h("span"), padBtn("left"), padBtn("down"), padBtn("right"));
+  const run = () => s.status === "running";
+  function paint() {
+    const cells = [];
+    for (let y = 0; y < 10; y++) for (let x = 0; x < 10; x++) {
+      const k = `${x},${y}`, cell = s.revealed[k];
+      const here = x === s.x && y === s.y, keeper = x === s.kx && y === s.ky;
+      const al = (s.altars || []).find(a => a.x === x && a.y === y);
+      const tr = !keeper && (s.trail || []).some(t => t.x === x && t.y === y);
+      const near = !keeper && Math.abs(x - s.kx) + Math.abs(y - s.ky) === 1;
+      const dir = run() && Object.keys(DIRS).find(d => s.x + DIRS[d][0] === x && s.y + DIRS[d][1] === y);
+      let [mark, label] = cell ? (ST_MARK[cell.t] || ["", ""]) : ["", "모르는 곳"];
+      if (al) [mark, label] = al.done ? AL_MARK.altarDone : AL_MARK.altar;
+      else if (tr && !cell) [mark, label] = AL_MARK.trail;
+      const name = here ? "현재 위치" : keeper ? "별지기" : label + (tr ? " · 별지기의 잔상" : "") + (near ? " · 별지기 바로 옆" : "");
+      cells.push(h(dir ? "button" : "div", {
+        class: `ex-c${cell ? " rev t-" + cell.t : ""}${al ? (al.done ? " al-done" : " al") : ""}${tr ? " al-trail" : ""}${here ? " here" : ""}${keeper ? " keeper" : ""}${near ? " near" : ""}${dir ? " adj" : ""}`,
+        role: "gridcell", title: name, "aria-label": name, type: dir ? "button" : null, onclick: dir ? () => move(dir) : null,
+      }, here ? "●" : keeper ? "◎" : mark));
+    }
+    grid.replaceChildren(...cells);
+    movesEl.textContent = `${s.moves_left}칸`;
+    altarEl.textContent = `${(s.altars || []).filter(a => a.done).length} / 4`;
+    gainBox.replaceChildren(starGains(s));
+    pad.querySelectorAll("button").forEach(b => {
+      const [dx, dy] = DIRS[b.dataset.dir];
+      const nx = s.x + dx, ny = s.y + dy;
+      b.disabled = moving || !run() || nx < 0 || nx > 9 || ny < 0 || ny > 9;
+    });
+  }
+  async function move(dir) {
+    if (moving || !run()) return;
+    const [dx, dy] = DIRS[dir];
+    const nx = s.x + dx, ny = s.y + dy;
+    if (nx < 0 || nx > 9 || ny < 0 || ny > 9) return;
+    moving = true; err.textContent = ""; paint(); sfx("move2");
+    const { data, error } = await sb.rpc("altar_move", { p_dir: dir });
+    moving = false;
+    if (error) { err.textContent = koError(error); return paint(); }
+    if (data.keeper_moved) setTimeout(() => sfx("stargurdian"), 180);
+    if (data.cell?.t === "altar") setTimeout(() => sfx("notice"), 120);
+    s = data;
+    msg.textContent = data.message + (data.level_up ? " — 레벨이 올랐다!" : "");
+    msg.className = `ex-msg${s.end_reason === "keeper" ? " bad-text" : ""}`;
+    paint();
+    if (data.cell?.t === "pot" || data.level_up) { await loadAll(); renderHunter(); }
+    if (!run()) {
+      stopDungeonTimers();
+      actions.replaceChildren(h("button", { class: "btn block", type: "button", onclick: () => renderAltarIdle(body, s, s) }, "별의 제단 나가기"));
+    }
+  }
+  const actions = h("div", { style: "margin-top:12px" }, h("button", { class: "btn ghost block", type: "button", onclick: quit }, "그만두고 나가기"));
+  async function quit() {
+    if (!confirm("별의 제단을 떠날까요?\n지금까지 얻은 것은 그대로 받고, 남은 이동은 사라집니다. 오늘은 다시 들어갈 수 없습니다.")) return;
+    const { data, error } = await sb.rpc("altar_quit");
+    if (error) return (err.textContent = koError(error));
+    stopDungeonTimers();
+    renderAltarIdle(body, data, data);
+  }
+  body.replaceChildren(h("div", { class: "ex-wrap" },
+    h("div", {}, grid,
+      h("div", { class: "ex-legend" },
+        h("span", {}, h("b", { class: "t-altar" }, "☆"), " 제단"), h("span", {}, h("b", { class: "t-altar" }, "★"), " 봉헌함"),
+        ...["stardust", "pot", "item", "keeper"].map(t => h("span", {}, h("b", { class: `t-${t}` }, ST_MARK[t][0]), " ", ST_MARK[t][1])),
+        h("span", {}, h("b", { class: "t-keeper", style: "opacity:.55" }, "·"), " 잔상"))),
+    h("div", {},
+      h("div", { class: "kv", style: "border:0;padding:0 0 4px" }, h("span", {}, "남은 이동"), movesEl),
+      h("div", { class: "kv", style: "border:0;padding:0 0 8px" }, h("span", {}, "봉헌한 제단"), altarEl),
+      msg, pad,
+      h("p", { class: "hint", style: "margin:0 0 12px;text-align:center" }, "방향키나 W·A·S·D로도 움직일 수 있습니다."),
+      h("p", { class: "panel-title", style: "margin:8px 0 6px" }, "이번에 모은 것"), gainBox, err, actions)));
+  stopDungeonTimers();
+  dgKeys = e => {
+    if (e.target.closest?.("input, textarea, select, dialog[open]")) return;
+    const map = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right", w: "up", s: "down", a: "left", d: "right" };
+    const d = map[e.key];
+    if (d) { e.preventDefault(); move(d); }
+  };
+  addEventListener("keydown", dgKeys);
+  paint();
+}
+
+/* ===== 미니게임: 게이트 봉합 · 구조 요청 =====
+   서버가 판(속도·구간·나타날 순서)을 정하고, 화면은 누른 시각만 보낸다. 점수는 서버가 다시 계산한다. */
+const fmtAt = iso => { const d = new Date(iso); return d.toDateString() === new Date().toDateString() ? fmtTime(iso) : `${d.getMonth() + 1}/${d.getDate()} ${fmtTime(iso)}`; };
+const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+let miniKey = null;   // 게임 중 키보드(스페이스·Enter) 처리
+function miniCleanup() { if (miniKey) { removeEventListener("keydown", miniKey); miniKey = null; } }
+$("#dlg-info")?.addEventListener("close", miniCleanup);
+const gatePos = (t, period) => { const ph = (t % period) / period; return ph < 0.5 ? ph * 2 : 2 - ph * 2; };
+const MARK_TXT = { perfect: "완벽", good: "좋음", miss: "빗나감" };
+
+async function playGate(after) {
+  const { data: g, error } = await sb.rpc("minigame_start", { p_kind: "gate" });
+  if (error) return toast(koError(error));
+  const R = g.params.rounds;
+  const bar = h("div", { class: "gate-bar", role: "img", "aria-label": "봉합 막대" });
+  const zone = h("i", { class: "gate-zone" }), core = h("i", { class: "gate-core" }), mk = h("b", { class: "gate-mark" });
+  bar.append(zone, core, mk);
+  const roundEl = h("p", { class: "gate-round" });
+  const marks = h("div", { class: "gate-marks", "aria-live": "polite" });
+  const press = h("button", { class: "btn block gate-press", type: "button" }, "봉합하기 (스페이스)");
+  const out = h("div", {});
+  const times = [];
+  let r = 0, t0 = 0, raf = 0, waiting = false, done = false;
+  function setRound() {
+    const z = R[r];
+    zone.style.left = `${(z.center - z.width / 2) * 100}%`; zone.style.width = `${z.width * 100}%`;
+    core.style.left = `${(z.center - z.perfect / 2) * 100}%`; core.style.width = `${z.perfect * 100}%`;
+    roundEl.textContent = `균열 ${r + 1} / 5`;
+    t0 = performance.now(); waiting = false;
+    cancelAnimationFrame(raf);
+    const tick = () => { mk.style.left = `${gatePos(performance.now() - t0, z.period) * 100}%`; raf = requestAnimationFrame(tick); };
+    tick();
+  }
+  function hit() {
+    if (waiting || done) return;
+    const t = Math.round(performance.now() - t0);
+    times.push(t); waiting = true; cancelAnimationFrame(raf);
+    const z = R[r], d = Math.abs(gatePos(t, z.period) - z.center);
+    const m = d <= z.perfect / 2 ? "perfect" : d <= z.width / 2 ? "good" : "miss";
+    mk.style.left = `${gatePos(t, z.period) * 100}%`;
+    marks.append(h("span", { class: `gate-m ${m}` }, MARK_TXT[m]));
+    sfx(m === "miss" ? "fumble" : m === "perfect" ? "mix" : "push");
+    r++;
+    if (r < 5) setTimeout(setRound, 650); else finish();
+  }
+  async function finish() {
+    done = true; press.disabled = true;
+    const { data: res, error } = await sb.rpc("minigame_finish", { p_id: g.id, p_input: times });
+    miniCleanup();
+    if (error) return out.replaceChildren(h("p", { class: "error" }, koError(error)));
+    const miss = 5 - res.perfect - res.good;
+    out.replaceChildren(h("div", { class: "report", style: "margin-top:14px" },
+      h("p", { style: "margin:0 0 8px;font-weight:700" }, res.success ? "균열을 봉합했습니다." : "균열이 다시 벌어졌습니다…"),
+      h("div", { class: "kv" }, h("span", {}, "결과"), h("span", {}, `완벽 ${res.perfect} · 좋음 ${res.good} · 빗나감 ${miss}`)),
+      h("div", { class: "kv" }, h("span", {}, "가능성"), h("span", {}, `+${Number(res.pot || 0).toLocaleString()}`)),
+      h("div", { class: "kv" }, h("span", {}, "아이템"), h("span", {}, res.items.length ? res.items.map(i => i.name).join(", ") : "없음 (3번 이상 맞히면 얻습니다)"))),
+      h("div", { style: "display:flex;gap:8px;margin-top:12px" },
+        res.left > 0 ? h("button", { class: "btn", type: "button", onclick: () => playGate(after) }, `다음 게이트 (${res.left}개 남음)`) : null,
+        h("button", { class: "btn ghost", type: "button", onclick: () => $("#dlg-info").close() }, "닫기")));
+    loadAll().then(renderHunter);
+    after?.();
+  }
+  press.onclick = hit;
+  bar.onclick = hit;
+  info("게이트 봉합",
+    h("p", { class: "hint", style: "margin:0 0 12px" }, "막대 위를 오가는 표시가 금빛 구간에 들어왔을 때 누르세요. 가운데의 밝은 부분이면 '완벽'입니다. 5번 누르며, 갈수록 구간이 좁아지고 빨라집니다. 3번 이상 맞히면 열매나 청정수 1개를 얻습니다."),
+    roundEl, bar, marks, press, out);
+  miniCleanup();
+  miniKey = e => { if ((e.code === "Space" || e.key === "Enter") && !done) { e.preventDefault(); hit(); } };
+  addEventListener("keydown", miniKey);
+  setRound();
+}
+
+async function playRescue(after) {
+  const { data: g, error } = await sb.rpc("minigame_start", { p_kind: "rescue" });
+  if (error) return toast(koError(error));
+  const S = g.params.spawns, LEN = g.params.length;
+  const cells = [...Array(9)].map((_, i) => h("button", { type: "button", class: "rs-cell", "aria-label": `${Math.floor(i / 3) + 1}번째 줄 ${i % 3 + 1}번째 칸` }));
+  const grid = h("div", { class: "rs-grid" }, ...cells);
+  const clock = h("p", { class: "rs-clock" }, "준비…");
+  const score = h("p", { class: "hint", style: "margin:6px 0 0", "aria-live": "polite" });
+  const out = h("div", {});
+  const clicks = [], hitSet = new Set();
+  let t0 = 0, raf = 0, running = false, hits = 0, wrong = 0;
+  const active = (t, c) => S.findIndex((s, k) => s.cell === c && t >= s.at && t <= s.at + s.dur && !hitSet.has(k));
+  function frame() {
+    const t = performance.now() - t0;
+    cells.forEach((el, c) => {
+      const k = active(t, c), s = k >= 0 ? S[k] : null;
+      const kind = s ? s.kind : "";
+      if (el.dataset.kind !== kind) {
+        el.dataset.kind = kind;
+        el.replaceChildren(...(s ? [h("b", {}, s.kind === "mob" ? "◆" : "♟"), h("small", {}, s.kind === "mob" ? "마물" : "헌터")] : []));
+      }
+    });
+    clock.textContent = `남은 시간 ${Math.max(0, Math.ceil((LEN - t) / 1000))}초`;
+    if (t >= LEN) return finish();
+    raf = requestAnimationFrame(frame);
+  }
+  cells.forEach((el, c) => el.onclick = () => {
+    if (!running) return;
+    const t = Math.round(performance.now() - t0);
+    clicks.push({ t, cell: c });
+    const k = active(t, c);
+    if (k < 0) return;
+    hitSet.add(k);
+    if (S[k].kind === "mob") { hits++; sfx("push"); el.classList.add("rs-hit"); } else { wrong++; sfx("fumble"); el.classList.add("rs-bad"); }
+    setTimeout(() => el.classList.remove("rs-hit", "rs-bad"), 260);
+    score.textContent = `처치 ${hits}${wrong ? ` · 헌터를 잘못 누름 ${wrong}` : ""}`;
+  });
+  async function finish() {
+    running = false; cancelAnimationFrame(raf);
+    cells.forEach(el => { el.disabled = true; el.replaceChildren(); el.dataset.kind = ""; });
+    clock.textContent = "구조 완료 — 결과를 확인하는 중…";
+    const { data: res, error } = await sb.rpc("minigame_finish", { p_id: g.id, p_input: clicks });
+    miniCleanup();
+    if (error) return out.replaceChildren(h("p", { class: "error" }, koError(error)));
+    clock.textContent = res.success ? "구조 성공!" : "구조 실패";
+    out.replaceChildren(h("div", { class: "report", style: "margin-top:14px" },
+      h("div", { class: "kv" }, h("span", {}, "처치한 마물"), h("span", {}, `${res.hits} / ${res.mobs} (필요 ${res.need})`)),
+      h("div", { class: "kv" }, h("span", {}, "헌터를 잘못 누름"), h("span", {}, `${res.wrong}번 (1번까지 괜찮음)`)),
+      h("div", { class: "kv" }, h("span", {}, "감사의 선물"), h("span", {}, res.items.length ? res.items.map(i => i.name).join(", ") : "없음"))),
+      h("div", { style: "display:flex;gap:8px;margin-top:12px" },
+        res.left > 0 ? h("button", { class: "btn", type: "button", onclick: () => playRescue(after) }, `다음 구조 요청 (${res.left}건 남음)`) : null,
+        h("button", { class: "btn ghost", type: "button", onclick: () => $("#dlg-info").close() }, "닫기")));
+    loadAll().then(renderHunter);
+    after?.();
+  }
+  info("구조 요청",
+    h("p", { class: "hint", style: "margin:0 0 12px" }, "다른 파티가 마물에게 둘러싸였습니다! 20초 동안 칸에 나타나는 마물(◆)만 눌러 처치하세요. 헌터(♟)를 누르면 안 됩니다. 마물을 60% 이상 처치하고 헌터를 1번까지만 잘못 누르면 소비 아이템 1개를 받습니다. 실패해도 무한 던전에는 영향이 없습니다."),
+    clock, grid, score, out);
+  let n = 3;
+  const count = () => { if (n > 0) { clock.textContent = `${n}…`; n--; setTimeout(count, 700); } else { t0 = performance.now(); running = true; frame(); } };
+  count();
+}
+
+window.__idMini = { playGate, playRescue };   // 화면 확인용
+// 지역 안정화 화면 · 무한 던전 화면에 붙는 안내 칸
+async function miniCard(kind, after) {
+  if (!released()) return null;
+  const box = h("div", {});
+  const { data: m } = await sb.rpc("minigame_state");
+  if (!m) return box;
+  if (kind === "gate" && m.gate > 0)
+    box.append(h("div", { class: "rg-notice mini-card" },
+      h("div", {}, h("b", {}, `봉합할 게이트 ${m.gate}개`), h("p", { class: "hint", style: "margin:2px 0 0" }, "지역 안정화 결과를 받을 때마다 작은 균열이 하나씩 남습니다.")),
+      h("button", { class: "btn small", type: "button", onclick: () => playGate(after) }, "게이트 봉합")));
+  if (kind === "rescue" && (m.rescue > 0 || m.rescue_next)) {
+    const next = m.rescue_next && m.rescue_end && Date.parse(m.rescue_next) <= Date.parse(m.rescue_end) ? m.rescue_next : null;
+    box.append(h("div", { class: "rg-notice mini-card" },
+      h("div", {}, h("b", {}, m.rescue > 0 ? `구조 요청 ${m.rescue}건` : "구조 요청 없음"),
+        h("p", { class: "hint", style: "margin:2px 0 0" }, (m.rescue > 0 ? "들어온 요청은 24시간 동안 남아 있습니다. " : "") + (next ? `다음 요청은 ${fmtAt(next)}쯤 들어옵니다.` : "무한 던전 진행 중 6시간마다 들어옵니다."))),
+      m.rescue > 0 ? h("button", { class: "btn small", type: "button", onclick: () => playRescue(after) }, "구조하러 가기") : null));
+  }
+  return box;
+}
+
 /* ===== 인벤토리 ===== */
 let nextInvTab = null;
 async function renderInventory(pane, tab = "items") {
   const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
   const cur = h("strong", {}, "");
   pane.replaceChildren(
-    h("div", { class: "inv-head" }, h("h2", {}, "인벤토리"), h("span", { class: "hint", style: "margin-left:auto" }, "보유 ", cur), helpBtn({ items: "inv-items", shop: "inv-shop", craft: "inv-craft", trade: "inv-trade" }[tab])),
-    h("div", { class: "tabs", style: "max-width:480px;margin-top:10px", "data-tour": "inv-tabs" },
-      ...[["items", "보유"], ["shop", "상점"], ["craft", "조합"], ["trade", "거래소"]].map(([id, label]) =>
+    h("div", { class: "inv-head" }, h("h2", {}, "인벤토리"), h("span", { class: "hint", style: "margin-left:auto" }, "보유 ", cur), helpBtn({ items: "inv-items", shop: "inv-shop", craft: "inv-craft", dismantle: "inv-craft", trade: "inv-trade" }[tab])),
+    h("div", { class: "tabs", style: "max-width:560px;margin-top:10px", "data-tour": "inv-tabs" },
+      ...[["items", "보유"], ["shop", "상점"], ["craft", "조합"], ...(released() ? [["dismantle", "분해"]] : []), ["trade", "거래소"]].map(([id, label]) =>
         h("button", { type: "button", class: tab === id ? "on" : null, onclick: () => renderInventory(pane, id) }, label))),
     body);
   const { data: inv, error } = await sb.rpc("get_inventory");
@@ -4145,6 +4719,7 @@ async function renderInventory(pane, tab = "items") {
   }
   if (tab === "shop") return renderShop(body, inv, act);
   if (tab === "craft") return renderCraft(body, inv, refresh);
+  if (tab === "dismantle") return renderDismantle(body, inv, refresh);
   if (tab === "trade") return renderTrade(body, inv, refresh);
   renderOwned(body, inv, act, refresh);
 }
@@ -4412,6 +4987,55 @@ async function renderTrade(body, inv, refresh) {
 
 /* ===== 조합 ===== */
 let craftMsg = null;
+/* ===== 분해: 조합식을 아는 아이템 → 그 조합식의 재료 중 1개 (무작위) ===== */
+let dismantleMsg = null;
+async function renderDismantle(body, inv, refresh) {
+  const { data: known } = await sb.rpc("get_recipes");
+  const byResult = {};
+  for (const r of known || []) if (!byResult[r.result]) byResult[r.result] = r;
+  const rows = [];
+  for (const x of inv.stacks) if (byResult[x.code]) rows.push({ code: x.code, name: x.name, kind: x.kind, have: x.qty, r: byResult[x.code] });
+  const gearBy = {};
+  for (const g of inv.gear) if (!g.equipped && byResult[g.code]) (gearBy[g.code] ||= []).push(g);
+  for (const [code, gs] of Object.entries(gearBy)) rows.push({ code, name: gs[0].name, kind: "equip", tier: gs[0].tier, have: gs.length, gears: gs.sort((a, b) => a.enhance - b.enhance || a.id - b.id), r: byResult[code] });
+  const q = h("input", { class: "input", type: "search", maxlength: "20", placeholder: "아이템 이름 검색", "aria-label": "분해할 아이템 검색" });
+  const list = h("div", {});
+  const row = x => {
+    const qty = h("input", { class: "input qty-input", type: "number", min: "1", max: String(Math.min(99, x.have)), value: "1", "aria-label": `${x.name} 분해 개수` });
+    const go = h("button", { class: "btn ghost small", type: "button" }, "분해");
+    go.onclick = async () => {
+      const n = Math.max(1, Math.min(x.have, 99, Math.floor(Number(qty.value) || 1)));
+      const use = x.gears ? x.gears.slice(0, n) : null;
+      const enh = use ? use.filter(g => g.enhance > 0) : [];
+      if (!confirm(`${josa(`${x.name} ${n}개`, "을", "를")} 분해할까요? 하나마다 재료 중 1개를 무작위로 돌려받습니다.` + (enh.length ? `\n강화된 장비(${enh.map(gearName).join(", ")})의 강화 단계도 함께 사라집니다.` : ""))) return;
+      busy(go, true, "…");
+      const { data, error } = await sb.rpc("dismantle", { p_code: x.code, p_qty: n, p_gear_ids: use ? use.map(g => g.id) : [] });
+      busy(go, false);
+      if (error) return toast(koError(error));
+      sfx("mix");
+      dismantleMsg = `${josa(`${data.name} ${data.count}개`, "을", "를")} 분해해 ${josa(data.items.map(i => `${i.name} ${i.qty}개`).join(", "), "을", "를")} 얻었습니다.`;
+      refresh();
+    };
+    return h("div", { class: "item-row" },
+      h("div", { class: "item-main" }, h("strong", { class: x.tier ? `tier${x.tier}` : null }, `${x.name} × ${x.have}`),
+        h("div", { class: "hint" }, `돌려받는 재료 (하나만 무작위): ${[...new Set(x.r.ingredients.map(i => i.name))].join(" · ")}`),
+        x.gears && x.gears.some(g => g.enhance > 0) ? h("div", { class: "hint", style: "font-size:12px" }, "강화 단계가 낮은 장비부터 분해합니다.") : null),
+      h("div", { class: "item-actions", style: "align-items:center" }, qty, go));
+  };
+  const paint = () => {
+    const w = q.value.trim().toLowerCase();
+    const rs = rows.filter(x => !w || x.name.toLowerCase().includes(w));
+    list.replaceChildren(...(rs.length ? rs.map(row) : [h("p", { class: "hint", style: "margin:0" }, rows.length ? "검색 결과가 없습니다." : "분해할 수 있는 아이템이 없습니다. 조합식을 알고 있는 아이템을 가지고 있어야 합니다.")]));
+  };
+  q.oninput = paint;
+  const msg = dismantleMsg ? h("p", { class: "craft-msg", role: "status" }, dismantleMsg) : null;
+  dismantleMsg = null;
+  body.replaceChildren(
+    h("p", { class: "hint", style: "margin:16px 0 10px" }, "조합식을 알고 있는 아이템을 분해할 수 있습니다. 하나를 분해할 때마다 그 조합식에 들어간 재료 중 1개를 무작위로 돌려받습니다. 장착 중인 장비는 분해할 수 없습니다."),
+    msg, h("div", { style: "margin:0 0 10px" }, q), list);
+  paint();
+}
+
 let craftCat = "all", craftQ = "";
 async function renderCraft(body, inv, refresh) {
   const { data: known } = await sb.rpc("get_recipes");
@@ -5087,6 +5711,20 @@ function codexMap(found, onPick) {
 let codexCat = "all";
 const CODEX_CATS = [["monster", "몬스터"], ["dungeon", "던전"], ["recipe", "조합식"], ["item", "아이템"]];
 const fmtDay = iso => { const d = new Date(iso); return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`; };
+// 도감 검색·정렬 (발견하지 못한 것은 이름으로 찾아지지 않는다)
+let codexQ = "", codexSort = "default", codexOnlyKnown = false;
+const CX_SORTS = [["default", "기본 순"], ["name", "이름 순"], ["known", "발견한 것 먼저"], ["recent", "최근 발견 순"], ["count", "만난·클리어 횟수 순"]];
+function cxApply(arr, known, name, first, count) {
+  const w = codexQ.trim().toLowerCase();
+  const a = arr.filter(x => (!codexOnlyKnown || known(x)) && (!w || (known(x) && (name(x) || "").toLowerCase().includes(w))));
+  const K = x => known(x) ? 1 : 0;
+  if (codexSort === "name") a.sort((x, y) => K(y) - K(x) || (name(x) || "").localeCompare(name(y) || "", "ko"));
+  else if (codexSort === "known") a.sort((x, y) => K(y) - K(x));
+  else if (codexSort === "recent") a.sort((x, y) => (Date.parse(first(y) || "") || 0) - (Date.parse(first(x) || "") || 0));
+  else if (codexSort === "count") a.sort((x, y) => (count(y) || 0) - (count(x) || 0));
+  return a;
+}
+const cxFiltering = () => !!codexQ.trim() || codexOnlyKnown;
 async function renderCodex(pane) {
   const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
   pane.replaceChildren(paneHead("국제헌터연합", "union-codex"), unionTabs(pane),
@@ -5112,8 +5750,10 @@ async function renderCodex(pane) {
     monster(out) {
       const groups = new Map();
       for (const m of cx.monsters || []) { if (!groups.has(m.group)) groups.set(m.group, []); groups.get(m.group).push(m); }
-      for (const [g, ms] of groups) {
-        out.push(h("p", { class: "codex-group" }, `${dungeonName(g)} · ${ms.filter(m => m.seen).length}/${ms.length}`),
+      for (const [g, all] of groups) {
+        const ms = cxApply(all, m => !!m.seen, m => m.name, m => m.first_at, m => m.seen);
+        if (!ms.length && cxFiltering()) continue;
+        out.push(h("p", { class: "codex-group" }, `${dungeonName(g)} · ${all.filter(m => m.seen).length}/${all.length}`),
           h("div", { class: "codex-grid", "data-tour": "cx-mon" }, ...ms.map(m => cell(!!m.seen, m.name, m.seen ? `처치 ${m.kills}` : null, () => info(m.name || "???",
             m.where ? h("p", { class: "hint", style: "margin:0 0 8px" }, m.where + (m.boss ? " · 보스" : "")) : null,
             desc(m.desc),
@@ -5126,15 +5766,20 @@ async function renderCodex(pane) {
     dungeon(out) {
       const ds = cx.dungeons || [];
       const rg = ds.filter(d => d.kind === "regional");
-      out.push(h("p", { class: "codex-group" }, `지역 안정화 · 발견 ${rg.filter(d => d.seen).length}/${rg.length}`), codexMap(rg.filter(d => d.seen && d.place), dungeonInfo));
-      const sec = (title, arr) => arr.length && out.push(h("p", { class: "codex-group" }, `${title} · ${arr.filter(d => d.seen).length}/${arr.length}`),
-        h("div", { class: "codex-grid" }, ...arr.map(d => cell(!!d.seen, d.name, d.seen ? `${d.place || ""}${d.clears ? ` · 클리어 ${d.clears}` : ""}` : null, () => dungeonInfo(d)))));
+      const dSort = arr => cxApply(arr, d => !!d.seen, d => `${d.name || ""} ${d.place || ""}`, d => d.first_at, d => d.clears);
+      const sec = (title, all) => { const arr = dSort(all); return (arr.length || (all.length && !cxFiltering())) && out.push(h("p", { class: "codex-group" }, `${title} · ${all.filter(d => d.seen).length}/${all.length}`),
+        h("div", { class: "codex-grid" }, ...arr.map(d => cell(!!d.seen, d.name, d.seen ? `${d.place || ""}${d.clears ? ` · 클리어 ${d.clears}` : ""}` : null, () => dungeonInfo(d))))); };
+      // 검색·정렬 중에는 지도 대신 목록으로 보여 준다
+      if (cxFiltering() || codexSort !== "default") sec("지역 안정화", rg);
+      else out.push(h("p", { class: "codex-group" }, `지역 안정화 · 발견 ${rg.filter(d => d.seen).length}/${rg.length}`), codexMap(rg.filter(d => d.seen && d.place), dungeonInfo));
       sec("무한 던전", ds.filter(d => d.kind === "infinite"));
       sec("별의 무덤", ds.filter(d => d.kind === "star"));
     },
     recipe(out) {
-      const rs = cx.recipes || [];
-      out.push(h("p", { class: "codex-group" }, `알아낸 조합식 ${rs.filter(r => r.known).length}/${rs.length}`),
+      const all = cx.recipes || [];
+      const rs = cxApply(all, r => !!r.known, r => `${r.name} ${(r.ingredients || []).join(" ")}`, r => r.first_at, () => 0);
+      if (!rs.length && cxFiltering()) return;
+      out.push(h("p", { class: "codex-group" }, `알아낸 조합식 ${all.filter(r => r.known).length}/${all.length}`),
         h("div", { class: "codex-grid" }, ...rs.map(r => cell(r.known, r.name, r.known ? `× ${r.qty}` : null, () => info(r.known ? r.name : "???",
           r.known ? h("div", { class: "report" }, kv("재료", list(r.ingredients)), kv("결과", `${r.name} × ${r.qty}`), kv("알아낸 날", r.first_at ? fmtDay(r.first_at) : null))
             : desc("아직 알아내지 못한 조합식입니다. 인벤토리의 조합에서 재료를 이리저리 섞어 보세요."))))));
@@ -5142,8 +5787,10 @@ async function renderCodex(pane) {
     title(out) {
       const ts = cx.titles || [];
       for (const [part, label] of [["front", "앞말"], ["back", "뒷말"]]) {
-        const arr = ts.filter(t => t.part === part);
-        out.push(h("p", { class: "codex-group" }, `${label} · ${arr.filter(t => t.got).length}/${arr.length}`),
+        const allT = ts.filter(t => t.part === part);
+        const arr = cxApply(allT, t => !!t.got, t => t.name, t => t.got_at, () => 0);
+        if (!arr.length && cxFiltering()) continue;
+        out.push(h("p", { class: "codex-group" }, `${label} · ${allT.filter(t => t.got).length}/${allT.length}`),
           h("div", { class: "codex-grid" }, ...arr.map(t => cell(t.got, t.name, t.got ? label : t.cond, () => info(t.got ? t.name : "???",
             t.got ? h("div", { class: "report" }, kv("부분", label), kv("얻은 조건", t.cond), kv("얻은 날", t.got_at ? fmtDay(t.got_at) : null))
               : h("div", { class: "report" }, kv("부분", label), kv("얻는 조건", t.cond)))))));
@@ -5158,27 +5805,45 @@ async function renderCodex(pane) {
       const KIND = { material: "재료", consumable: "소비 아이템", equip: "장비" };
       const its = cx.items || [];
       for (const k of [...new Set(its.map(i => i.kind))]) {
-        const arr = its.filter(i => i.kind === k);
-        out.push(h("p", { class: "codex-group" }, `${KIND[k] || k} · ${arr.filter(i => i.got).length}/${arr.length}`),
+        const allI = its.filter(i => i.kind === k);
+        const arr = cxApply(allI, i => !!i.got, i => i.name, i => i.first_at, () => 0);
+        if (!arr.length && cxFiltering()) continue;
+        out.push(h("p", { class: "codex-group" }, `${KIND[k] || k} · ${allI.filter(i => i.got).length}/${allI.length}`),
           h("div", { class: "codex-grid" }, ...arr.map(i => cell(i.got, i.name, i.got && i.tier ? `${i.tier}티어` : null, () => info(i.name || "???",
             desc(i.desc), i.got ? h("div", { class: "report" }, kv("분류", KIND[i.kind] || i.kind), kv("처음 얻은 날", i.first_at ? fmtDay(i.first_at) : null)) : null)))));
       }
     },
   };
+  const tiles = h("div", { class: "codex-sum", "data-tour": "cx-sum" });
+  const content = h("div", {});
+  // 검색 · 정렬 · 발견한 것만 (11월 10일부터)
+  const q = h("input", { class: "input", type: "search", maxlength: "20", placeholder: "이름으로 찾기", "aria-label": "도감 검색", value: codexQ });
+  const sortSel = h("select", { class: "input", "aria-label": "도감 정렬" }, ...CX_SORTS.map(([v, n]) => h("option", { value: v, selected: v === codexSort }, n)));
+  const only = h("input", { type: "checkbox", id: "cx-only", checked: codexOnlyKnown });
+  q.oninput = () => { codexQ = q.value; paint(); };
+  sortSel.onchange = () => { codexSort = sortSel.value; paint(); };
+  only.onchange = () => { codexOnlyKnown = only.checked; paint(); };
+  const tools = released() ? h("div", { class: "cx-tools", "data-tour": "cx-tools" }, q, sortSel, h("label", { class: "cx-only", for: "cx-only" }, only, "발견한 것만")) : null;
+  if (!released()) { codexQ = ""; codexSort = "default"; codexOnlyKnown = false; }
   function paint() {
     const out = [];
     const tls = cx.titles || [], tRate = tls.length ? Math.round(tls.filter(t => t.got).length / tls.length * 1000) / 10 : 0;
     if (codexCat === "all") {
-      for (const [k, n] of CODEX_CATS) { out.push(h("h3", { class: "codex-sec", id: `codex-${k}` }, `${n} ${R[k] ?? 0}%`)); SEC[k](out); }
-      out.push(h("h3", { class: "codex-sec", id: "codex-title" }, `타이틀 ${tRate}%`)); SEC.title(out);
-      out.push(h("h3", { class: "codex-sec", id: "codex-story" }, "스토리")); SEC.story(out);
+      for (const [k, n] of CODEX_CATS) {
+        const sub = []; SEC[k](sub);
+        if (sub.length || !cxFiltering()) out.push(h("h3", { class: "codex-sec", id: `codex-${k}` }, `${n} ${R[k] ?? 0}%`), ...sub);
+      }
+      const subT = []; SEC.title(subT);
+      if (subT.length || !cxFiltering()) out.push(h("h3", { class: "codex-sec", id: "codex-title" }, `타이틀 ${tRate}%`), ...subT);
+      if (!cxFiltering()) { out.push(h("h3", { class: "codex-sec", id: "codex-story" }, "스토리")); SEC.story(out); }
     } else SEC[codexCat]?.(out);
+    if (!out.length) out.push(h("p", { class: "hint", style: "margin:14px 0 0" }, codexQ.trim() ? `'${codexQ.trim()}'이(가) 들어간 기록이 없습니다. 아직 발견하지 못한 것은 이름으로 찾을 수 없습니다.` : "보여 줄 기록이 없습니다."));
     const tile = (k, label, v) => h("button", { type: "button", class: `codex-tile${codexCat === k ? " on" : ""}`, "aria-pressed": codexCat === k ? "true" : "false",
       onclick: () => { codexCat = k; paint(); } }, h("span", {}, label), h("b", {}, `${v ?? 0}%`));
-    body.replaceChildren(
-      h("div", { class: "codex-sum", "data-tour": "cx-sum" }, tile("all", "전체 달성률", R.all), ...CODEX_CATS.map(([k, n]) => tile(k, n, R[k])), tile("title", "타이틀", tRate), tile("story", "스토리", 100)),
-      ...out);
+    tiles.replaceChildren(tile("all", "전체 달성률", R.all), ...CODEX_CATS.map(([k, n]) => tile(k, n, R[k])), tile("title", "타이틀", tRate), tile("story", "스토리", 100));
+    content.replaceChildren(...out);
   }
+  body.replaceChildren(tiles, tools, content);
   paint();
   maybeTour("union-codex");
 }
@@ -5573,7 +6238,7 @@ const DOCS = {
 <article class="card prose" id="g-inf">
 <h2>무한 던전</h2>
 <p>2101년 전세계 지하철에서 특정 행동을 반복하여 진입이 가능한 지하철형 던전으로, 역마다 던전이 존재하고, 종착역이 없다는 점이 특징입니다. 2125년 연이은 헌터 실종·사망 사건으로 폐쇄 후 조사대를 파견하여 <span class="glitch-text">무̛̟͉̙̙̃͂́͌한̷͚͈͂̔ 던̬͍̩͓̅͒̊̇͡전̱̰͒̄͝의̴̝̭̗͑̏́ ■̵͓̦̗͐̒̅̑͛조̫͔̰̿̄́͘자̝̤̗̽̽͆͝와̙̞̾̊͠ ■̛̙̱̲͒̾̋■̴̻̭͎̇̅̃■̗̯͐̀͜ ■̴̟̺͇̼͌́̋͋■̡͙͙̈́̒■̸͓̦̆̽■̧̙̼̪̼̂̃̊͑■̛̭̠̃̈́͌ͅ 가̙̗̩͈͒͐̂͑͘■̞̩̱̦͒́̅̎͝성̥̟̌̚͡을̰̝̪͒̆̿͘ 모̰̻͈̂̒̿͜■͔͕͎̟̎͒̒̾̕에̷̩̜͉̅̍͊게̵̘̝͐̆ ■͇͖̔͂͘■̱̖̋͑͜■̼̲̪̇̃̊͟습̸̳͍̬́͒̏̊͛■͔͇̃́͠다̰̳̊̀͠.̫̤̪͒̄̾͡</span></p>
-<p>재개방된 무한 던전에서는 세 가지 활동이 가능합니다.</p>
+<p>재개방된 무한 던전에서는 네 가지 활동이 가능합니다.</p>
 <h3>전투</h3>
 <p>각 역을 공략하며 한계까지 진입하는 공략 활동입니다. <b>최소 6시간부터 최대 12시간 동안 공략이 가능하며, 창을 닫아도 진행</b>됩니다.</p>
 <ol>
@@ -5589,8 +6254,15 @@ const DOCS = {
 <p>탐색 중 <b>[유한함]을 마주친 경우, 잔여 이동 칸이 남아있어도 탐색을 마치게 됩니다.</b></p>
 <h3>별의 무덤</h3>
 <p>2126년 재개방 이후 발견되는 특수 공간입니다. 헌터들의 이능력을 뛰어넘는 강력한 힘을 가졌던 별이 잠들어 묻힌 곳으로, 위험성을 감안하여 <b>10레벨 이상부터 진입</b>이 가능합니다.</p>
-<p><b>하루 최대 1번, 탐색과 별도로 기회를 가지며 방식은 탐색과 동일</b>합니다. 다만, 별의 무덤에서는 별가루·별조각 사탕·은하수 이슬·가능성이 발견되는 것으로 보고되었습니다.</p>
+<p><b>하루 최대 3번, 탐색과 별도로 기회를 가지며 방식은 탐색과 동일</b>합니다. 다만, 별의 무덤에서는 별가루·별조각 사탕·은하수 이슬·가능성이 발견되는 것으로 보고되었습니다.</p>
 <p>탐색과 달리 별의 무덤에서는 헌터님이 <b>2칸 움직일 때마다 1칸 움직이는 [별지기]라는 무덤의 수호 몬스터가 존재</b>합니다. 별지기와 조우할 경우 즉시 마치게 되니 별지기의 위치를 확인하며 움직이시길 바랍니다.</p>
+<h3>구조 요청</h3>
+<p>전투로 진입해 있는 동안 <b>6시간마다 다른 파티의 [구조 요청]</b>이 들어옵니다. 무한 던전 화면에서 [구조하러 가기]를 누르면 20초 동안 3×3 칸에 마물과 헌터가 번갈아 나타나며, <b>마물만 눌러 처치</b>해야 합니다.</p>
+<p>마물을 60% 이상 처치하고 헌터를 1번까지만 잘못 누르면 감사의 선물로 소비 아이템 1개를 받습니다. 구조에 실패하거나 요청을 놓쳐도 무한 던전 공략에는 아무 영향이 없으며, 들어온 요청은 24시간 동안 남아 있습니다.</p>
+<h3>별의 제단</h3>
+<p>별의 무덤 깊은 곳에서 발견된 제단입니다. <b>20레벨 이상, 그날 별의 무덤을 한 번 다녀온 헌터만 하루 1번</b> 들어갈 수 있으며, 8+(레벨÷5)칸을 이동합니다.</p>
+<p>지도에는 처음부터 <b>제단 4개</b>가 보입니다. 제단에 닿으면 별가루 3~5개와 별조각 사탕·은하수 이슬·마석 중 하나를 받고, <b>4개를 모두 봉헌하면 맥동하는 마석</b>을 더 받습니다.</p>
+<p>제단의 별지기는 <b>언제, 어느 방향으로 움직일지 알 수 없습니다.</b> 헌터님이 한 칸 움직일 때마다 가만히 있거나 1~2칸 움직이며, 판마다 정해진 두 가지 움직임을 번갈아 씁니다. 별지기가 지나온 자리에 남는 잔상을 보고 다음 움직임을 짐작해 보세요. 별지기와 마주치면 그 자리에서 마치며, 그때까지 얻은 것은 그대로 받습니다.</p>
 </article>
 
 <article class="card prose" id="g-rg">
@@ -5614,6 +6286,9 @@ const DOCS = {
 <p>[나가기]로 언제든 대기실에서 퇴장할 수 있습니다.</p>
 <p>대기실 채팅은 대기실에 있는 헌터에게만 보이며, 출발하면 사라집니다.</p>
 <p>파티에 있는 경우에는 대기실 대신 파티장이 파티로 출발합니다.</p>
+<h3>게이트 봉합</h3>
+<p>지역 안정화 결과를 받을 때마다 작은 균열이 하나씩 남습니다(최대 5개까지 쌓입니다). 지역 안정화 화면의 [게이트 봉합]을 누르면, 막대 위를 오가는 표시가 <b>금빛 구간에 들어왔을 때 눌러</b> 균열을 닫습니다.</p>
+<p>모두 5번 누르며 갈수록 구간이 좁아지고 빨라집니다. 가운데 밝은 부분이면 '완벽'입니다. 결과에 따라 극소량의 가능성을 받고, 3번 이상 맞히면 달콤열매·새콤열매·청정수 중 1개를 받습니다.</p>
 </article>
 
 <article class="card prose" id="g-union">
@@ -5626,9 +6301,10 @@ const DOCS = {
 <p>던전, 몬스터, 조합식, 아이템, 타이틀, 스토리를 확인할 때마다 자동으로 기록하고 있습니다.</p>
 <p>몬스터의 경우 10번 쓰러뜨리면 강한 정도와 드롭 정보를 제공합니다(보스는 1번).</p>
 <p>도감 달성률은 다른 헌터가 확인할 수 있으며, 달성률에 따라 획득 가능한 타이틀도 존재합니다.</p>
+<p>이름으로 기록을 찾을 수 있고, 이름 순 · 발견한 것 먼저 · 최근 발견 순 · 만난·클리어 횟수 순으로 정렬하거나 발견한 것만 볼 수 있습니다. 아직 발견하지 못한 것은 이름으로 찾아지지 않습니다.</p>
 <h3>헌터</h3>
 <p>등록된 헌터의 코드네임, 등급, 레벨, 포지션과 접속 여부를 확인할 수 있으며, 코드네임으로 특정 헌터를 검색할 수 있습니다.</p>
-<p>코드네임을 누르면 헌터 정보를 확인하고 친구 신청과 파티 초대를 할 수 있습니다.</p>
+<p>코드네임을 누르면 헌터 정보를 확인하고 친구 신청과 파티 초대를 할 수 있습니다. 헌터 정보의 [작성한 SNS 글 보기]로 그 헌터가 SNS에 쓴 글을 모아 볼 수 있으며, 글을 누르면 SNS의 해당 글로 이동합니다.</p>
 <p>길드에 소속된 헌터는 랭킹과 헌터 명단에서 코드네임 오른쪽에 길드 색 동그라미가 표시됩니다.</p>
 <h3>길드</h3>
 <p>마음이 맞는 헌터들끼리 모여 길드를 개설할 수 있습니다. 10레벨 이상, 5,000 Mh의 수수료를 내면 길드 개설이 가능하며, 한 길드에는 최대 20명이 함께할 수 있습니다. 한 번에 한 길드에만 소속될 수 있습니다.</p>
@@ -5644,7 +6320,7 @@ const DOCS = {
 
 <article class="card prose" id="g-inv">
 <h2>인벤토리</h2>
-<p>인벤토리 메뉴에서는 현재 가지고 있는 아이템, 상점, 조합, 거래소를 이용할 수 있습니다.</p>
+<p>인벤토리 메뉴에서는 현재 가지고 있는 아이템, 상점, 조합, 분해, 거래소를 이용할 수 있습니다.</p>
 <h3>보유</h3>
 <p>현재 가지고 있는 장비, 소비, 재료 아이템을 확인 및 판매할 수 있습니다. 전체 · 장비 · 소비 · 재료로 나누어 넘겨 볼 수 있고(휴대폰에서는 목록을 옆으로 밀어도 넘어갑니다), 아이템 이름으로 검색할 수 있습니다.</p>
 <p>등급 순으로 정렬하면 장비는 티어와 강화 단계, 소비 아이템은 희귀도(흔함 · 보통 · 희귀), 재료는 희귀도와 보스 재료 등급 순으로 늘어섭니다.</p>
@@ -5655,6 +6331,8 @@ const DOCS = {
 <p>조합식이 틀려도 아이템이 사라지진 않으나, <b>조합 중 1% 확률로 아이템이 대실패하여 재료 아이템이 모두 파괴</b>되는 경우가 존재합니다. 반대로, <b>조합 성공 시 5% 확률로 아이템을 2개 획득할 수 있는 대성공</b> 현상도 관측되고 있습니다.</p>
 <p>알게 된 조합식은 전체 · 장비 · 소비로 나누어 볼 수 있고, 아이템 이름으로 검색하면 결과뿐 아니라 재료에 그 아이템이 들어간 조합식도 찾아 줍니다.</p>
 <p>[칸 채우기] 기능을 통해 자동으로 재료 아이템을 채울 수 있으며, 옆 칸에 횟수를 정하면 가진 재료만큼 여러 번을 한꺼번에 조합할 수 있습니다. 한꺼번에 조합해도 대실패와 대성공은 한 번마다 따로 정해집니다. 장비가 재료로 들어가는 조합식은 강화 단계가 낮은 장비부터 사용합니다.</p>
+<h3>분해</h3>
+<p>조합식을 알고 있는 아이템을 분해할 수 있습니다. 하나를 분해할 때마다 그 조합식에 들어간 재료 중 1개를 무작위로 돌려받습니다. 장착 중인 장비는 분해할 수 없으며, 강화된 장비를 분해하면 강화 단계도 함께 사라집니다.</p>
 <h3>거래소</h3>
 <p>헌터들끼리 아이템을 사고 팔 수 있습니다. 상점에 팔지 않는 아이템을 등록할 수 있으며, 한 번에 10건, 7일 동안 팔리지 않으면 인벤토리에 회수됩니다.</p>
 <p>거래소 운영을 위해 판매가의 5%를 수수료로 국제헌터연합이 가져가고 있으니 양해 부탁드립니다.</p>
@@ -5666,6 +6344,8 @@ const DOCS = {
 <p>헌터 간 교류를 활성화하기 위해서 SNS·길드 채팅, 친구·메시지, 파티, 선물함 기능을 지원하고 있습니다.</p>
 <h3>알림</h3>
 <p>화면 위쪽의 [알림]에서 타이틀 획득, 친구 신청, 파티·길드 초대, 공지, SNS 댓글·답글, 거래소 판매, 선물 도착, 지역 안정화·무한 던전·전력 분석 완료 알림을 모아 볼 수 있습니다. 알림을 누르면 해당 화면으로 이동하며, 최근 30일 동안의 알림이 보관됩니다.</p>
+<h3>업데이트 노트</h3>
+<p>화면 오른쪽 위의 [업데이트]에서 게임에 새로 들어온 내용과 바뀐 점을 모아 볼 수 있습니다. SNS 공지와는 따로 정리되며, 새 노트나 고쳐진 노트가 있으면 숫자로 알려 드립니다. 고쳐진 노트에는 고친 시각이 함께 표시됩니다.</p>
 <p>[알림 설정]에서 받을 알림을 종류별로 켜고 끌 수 있습니다. PC에서는 컴퓨터 알림 팝업을 켜면 게임 창이 다른 창 뒤에 있을 때도 알림을 받을 수 있습니다. 단, 게임 탭은 열려 있어야 합니다.</p>
 <h3>SNS</h3>
 <p>헌터 소셜네트워크서비스를 이용하여 실시간으로 게시글을 올리고, 댓글로 대화할 수 있습니다. 게시글 주제에 맞는 태그를 이용하여 주세요.</p>
@@ -5907,7 +6587,7 @@ const BGM_TRACKS = {
 };
 // 페이지마다 자동으로 트는 곡 (여러 곡이면 순서대로 돌며 반복). 없는 페이지는 지금 곡을 이어서 튼다.
 const BGM_PAGES = {
-  home: ["deltoton"], "dungeon-battle": ["variant"], "dungeon-explore": ["psyche"], "dungeon-star": ["guardianoftheboundary"],
+  home: ["deltoton"], "dungeon-battle": ["variant"], "dungeon-explore": ["psyche"], "dungeon-star": ["guardianoftheboundary"], "dungeon-altar": ["guardianoftheboundary"],
   regional: ["rusty", "dansemacabre"], union: ["mayday"], inventory: ["mayday"], friends: ["connect"],
 };
 const bgm = { audio: new Audio(), list: [], idx: 0, page: null, loaded: null, loading: false, missing: false, urls: {},
@@ -6339,7 +7019,7 @@ const TOURS = {
   ],
   "dungeon-battle": [
     { text: "무한 던전 이용 방법을 간단히 안내해 드리겠습니다.\n안내를 원치 않으시다면 [건너뛰기]를 선택해주시기 바랍니다." },
-    { sel: '[data-tour="dg-tabs"]', text: "무한 던전에 진입하셨다면 세 가지 활동을 하실 수 있습니다.\n각 역의 던전을 공략하며 한계까지 진입하는 '전투',\n하루 3번 무한 던전을 조사하는 '탐색',\n10레벨부터 하루 1번 진입할 수 있는 '별의 무덤'입니다.\n셋은 동시에 할 수 없으니 하나씩 진행해 주세요." },
+    { sel: '[data-tour="dg-tabs"]', text: "무한 던전에 진입하셨다면 네 가지 활동을 하실 수 있습니다.\n각 역의 던전을 공략하며 한계까지 진입하는 '전투',\n하루 3번 무한 던전을 조사하는 '탐색',\n10레벨부터 하루 3번 진입할 수 있는 '별의 무덤',\n20레벨부터 별의 무덤을 다녀온 날 하루 1번 열리는 '별의 제단'입니다.\n모두 동시에 할 수 없으니 하나씩 진행해 주세요." },
     { sel: '[data-tour="dg-hours"]', text: "먼저 전투에서는 진입 시간을 설정합니다. 6~12시간 중에서 고르면 그동안 역을 하나씩 공략하며 진입합니다.\n창을 닫아도 계속 진행되니 안심하시기 바랍니다." },
     { sel: '[data-tour="dg-supplies"]', text: "진입 전 보급품을 챙길 수 있습니다.\n소비 아이템을 최대 3종, 종류당 5개까지 가능합니다.\nHP·MP가 부족해지면 쉬기 전에 먼저 사용하고, 남은 것은 다시 인벤토리에 들어갑니다." },
     { sel: '[data-tour="dg-start"]', text: "준비가 끝나면 진입해주십시오.\n역마다 몬스터 1~2마리나 보스 몬스터를 조우합니다. 보스는 강하지만 보상이 큽니다." },
@@ -6355,9 +7035,14 @@ const TOURS = {
     { text: "유한함과 마주치면 그 자리에서 탐색이 종료됩니다.\n그 전까지 습득한 재료는 가져가실 수 있습니다.", art: () => h("div", { class: "tour-legend" }, h("span", { class: "bad" }, h("b", {}, "!"), "유한함")) },
     { sel: '[data-tour="ex-start"]', text: "이동은 방향 버튼, 키보드 방향키, 또는 지도 위 움직일 수 있는 칸을 선택하여 가능합니다.\n그럼 무사히 다녀오시길 바랍니다." },
   ],
+  "dungeon-altar": [
+    { text: "별의 무덤 깊은 곳에서 별빛을 바치는 제단이 발견되었습니다.\n20레벨 이상, 오늘 별의 무덤을 한 번 다녀온 헌터만 들어갈 수 있습니다." },
+    { sel: '[data-tour="al-rules"]', text: "지도에는 처음부터 제단 4개가 보입니다. 어느 제단을 어떤 순서로 찾아갈지 정해 주세요.\n제단에 닿으면 별가루와 귀한 아이템을, 4개를 모두 봉헌하면 맥동하는 마석을 더 받습니다." },
+    { text: "이곳의 별지기는 언제, 어느 쪽으로 움직일지 알 수 없습니다. 판마다 정해진 두 가지 움직임을 번갈아 씁니다.\n별지기가 지나온 자리에 남는 잔상(·)을 보고 다음 움직임을 짐작해 보세요." },
+  ],
   "dungeon-star": [
     { text: "무한 던전에서 특수하게 발견되는 별의 무덤 지역을 안내해드리겠습니다.\n아직 미확인 위험 구역이기 때문에, 연합에서도 10레벨 이상 헌터에게만 출입을 허가하고 있습니다." },
-    { sel: '[data-tour="st-rules"]', text: "하루 1번, 탐색과는 따로 들어갈 수 있습니다.\n돌아볼 수 있는 곳은 세로 10칸, 가로 10칸의 구역 안으로, 시작 위치는 무작위로 정해집니다.\n별가루·마석·별조각 사탕·은하수 이슬·가능성이 발견되는 것으로 보고되었습니다." },
+    { sel: '[data-tour="st-rules"]', text: "하루 3번, 탐색과는 따로 들어갈 수 있습니다.\n돌아볼 수 있는 곳은 세로 10칸, 가로 10칸의 구역 안으로, 시작 위치는 무작위로 정해집니다.\n별가루·마석·별조각 사탕·은하수 이슬·가능성이 발견되는 것으로 보고되었습니다." },
     { text: "별의 무덤이 위험한 이유는 이곳에 무덤을 지키는 별지기가 존재하기 때문입니다.\n별지기(◎)의 위치는 지도에 표시되며, 헌터님(●)이 두 칸 움직일 때마다 한 칸씩 이동합니다.", art: () => {
       const cells = []; for (let i = 0; i < 21; i++) cells.push(h("i", { class: i === 8 ? "me" : i === 12 ? "kp" : null }, i === 8 ? "●" : i === 12 ? "◎" : ""));
       return h("div", { class: "tour-grid" }, ...cells); } },
