@@ -462,6 +462,18 @@ mark { background: color-mix(in srgb, #FFC53D 45%, transparent); color: inherit;
 .rd-item-row { display: flex; gap: 6px; margin: 0 0 6px; }
 .rd-item-row select { flex: 1; min-width: 0; }
 /* 분석 집중: 분석 화면 같은 막대 */
+.fc-scope { position: relative; height: 120px; border-radius: 14px; overflow: hidden; cursor: pointer; touch-action: manipulation; user-select: none;
+  background: radial-gradient(120% 140% at 50% 50%, #0b1a6b 0%, #060b3a 55%, #03051c 100%); box-shadow: inset 0 0 0 1px #2c3cff, inset 0 0 30px rgba(0,0,0,.6); transition: box-shadow .15s; }
+.fc-scope.near { box-shadow: inset 0 0 0 2px #FFD400, inset 0 0 30px rgba(255,212,0,.25); }
+.fc-scope svg { display: block; width: 100%; height: 100%; }
+.fc-grid line { stroke: rgba(0,229,255,.12); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.fc-zone { fill: rgba(255,212,0,.16); }
+.fc-core { fill: rgba(255,212,0,.38); }
+.fc-center { stroke: #FFD400; stroke-width: 2.5; vector-effect: non-scaling-stroke; filter: drop-shadow(0 0 4px #FFD400); }
+.fc-trace { fill: none; stroke: #00F0FF; stroke-width: 2.5; vector-effect: non-scaling-stroke; filter: drop-shadow(0 0 5px #00F0FF); stroke-linejoin: round; }
+.fc-ghost { fill: none; stroke: #FF2BD6; stroke-width: 1.5; opacity: .75; vector-effect: non-scaling-stroke; filter: drop-shadow(0 0 4px #FF2BD6); }
+.fc-scope.fc-hit { animation: fc-hit2 .4s ease-out; }
+@keyframes fc-hit2 { from { box-shadow: inset 0 0 0 3px #FFD400, inset 0 0 50px rgba(255,212,0,.6); } }
 .fc-bar { position: relative; height: 56px; border-radius: 12px; overflow: hidden; cursor: pointer; touch-action: manipulation; user-select: none;
   background: repeating-linear-gradient(90deg, rgba(111,227,255,.08) 0 1px, transparent 1px 10%), linear-gradient(180deg, #0c1b2b, #08111c); box-shadow: inset 0 0 0 1px #1f4b66, inset 0 0 24px rgba(0,0,0,.6); }
 .fc-bar::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 2px, transparent 2px 4px); pointer-events: none; }
@@ -3859,7 +3871,7 @@ async function renderRegional(pane, tab) {
   }
   pane.replaceChildren(
     paneHead("지역 안정화", "regional"),
-    h("p", { class: "hint", style: "margin:0 0 16px;white-space:pre-line" }, "활동 구역에 나타난 던전을 공략합니다. 현재 E~D급까지 출입할 수 있습니다. 이미 공략 중이거나 안정화한 던전에는 들어갈 수 없습니다.\n활동 구역은 아래에서 옮길 수 있습니다."),
+    h("p", { class: "hint", style: "margin:0 0 16px;white-space:pre-line" }, `활동 구역에 나타난 던전을 공략합니다. 현재 E~${released() ? "C" : "D"}급까지 출입할 수 있습니다. 이미 공략 중이거나 안정화한 던전에는 들어갈 수 없습니다.\n활동 구역은 아래에서 옮길 수 있습니다.`),
     tabs, body);
   const { data: act, error: e1 } = await sb.rpc("get_current_action");
   if (e1) return body.replaceChildren(h("p", { class: "error" }, koError(e1)));
@@ -4806,9 +4818,16 @@ async function playFocus(after) {
   const { data: g, error } = await sb.rpc("minigame_start", { p_kind: "focus" });
   if (error) return toast(koError(error));
   const R = g.params.rounds;
-  const zone = h("i", { class: "fc-zone" }), core = h("i", { class: "fc-core" }), mk = h("b", { class: "fc-mark" });
-  const bar = h("div", { class: "fc-bar", role: "img", "aria-label": "분석 막대" }, zone, core, mk);
-  const wave = sv("path", { d: "" }), waveSvg = sv("svg", { class: "fc-wave", viewBox: "0 0 300 34", preserveAspectRatio: "none", "aria-hidden": "true" }, wave);
+  // 분석 파형: 파형 묶음이 좌우로 오가며, 가운데 선과 겹칠 때 누른다
+  const zone = sv("rect", { class: "fc-zone", y: 0, height: 100 }), core = sv("rect", { class: "fc-core", y: 0, height: 100 });
+  const grid = sv("g", { class: "fc-grid" }, ...[...Array(11)].map((_, i) => sv("line", { x1: i * 30, x2: i * 30, y1: 0, y2: 100 })),
+    ...[1, 2, 3].map(i => sv("line", { x1: 0, x2: 300, y1: i * 25, y2: i * 25 })));
+  const ghost = sv("path", { class: "fc-ghost", d: "" }), wave = sv("path", { class: "fc-trace", d: "" });
+  const center = sv("line", { class: "fc-center", x1: 150, x2: 150, y1: 0, y2: 100 });
+  const waveSvg = sv("svg", { viewBox: "0 0 300 100", preserveAspectRatio: "none", "aria-hidden": "true" }, grid, zone, core, ghost, wave, center);
+  const bar = h("div", { class: "fc-scope", role: "img", "aria-label": "분석 파형" }, waveSvg);
+  const packet = (px, ph, amp = 38) => { let d = ""; for (let x = 0; x <= 300; x += 2) { const u = x - px;
+    d += `${x ? " L" : "M"}${x} ${(50 - amp * Math.exp(-((u / 22) ** 2)) * Math.cos(u / 5 + ph)).toFixed(1)}`; } return d; };
   const roundEl = h("p", { class: "gate-round" });
   const marks = h("div", { class: "gate-marks", "aria-live": "polite" });
   const press = h("button", { class: "btn block gate-press", type: "button" }, "집중 (스페이스)");
@@ -4817,19 +4836,17 @@ async function playFocus(after) {
   let r = 0, t0 = 0, raf = 0, waiting = false, done = false;
   function setRound() {
     const z = R[r];
-    zone.style.left = `${(z.center - z.width / 2) * 100}%`; zone.style.width = `${z.width * 100}%`;
-    core.style.left = `${(z.center - z.perfect / 2) * 100}%`; core.style.width = `${z.perfect * 100}%`;
+    zone.setAttribute("x", (z.center - z.width / 2) * 300); zone.setAttribute("width", z.width * 300);
+    core.setAttribute("x", (z.center - z.perfect / 2) * 300); core.setAttribute("width", z.perfect * 300);
+    center.setAttribute("x1", z.center * 300); center.setAttribute("x2", z.center * 300);
     roundEl.replaceChildren(h("span", {}, `집중 ${r + 1} / 5`));
     t0 = performance.now(); waiting = false;
     cancelAnimationFrame(raf);
     const tick = () => {
       const now = performance.now() - t0, x = gatePos(now, z.period);
-      mk.style.left = `${x * 100}%`;
-      // 아래 파형: 표시가 금빛 구간에 가까울수록 크게 흔들린다
-      const amp = 4 + 12 * Math.max(0, 1 - Math.abs(x - z.center) / (z.width * 1.5));
-      let dd = "M0 17";
-      for (let k = 1; k <= 60; k++) dd += ` L${k * 5} ${(17 + Math.sin(k * .9 + now / 90) * amp * Math.sin(k / 60 * Math.PI)).toFixed(1)}`;
-      wave.setAttribute("d", dd);
+      wave.setAttribute("d", packet(x * 300, now / 120));
+      ghost.setAttribute("d", packet(gatePos(Math.max(0, now - 90), z.period) * 300, now / 120 - .8, 30));
+      bar.classList.toggle("near", Math.abs(x - z.center) <= z.width / 2);
       raf = requestAnimationFrame(tick);
     };
     tick();
@@ -4840,7 +4857,7 @@ async function playFocus(after) {
     times.push(t); waiting = true; cancelAnimationFrame(raf);
     const z = R[r], x = gatePos(t, z.period), dd = Math.abs(x - z.center);
     const m = dd <= z.perfect / 2 ? "perfect" : dd <= z.width / 2 ? "good" : "miss";
-    mk.style.left = `${x * 100}%`;
+    wave.setAttribute("d", packet(x * 300, t / 120)); bar.classList.remove("near");
     marks.append(h("span", { class: `gate-m ${m}` }, MARK_TXT[m]));
     sfx(m === "miss" ? "fumble" : m === "perfect" ? "mix" : "push");
     if (m !== "miss") { bar.classList.remove("fc-hit"); void bar.offsetWidth; bar.classList.add("fc-hit"); }
@@ -4865,8 +4882,8 @@ async function playFocus(after) {
   press.onclick = hit;
   bar.addEventListener("pointerdown", e => { e.preventDefault(); hit(); });
   info("분석 집중",
-    h("p", { class: "hint", style: "margin:0 0 12px" }, "오가는 푸른 표시가 금빛 구간에 들어왔을 때 누르세요. 가운데의 밝은 부분이면 '완벽'입니다. 5번 누르며 갈수록 구간이 좁아지고 빨라집니다. 잘 맞힐수록 남은 분석 시간이 줄고, 분석 시간에 걸맞은 가능성을 조금 얻습니다. 분석 한 번에 한 번만 할 수 있습니다."),
-    roundEl, bar, waveSvg, marks, press, out);
+    h("p", { class: "hint", style: "margin:0 0 12px" }, "좌우로 오가는 파형이 가운데 선과 겹칠 때 누르세요. 파형의 가장 높은 곳이 선에 닿을수록 '완벽'입니다. 5번 누르며 갈수록 구간이 좁아지고 빨라집니다. 잘 맞힐수록 남은 분석 시간이 줄고, 분석 시간에 걸맞은 가능성을 조금 얻습니다. 분석 한 번에 한 번만 할 수 있습니다."),
+    roundEl, bar, marks, press, out);
   miniCleanup();
   miniKey = e => { if ((e.code === "Space" || e.key === "Enter") && !done) { e.preventDefault(); hit(); } };
   addEventListener("keydown", miniKey);
