@@ -418,6 +418,10 @@ mark { background: color-mix(in srgb, #FFC53D 45%, transparent); color: inherit;
 .rd-icon { position: absolute; right: 16px; top: 16px; width: 104px; height: 104px; fill: #ffb3c1; filter: drop-shadow(0 0 12px rgba(255,77,109,.55)); opacity: .95; }
 .rd-icon-sm { width: 22px; height: 22px; fill: currentColor; flex: none; }
 .rd-boss-cell { display: inline-flex; align-items: center; gap: 6px; }
+.rd-fx-row { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-top: 4px; font-size: 14px; }
+.rd-fx { display: inline-flex; align-items: center; gap: 6px; }
+.rd-fx select { width: auto; min-height: 34px; }
+.rd-color { width: 40px; height: 32px; padding: 0; border: 1px solid var(--border); border-radius: 6px; background: none; cursor: pointer; }
 .rd-icon-row { display: flex; gap: 12px; align-items: flex-start; }
 .rd-icon-prev { width: 120px; flex: none; display: grid; gap: 6px; justify-items: center; padding: 8px; border-radius: 12px; background: #1a0f2c; }
 .rd-icon-prev .rd-icon { position: static; width: 96px; height: 96px; }
@@ -4991,7 +4995,15 @@ const fmtN = n => Number(n || 0).toLocaleString();
 const fmtKDay = iso => new Date(iso).toLocaleString("ko-KR", { month: "numeric", day: "numeric", weekday: "short", hour: "numeric", minute: "2-digit", timeZone: "Asia/Seoul" });
 let raidSpeed = 1;
 // 보스 아이콘: 저장해 둔 path 모양만 그린다 (색은 화면에서 정한다)
-const raidIcon = (ic, cls = "rd-icon") => ic?.d?.length ? sv("svg", { class: cls, viewBox: ic.vb || "0 0 512 512", "aria-hidden": "true" }, ...ic.d.map(d => sv("path", { d }))) : null;
+// 방향(좌우 뒤집기 · 90도 단위 회전)과 색은 운영 화면에서 정한다
+function raidIcon(ic, cls = "rd-icon") {
+  if (!ic?.d?.length) return null;
+  const [x, y, w, hh] = (ic.vb || "0 0 512 512").split(/\s+/).map(Number), cx = x + w / 2, cy = y + hh / 2;
+  const tf = `${ic.rot ? `rotate(${ic.rot} ${cx} ${cy}) ` : ""}${ic.flip ? `translate(${2 * cx} 0) scale(-1 1)` : ""}`.trim();
+  const el = sv("svg", { class: cls, viewBox: ic.vb || "0 0 512 512", "aria-hidden": "true" }, sv("g", { transform: tf || null }, ...ic.d.map(d => sv("path", { d }))));
+  if (ic.color && cls !== "rd-icon-sm") { el.style.fill = ic.color; el.style.filter = `drop-shadow(0 0 12px ${ic.color}88)`; }
+  return el;
+}
 
 async function renderRaid(body) {
   const { data: r, error } = await sb.rpc("raid_state");
@@ -5216,7 +5228,7 @@ function raidLastBox(l) {
 }
 
 function raidRules(rw) {
-  const rwText = x => x ? [x.pot ? `가능성 ${fmtN(x.pot)}` : null, x.cur ? `메헨 ${fmtN(x.cur)}` : null, ...(x.items || []).map(i => `${i.name || i.code} ×${i.qty}`)].filter(Boolean).join(" · ") : "";
+  const rwText = x => x ? [x.pot ? `가능성 (레벨 × ${fmtN(x.pot)})` : null, x.cur ? `메헨 ${fmtN(x.cur)}` : null, ...(x.items || []).map(i => `${i.name || i.code} ×${i.qty}`)].filter(Boolean).join(" · ") : "";
   return h("details", { class: "home-box rd-box", "data-tour": "rd-rules" },
     h("summary", { class: "panel-title", style: "cursor:pointer" }, "레이드 규칙"),
     h("ul", { class: "hint", style: "margin:8px 0 0;padding-left:18px;line-height:1.7" },
@@ -5289,10 +5301,25 @@ function adminRaidSection() {
       const root = doc.querySelector("svg");
       const d = [...doc.querySelectorAll("path")].map(p => (p.getAttribute("d") || "").trim()).filter(x => x && !/^M0 0h(\d+)v\1H0z$/i.test(x));
       if (!root || !d.length) return toast("SVG에서 모양을 찾지 못했습니다.");
-      icon = { d, vb: root.getAttribute("viewBox") || "0 0 512 512" };
+      icon = { d, vb: root.getAttribute("viewBox") || "0 0 512 512", flip: iFlip.checked, rot: Number(iRot.value), color: colorSet ? iColor.value.toUpperCase() : null };
       if (!iName.value) iName.value = f.name.replace(/\.svg$/i, "");
       paintPrev();
     };
+    // 방향 · 색
+    const iFlip = h("input", { type: "checkbox", checked: !!icon?.flip });
+    const iRot = h("select", { class: "input" }, ...[0, 90, 180, 270].map(r => h("option", { value: String(r) }, r ? `${r}도` : "그대로")));
+    iRot.value = String(icon?.rot || 0);
+    const iColor = h("input", { type: "color", class: "rd-color", value: icon?.color || "#FFB3C1" });
+    let colorSet = !!icon?.color;
+    const iColorReset = h("button", { class: "btn ghost small", type: "button" }, "기본색");
+    const syncFx = () => { if (!icon) return; icon.flip = iFlip.checked; icon.rot = Number(iRot.value); icon.color = colorSet ? iColor.value.toUpperCase() : null; paintPrev(); };
+    iFlip.onchange = syncFx; iRot.onchange = syncFx;
+    iColor.oninput = () => { colorSet = true; syncFx(); };
+    iColorReset.onclick = () => { colorSet = false; iColor.value = "#FFB3C1"; syncFx(); };
+    const fxRow = h("div", { class: "rd-fx-row" },
+      h("label", { class: "rd-fx" }, iFlip, " 좌우 뒤집기"),
+      h("label", { class: "rd-fx" }, "회전 ", iRot),
+      h("label", { class: "rd-fx" }, "색 ", iColor, iColorReset));
     paintPrev();
     const err = h("div", { class: "error", role: "alert" });
     const save = h("button", { class: "btn", type: "button" }, t.id ? "테마 저장" : "테마 추가");
@@ -5300,7 +5327,7 @@ function adminRaidSection() {
       err.textContent = ""; busy(save, true);
       const { data, error } = await sb.rpc("raid_theme_save", { p: { id: t.id || null, name: name.value, boss: boss.value, description: desc.value, special: sp.value,
         special_name: spn.value, special_desc: spd.value, power: Number(pw.value),
-        icon: icon ? { d: icon.d, vb: icon.vb, url: iUrl.value.trim(), name: iName.value.trim(), author: iAuthor.value.trim() } : null,
+        icon: icon ? { d: icon.d, vb: icon.vb, url: iUrl.value.trim(), name: iName.value.trim(), author: iAuthor.value.trim(), flip: !!icon.flip, rot: icon.rot || 0, color: icon.color || null } : null,
         rewards: { join: { pot: Number(jp.value), cur: Number(jc.value), items: ji.read() }, win: { pot: Number(wp.value), cur: Number(wc.value), items: wi.read() } } } });
       busy(save, false);
       if (error) return (err.textContent = koError(error));
@@ -5311,13 +5338,13 @@ function adminRaidSection() {
       h("p", { class: "panel-title", style: "margin:12px 0 6px" }, "보스 아이콘 (game-icons.net)"),
       h("p", { class: "hint", style: "margin:0 0 8px" }, "game-icons.net에서 아이콘의 SVG를 내려받아 올리고, 아이콘 페이지 주소를 붙여 넣으세요. 제작자와 이름이 저작권 페이지에 자동으로 표기됩니다(그 주에 레이드가 열린 뒤부터)."),
       h("div", { class: "rd-icon-row" }, h("div", { style: "display:grid;gap:6px;justify-items:center" }, iPrev, iDrop), h("div", { style: "flex:1;min-width:0" }, f("SVG 파일", iFile), f("아이콘 페이지 주소", iUrl),
-        h("div", { class: "rd-2col" }, f("아이콘 이름", iName), f("제작자", iAuthor)))),
+        h("div", { class: "rd-2col" }, f("아이콘 이름", iName), f("제작자", iAuthor)), fxRow)),
       f("특화 능력", sp),
       h("div", { class: "rd-2col" }, f("특화 능력 이름", spn), f("보스 위력 (1이 기본)", pw)), f("특화 능력 설명", spd),
       h("p", { class: "panel-title", style: "margin:12px 0 6px" }, "참여 보상 (성공·실패와 상관없이 모두)"),
-      h("div", { class: "rd-2col" }, f("가능성", jp), f("메헨", jc)), ji.el,
+      h("div", { class: "rd-2col" }, f("가능성 (레벨 1당 · 헌터 레벨만큼 곱해집니다)", jp), f("메헨", jc)), ji.el,
       h("p", { class: "panel-title", style: "margin:12px 0 6px" }, "성공 보상 (평균 기여도 = 이만큼, 기여도에 비례해 최대 3배)"),
-      h("div", { class: "rd-2col" }, f("가능성", wp), f("메헨", wc)), wi.el,
+      h("div", { class: "rd-2col" }, f("가능성 (레벨 1당)", wp), f("메헨", wc)), wi.el,
       err, h("div", { style: "display:flex;gap:8px;margin-top:10px" }, save,
         t.id ? h("button", { class: "btn ghost", type: "button", onclick: async () => {
           if (!confirm(`'${t.name}' 테마를 지울까요?`)) return;
@@ -6835,7 +6862,7 @@ async function fillIconCredits(body) {
   if (error) return rows.replaceChildren(h("tr", {}, h("td", { colspan: "4" }, "목록을 불러오지 못했습니다.")));
   rows.replaceChildren(...(data?.length ? data.map(i => h("tr", {}, h("td", {}, i.use),
       h("td", {}, i.url ? h("a", { href: i.url, target: "_blank", rel: "noopener" }, i.name || i.url) : (i.name || "-")),
-      h("td", {}, i.author), h("td", {}, "색 · 크기 변경")))
+      h("td", {}, i.author), h("td", {}, i.changed ? `${i.changed} 변경` : "크기 변경")))
     : [h("tr", {}, h("td", { colspan: "4" }, "아직 게임에 나온 아이콘이 없습니다."))]));
   if (data?.length) au.textContent = [...new Set(data.map(i => i.author))].join(", ");
 }      // 개인정보 안내 최종 수정일
@@ -7217,7 +7244,7 @@ const DOCS = {
 </table></div>
 <ul>
 <li>Icons made by <span id="gi-authors">각 제작자</span>. Available on <a href="https://game-icons.net" target="_blank" rel="noopener">https://game-icons.net</a></li>
-<li><b>저작권은 각 아이콘 제작자에게 있습니다.</b> 게임 화면에 맞게 색과 크기를 바꾸어 썼으며, 바꾼 그림도 같은 CC BY 3.0 조건을 따릅니다.</li>
+<li><b>저작권은 각 아이콘 제작자에게 있습니다.</b> 게임 화면에 맞게 크기와 색 · 방향을 바꾸어 썼으며(아이콘마다 바꾼 내용은 위 표에 적었습니다), 바꾼 그림도 같은 CC BY 3.0 조건을 따릅니다.</li>
 <li>제작자나 game-icons.net이 이 게임을 후원하거나 보증하는 것은 아닙니다.</li>
 <li>라이선스 내용은 <a href="https://game-icons.net/about.html" target="_blank" rel="noopener">game-icons.net 안내</a>와 라이선스 원문이 기준입니다. (확인: 2026년 11월)</li>
 </ul>
