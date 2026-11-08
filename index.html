@@ -413,6 +413,16 @@ mark { background: color-mix(in srgb, #FFC53D 45%, transparent); color: inherit;
 /* 레이드 */
 .rd-hero { border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin: 0 0 14px; color: #f3ecff;
   background: radial-gradient(120% 120% at 85% 0%, #5b1f2e 0%, #2a1240 45%, #120a20 100%); box-shadow: inset 0 0 40px rgba(0,0,0,.35); }
+.rd-hero { position: relative; }
+.rd-hero.has-icon { padding-right: 132px; }
+.rd-icon { position: absolute; right: 16px; top: 16px; width: 104px; height: 104px; fill: #ffb3c1; filter: drop-shadow(0 0 12px rgba(255,77,109,.55)); opacity: .95; }
+.rd-icon-sm { width: 22px; height: 22px; fill: currentColor; flex: none; }
+.rd-boss-cell { display: inline-flex; align-items: center; gap: 6px; }
+.rd-icon-row { display: flex; gap: 12px; align-items: flex-start; }
+.rd-icon-prev { width: 120px; flex: none; display: grid; gap: 6px; justify-items: center; padding: 8px; border-radius: 12px; background: #1a0f2c; }
+.rd-icon-prev .rd-icon { position: static; width: 96px; height: 96px; }
+.rd-icon-prev .hint { color: #cbbcf0; padding: 36px 0; }
+@media (max-width: 560px) { .rd-hero.has-icon { padding-right: 18px; padding-top: 96px; } .rd-icon { width: 72px; height: 72px; } .rd-icon-row { flex-direction: column; } }
 .rd-hero h3 { margin: 2px 0 6px; font-size: 22px; letter-spacing: -.01em; }
 .rd-kicker { margin: 0; font-size: 12px; letter-spacing: .12em; color: #ffb3c1; font-weight: 700; }
 .rd-desc { margin: 0 0 8px; color: #e4d8ff; font-size: 14px; white-space: pre-wrap; }
@@ -613,8 +623,9 @@ html.doc-open, html.doc-open body { overflow: hidden; }
 .doc-top { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 16px; padding: 12px 20px;
   background: color-mix(in srgb, var(--page-top) 85%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
 .doc-top .logo { font-size: 24px; margin: 0; white-space: nowrap; }
-.doc-switch { display: flex; gap: 4px; flex: 1; }
-.doc-switch a { padding: 6px 12px; border-radius: 8px; text-decoration: none; color: var(--text-dim); font-weight: 700; font-size: 15px; }
+.doc-switch { display: flex; gap: 4px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.doc-switch::-webkit-scrollbar { display: none; }
+.doc-switch a { white-space: nowrap; flex: none; padding: 6px 12px; border-radius: 8px; text-decoration: none; color: var(--text-dim); font-weight: 700; font-size: 15px; }
 .doc-switch a.on { color: var(--accent-text); background: var(--surface-2); }
 .doc-wrap { max-width: 900px; margin: 0 auto; padding: 24px 20px 64px; }
 .doc-wrap.with-toc { max-width: 1120px; display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 20px; align-items: start; }
@@ -656,6 +667,7 @@ html.doc-open, html.doc-open body { overflow: hidden; }
   .doc-top { flex-wrap: wrap; gap: 8px 12px; padding: 10px 16px; }
   .doc-top .logo { font-size: 20px; flex: 1; }
   .doc-switch { order: 3; flex-basis: 100%; }
+  .doc-switch a { padding: 6px 8px; font-size: 14px; }
   .doc-wrap, .doc-wrap.with-toc { display: block; padding: 16px 16px 48px; }
   .doc-toc { position: static; margin-bottom: 16px; flex-direction: row; flex-wrap: wrap; }
   .doc-body .card { padding: 18px 16px; scroll-margin-top: 120px; }
@@ -1257,6 +1269,7 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
     <button type="button" id="btn-about">소개</button>
     <button type="button" id="btn-legal">개인정보 수집 및 이용</button>
     <button type="button" id="btn-guide">가이드</button>
+    <button type="button" id="btn-credits">저작권</button>
   </footer>
 
   <nav class="tabbar" id="tabbar"></nav>
@@ -4968,12 +4981,17 @@ const RAID_OPT = {
   gallantry: ["갤런트리", "치명타 확률", 10, "%p"], scout: ["스카우트", "주는 피해", 15, "%"], vanguard: ["뱅가드", "회피 확률", 10, "%p"],
   citadel: ["시타델", "받는 피해 감소", 15, "%"], catalyst: ["카탈리스트", "선호 스테이터스 보정", 10, "%"], artifice: ["아티피스", "보스 특화 능력 약화", 50, "%"],
   recovery: ["리커버리", "보호막 (최대 HP에 추가)", 20, "%"], supply: ["서플라이", "여분 MP (최대 MP에 추가)", 20, "%"] };
+const GI_AUTHORS = ["Delapouite", "Lorc", "Skoll", "Caro Asercion", "Viscious Speed", "sbed", "Simon (aussiesim)", "DarkZaitzev", "Cathelineau", "Quoting", "Faithtoken",
+  "Lord Berandas", "Willdabeast", "PriorBlue", "Carl Olsen", "SeregaCthtuf", "Lucas", "Felbrigg", "Pierre Leducq", "Guard13007", "rihlsul", "Kier Heyl", "John Redman",
+  "Zajkonur", "GeneralAce135", "Zeromancer", "Andy Meneely", "HeavenlyDog", "Pepijn Poolman", "starseeker", "catsu", "SpencerDub", "sparker", "Irongamer", "John Colburn"];
 const RAID_SPECIAL = { fury: "광폭화", armor: "단단한 외피", sweep: "휩쓸기", drain: "마나 흡수", curse: "저주" };
 const RAID_SPECIAL_DESC = { fury: "시간이 지날수록 보스의 공격이 강해집니다.", armor: "보스에게 주는 피해가 줄어듭니다.", sweep: "광역 공격이 더 자주, 더 강하게 들어옵니다.",
   drain: "헌터의 MP가 더 빨리 줄어듭니다.", curse: "회복 효과가 줄어듭니다." };
 const fmtN = n => Number(n || 0).toLocaleString();
 const fmtKDay = iso => new Date(iso).toLocaleString("ko-KR", { month: "numeric", day: "numeric", weekday: "short", hour: "numeric", minute: "2-digit", timeZone: "Asia/Seoul" });
 let raidSpeed = 1;
+// 보스 아이콘: 저장해 둔 path 모양만 그린다 (색은 화면에서 정한다)
+const raidIcon = (ic, cls = "rd-icon") => ic?.d?.length ? sv("svg", { class: cls, viewBox: ic.vb || "0 0 512 512", "aria-hidden": "true" }, ...ic.d.map(d => sv("path", { d }))) : null;
 
 async function renderRaid(body) {
   const { data: r, error } = await sb.rpc("raid_state");
@@ -4996,7 +5014,8 @@ async function renderRaid(body) {
   const kids = [];
   if (w.test) kids.push(h("p", { class: "rg-notice", style: "margin:0 0 10px;font-size:13px" }, "운영자 시험용 레이드 — 다른 헌터에게는 보이지 않습니다"));
   const hpPct = w.max_hp > 0 ? Math.max(0, Math.min(100, w.hp / w.max_hp * 100)) : 0;
-  kids.push(h("div", { class: "rd-hero", "data-tour": "rd-boss" },
+  kids.push(h("div", { class: "rd-hero" + (th.icon ? " has-icon" : ""), "data-tour": "rd-boss" },
+    raidIcon(th.icon),
     h("p", { class: "rd-kicker" }, `RAID · ${th.name || ""}`),
     h("h3", {}, th.boss || "레이드 보스"),
     th.description ? h("p", { class: "rd-desc" }, th.description) : null,
@@ -5248,19 +5267,52 @@ function adminRaidSection() {
     const num = v => h("input", { class: "input", type: "number", min: "0", step: "1", value: String(v || 0) });
     const jp = num(t.rewards?.join?.pot), jc = num(t.rewards?.join?.cur), wp = num(t.rewards?.win?.pot), wc = num(t.rewards?.win?.cur);
     const ji = itemRows(t.rewards?.join?.items), wi = itemRows(t.rewards?.win?.items);
+    // 보스 아이콘 (game-icons.net) — SVG 파일을 올리면 모양만 뽑아 저장한다
+    let icon = t.icon ? { ...t.icon } : null;
+    const iUrl = h("input", { class: "input", value: icon?.url || "", placeholder: "https://game-icons.net/1x1/lorc/crowned-skull.html" });
+    const iName = h("input", { class: "input", maxlength: "60", value: icon?.name || "" });
+    const iAuthor = h("input", { class: "input", maxlength: "60", value: icon?.author || "" });
+    const iFile = h("input", { class: "input", type: "file", accept: ".svg,image/svg+xml" });
+    const iPrev = h("div", { class: "rd-icon-prev" });
+    const iDrop = h("button", { class: "btn ghost small", type: "button", onclick: () => { icon = null; iFile.value = ""; paintPrev(); } }, "아이콘 빼기");
+    const paintPrev = () => { iPrev.replaceChildren(icon ? raidIcon(icon) : h("span", { class: "hint" }, "아이콘 없음")); iDrop.hidden = !icon; };
+    iUrl.oninput = () => {
+      const m = iUrl.value.match(/game-icons\.net\/(?:[^/]+\/)?([^/]+)\/([^/.]+)(?:\.html|\.svg)?/);
+      if (!m) return;
+      const known = GI_AUTHORS.find(a => a.toLowerCase().replace(/[^a-z0-9]/g, "") === m[1].toLowerCase().replace(/[^a-z0-9]/g, ""));
+      if (!iAuthor.value) iAuthor.value = known || m[1].charAt(0).toUpperCase() + m[1].slice(1);
+      if (!iName.value) iName.value = m[2];
+    };
+    iFile.onchange = async () => {
+      const f = iFile.files?.[0]; if (!f) return;
+      const doc = new DOMParser().parseFromString(await f.text(), "image/svg+xml");
+      const root = doc.querySelector("svg");
+      const d = [...doc.querySelectorAll("path")].map(p => (p.getAttribute("d") || "").trim()).filter(x => x && !/^M0 0h(\d+)v\1H0z$/i.test(x));
+      if (!root || !d.length) return toast("SVG에서 모양을 찾지 못했습니다.");
+      icon = { d, vb: root.getAttribute("viewBox") || "0 0 512 512" };
+      if (!iName.value) iName.value = f.name.replace(/\.svg$/i, "");
+      paintPrev();
+    };
+    paintPrev();
     const err = h("div", { class: "error", role: "alert" });
     const save = h("button", { class: "btn", type: "button" }, t.id ? "테마 저장" : "테마 추가");
     save.onclick = async () => {
       err.textContent = ""; busy(save, true);
       const { data, error } = await sb.rpc("raid_theme_save", { p: { id: t.id || null, name: name.value, boss: boss.value, description: desc.value, special: sp.value,
         special_name: spn.value, special_desc: spd.value, power: Number(pw.value),
+        icon: icon ? { d: icon.d, vb: icon.vb, url: iUrl.value.trim(), name: iName.value.trim(), author: iAuthor.value.trim() } : null,
         rewards: { join: { pot: Number(jp.value), cur: Number(jc.value), items: ji.read() }, win: { pot: Number(wp.value), cur: Number(wc.value), items: wi.read() } } } });
       busy(save, false);
       if (error) return (err.textContent = koError(error));
       toast("저장했습니다."); load(data);
     };
     return h("div", { class: "rd-editor" },
-      f("테마 이름", name), f("보스 이름", boss), f("설명", desc), f("특화 능력", sp),
+      f("테마 이름", name), f("보스 이름", boss), f("설명", desc),
+      h("p", { class: "panel-title", style: "margin:12px 0 6px" }, "보스 아이콘 (game-icons.net)"),
+      h("p", { class: "hint", style: "margin:0 0 8px" }, "game-icons.net에서 아이콘의 SVG를 내려받아 올리고, 아이콘 페이지 주소를 붙여 넣으세요. 제작자와 이름이 저작권 페이지에 자동으로 표기됩니다(그 주에 레이드가 열린 뒤부터)."),
+      h("div", { class: "rd-icon-row" }, h("div", { style: "display:grid;gap:6px;justify-items:center" }, iPrev, iDrop), h("div", { style: "flex:1;min-width:0" }, f("SVG 파일", iFile), f("아이콘 페이지 주소", iUrl),
+        h("div", { class: "rd-2col" }, f("아이콘 이름", iName), f("제작자", iAuthor)))),
+      f("특화 능력", sp),
       h("div", { class: "rd-2col" }, f("특화 능력 이름", spn), f("보스 위력 (1이 기본)", pw)), f("특화 능력 설명", spd),
       h("p", { class: "panel-title", style: "margin:12px 0 6px" }, "참여 보상 (성공·실패와 상관없이 모두)"),
       h("div", { class: "rd-2col" }, f("가능성", jp), f("메헨", jc)), ji.el,
@@ -5280,7 +5332,7 @@ function adminRaidSection() {
     box.replaceChildren(
       h("p", { class: "hint", style: "margin:0 0 8px" }, `레이드는 ${fmtKDay("2026-11-16T00:00:00+09:00")}부터 열립니다. 매주 월요일 0시에 아직 안 쓴(또는 가장 오래전에 쓴) 테마가 정해집니다. 지금 기준 첫 보스 체력은 약 ${fmtN(A.size?.hp)} (5레벨 이상 헌터 ${A.size?.eligible}명)입니다.`),
       h("table", { class: "list" }, h("thead", {}, h("tr", {}, h("th", {}, "테마"), h("th", {}, "보스"), h("th", {}, "쓴 주"), h("th", {}, ""))),
-        h("tbody", {}, ...(A.themes || []).map(t => h("tr", {}, h("td", {}, t.name), h("td", {}, t.boss), h("td", {}, (t.used || []).join(", ") || "-"),
+        h("tbody", {}, ...(A.themes || []).map(t => h("tr", {}, h("td", {}, t.name), h("td", {}, h("span", { class: "rd-boss-cell" }, raidIcon(t.icon, "rd-icon-sm"), t.boss)), h("td", {}, (t.used || []).join(", ") || "-"),
           h("td", {}, h("button", { class: "btn ghost small", type: "button", onclick: () => { edit.replaceChildren(editor(t)); edit.scrollIntoView({ block: "nearest" }); } }, "고치기")))))),
       h("button", { class: "btn ghost small", type: "button", style: "margin:8px 0", onclick: () => edit.replaceChildren(editor(null)) }, "+ 새 테마"),
       edit,
@@ -6774,6 +6826,19 @@ function info(title, ...body) {
 /* ===== 소개 · 개인정보 (로그인 없이 볼 수 있는 페이지) ===== */
 // 문구를 바꾸려면 아래 HTML을 직접 고치세요.
 const POLICY_UPDATED = "2026.10.28";      // 개인정보 안내 최종 수정일
+const CREDITS_UPDATED = "2026.11.08";     // 저작권 안내 최종 수정일
+// 레이드 보스 아이콘(game-icons.net, CC BY 3.0) 출처는 서버(game_icon_credits)에서 받아 저작권 페이지에 채운다
+async function fillIconCredits(body) {
+  const rows = body.querySelector("#gi-rows"), au = body.querySelector("#gi-authors");
+  if (!rows) return;
+  const { data, error } = await sb.rpc("game_icon_credits");
+  if (error) return rows.replaceChildren(h("tr", {}, h("td", { colspan: "4" }, "목록을 불러오지 못했습니다.")));
+  rows.replaceChildren(...(data?.length ? data.map(i => h("tr", {}, h("td", {}, i.use),
+      h("td", {}, i.url ? h("a", { href: i.url, target: "_blank", rel: "noopener" }, i.name || i.url) : (i.name || "-")),
+      h("td", {}, i.author), h("td", {}, "색 · 크기 변경")))
+    : [h("tr", {}, h("td", { colspan: "4" }, "아직 게임에 나온 아이콘이 없습니다."))]));
+  if (data?.length) au.textContent = [...new Set(data.map(i => i.author))].join(", ");
+}      // 개인정보 안내 최종 수정일
 const RETENTION_DAYS = 30;                // 서비스 종료 후 데이터 삭제까지 기간
 const CONTACT_FORM = "https://forms.gle/MZJSdr1iEbZKQcPT6";   // 문의 폼
 
@@ -7036,7 +7101,7 @@ const DOCS = {
   },
   privacy: {
     title: "개인정보 수집 및 이용",
-    toc: [["p-privacy", "개인정보 수집 · 이용"], ["p-third", "외부 서비스"], ["p-rights", "보관 · 삭제 · 문의"], ["p-credits", "저작권 · 출처"]],
+    toc: [["p-privacy", "개인정보 수집 · 이용"], ["p-third", "외부 서비스"], ["p-rights", "보관 · 삭제 · 문의"]],
     html: () => `
 <div class="doc-head"><h1>개인정보 수집 및 이용</h1><span class="hint">최종 수정 ${POLICY_UPDATED}</span></div>
 
@@ -7106,19 +7171,26 @@ const DOCS = {
 <li><b>열람 · 정정 · 삭제 요청:</b> 헌터 정보 화면에서 대부분의 정보를 직접 확인하고 고칠 수 있으며, 그 밖의 요청은 ${contactHtml}으로 문의해 주세요.</li>
 <li>가입하여 게임을 이용하는 것은 이 안내에 동의한 것으로 봅니다.</li>
 </ul>
-</article>
+</article>`,
+  },
+  credits: {
+    title: "저작권",
+    toc: [["c-content", "게임 콘텐츠"], ["c-upload", "이미지를 올릴 때"], ["c-icons", "아이콘 · 그림"], ["c-fonts", "글꼴"], ["c-sound", "배경음악 · 효과음"], ["c-oss", "오픈소스"]],
+    html: () => `
+<div class="doc-head"><h1>저작권</h1><span class="hint">최종 수정 ${CREDITS_UPDATED}</span></div>
 
-<article class="card prose" id="p-credits">
-<h2>저작권 · 출처</h2>
-
-<h3>게임 콘텐츠</h3>
+<article class="card prose" id="c-content">
+<h2>게임 콘텐츠</h2>
 <ul>
 <li>세계관, 설정, 게임 규칙, 몬스터 · 아이템 · 던전 문구 등 게임 고유 콘텐츠의 권리는 <b>운영자</b>에게 있습니다.</li>
 <li>캐릭터 설정, 프로필 이미지, 캐릭터 소개의 권리는 <b>각 작성자(헌터)</b>에게 있습니다. 게임은 이를 게임 안에서 보여 주는 용도로만 사용합니다.</li>
 <li>게임의 글과 그림을 무단으로 복제하거나 외부에 재배포하지 말아 주세요.</li>
 </ul>
 
-<h3>이미지를 올릴 때 지켜 주세요</h3>
+</article>
+
+<article class="card prose" id="c-upload">
+<h2>이미지를 올릴 때 지켜 주세요</h2>
 <p>프로필 이미지 등 게임에 올리는 모든 자료는 아래 기준을 따라야 합니다.</p>
 <div class="table-scroll"><table>
 <thead><tr><th>올릴 수 있는 것</th><th>올릴 수 없는 것</th></tr></thead>
@@ -7133,7 +7205,33 @@ const DOCS = {
 <li>올린 자료로 생기는 저작권 문제의 책임은 올린 사람에게 있습니다.</li>
 </ul>
 
-<h3>사용한 글꼴 · 아이콘</h3>
+</article>
+
+<article class="card prose" id="c-icons">
+<h2>아이콘 · 그림</h2>
+<h3>game-icons.net</h3>
+<p>레이드 보스 그림은 <a href="https://game-icons.net/" target="_blank" rel="noopener">game-icons.net</a>의 아이콘입니다. game-icons.net의 아이콘은 <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">크리에이티브 커먼즈 저작자표시 3.0 (CC BY 3.0)</a> 라이선스로 제공되며, 원작자를 표기하면 자유롭게 쓸 수 있습니다.</p>
+<div class="table-scroll"><table>
+<thead><tr><th>사용처</th><th>아이콘</th><th>제작</th><th>변경</th></tr></thead>
+<tbody id="gi-rows"><tr><td colspan="4">불러오는 중…</td></tr></tbody>
+</table></div>
+<ul>
+<li>Icons made by <span id="gi-authors">각 제작자</span>. Available on <a href="https://game-icons.net" target="_blank" rel="noopener">https://game-icons.net</a></li>
+<li><b>저작권은 각 아이콘 제작자에게 있습니다.</b> 게임 화면에 맞게 색과 크기를 바꾸어 썼으며, 바꾼 그림도 같은 CC BY 3.0 조건을 따릅니다.</li>
+<li>제작자나 game-icons.net이 이 게임을 후원하거나 보증하는 것은 아닙니다.</li>
+<li>라이선스 내용은 <a href="https://game-icons.net/about.html" target="_blank" rel="noopener">game-icons.net 안내</a>와 라이선스 원문이 기준입니다. (확인: 2026년 11월)</li>
+</ul>
+<h3>그 밖의 그림 · 기호</h3>
+<ul>
+<li>지도와 메뉴에 쓰인 기호(◆ ✦ ◎ ★ 등)는 유니코드 문자이며, 화면의 그라데이션과 게이지는 CSS 코드로 그린 것입니다.</li>
+<li>레이드 보스 그림은 위 game-icons.net의 아이콘을 썼고, 그 밖의 그림은 외부 이미지 소스를 사용하지 않았습니다.</li>
+<li>지역 안정화의 도시 이름은 실제 지명이며, 던전 테마와 몬스터는 게임 속 창작입니다.</li>
+<li>프로필 이미지는 헌터가 직접 올린 것입니다.</li>
+</ul>
+</article>
+
+<article class="card prose" id="c-fonts">
+<h2>글꼴</h2>
 <div class="table-scroll"><table>
 <thead><tr><th>이름</th><th>제작</th><th>라이선스</th><th>사용처</th></tr></thead>
 <tbody>
@@ -7143,7 +7241,10 @@ const DOCS = {
 </tbody>
 </table></div>
 
-<h3>배경음악 · 효과음</h3>
+</article>
+
+<article class="card prose" id="c-sound">
+<h2>배경음악 · 효과음</h2>
 <div class="table-scroll"><table>
 <thead><tr><th>구분</th><th>제작 · 출처</th><th>이용 약관</th><th>사용처</th></tr></thead>
 <tbody>
@@ -7159,7 +7260,10 @@ const DOCS = {
 <li>약관 내용은 각 사이트의 원문이 기준이며, 바뀔 수 있습니다. (확인: 2026년 11월)</li>
 </ul>
 
-<h3>사용한 오픈소스 라이브러리</h3>
+</article>
+
+<article class="card prose" id="c-oss">
+<h2>사용한 오픈소스 라이브러리</h2>
 <div class="table-scroll"><table>
 <thead><tr><th>이름</th><th>라이선스</th><th>사용처</th></tr></thead>
 <tbody>
@@ -7167,18 +7271,12 @@ const DOCS = {
 </tbody>
 </table></div>
 
-<h3>그림 · 기호</h3>
-<ul>
-<li>지도와 메뉴에 쓰인 기호(◆ ✦ ◎ ★ 등)는 유니코드 문자이며, 화면의 그라데이션과 게이지는 CSS 코드로 그린 것입니다. <b>외부 이미지 소스는 사용하지 않았습니다.</b></li>
-<li>지역 안정화의 도시 이름은 실제 지명이며, 던전 테마와 몬스터는 게임 속 창작입니다.</li>
-<li>프로필 이미지는 헌터가 직접 올린 것입니다.</li>
-</ul>
 </article>`,
   },
 };
 
 let docReturn = null;   // 문서를 닫으면 돌아갈 주소
-const docRoute = () => (location.hash.match(/^#\/(about|guide|privacy)\b/) || [])[1] || null;
+const docRoute = () => (location.hash.match(/^#\/(about|guide|privacy|credits)\b/) || [])[1] || null;
 function openDoc(id) {
   if (!docRoute()) docReturn = location.hash || "";
   location.hash = `#/${id}`;
@@ -7218,6 +7316,7 @@ function syncDoc() {
   document.documentElement.classList.add("doc-open");
   view.scrollTop = 0;
   document.title = `${d.title} · INFINITE DUNGEON`;
+  if (id === "credits") fillIconCredits(body);
   return true;
 }
 // 로그인 전 화면(로그인 · 초대코드 · 캐릭터 생성)에도 소개 · 개인정보 링크를 단다
@@ -7227,9 +7326,12 @@ document.querySelectorAll(".gate-box").forEach(box => box.append(
     h("span", { "aria-hidden": "true" }, "·"),
     h("a", { href: "#/guide", onclick: e => { e.preventDefault(); openDoc("guide"); } }, "가이드"),
     h("span", { "aria-hidden": "true" }, "·"),
-    h("a", { href: "#/privacy", onclick: e => { e.preventDefault(); openDoc("privacy"); } }, "개인정보 수집 및 이용"))));
+    h("a", { href: "#/privacy", onclick: e => { e.preventDefault(); openDoc("privacy"); } }, "개인정보 수집 및 이용"),
+    h("span", { "aria-hidden": "true" }, "·"),
+    h("a", { href: "#/credits", onclick: e => { e.preventDefault(); openDoc("credits"); } }, "저작권"))));
 $("#btn-about").onclick = () => openDoc("about");
 $("#btn-legal").onclick = () => openDoc("privacy");
+$("#btn-credits").onclick = () => openDoc("credits");
 addEventListener("keydown", e => { if (e.key === "Escape" && docRoute() && !document.querySelector("dialog[open]")) closeDoc(); });
 
 $("#btn-guide").onclick = () => openDoc("guide");
