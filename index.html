@@ -377,28 +377,110 @@ mark { background: color-mix(in srgb, #FFC53D 45%, transparent); color: inherit;
 .cx-regions { margin: 0 0 10px; }
 .cx-only { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; white-space: nowrap; }
 .mini-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
-.gate-round { margin: 0 0 8px; font-weight: 700; }
-.gate-bar { position: relative; height: 44px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); overflow: hidden; cursor: pointer; touch-action: manipulation; }
-.gate-zone { position: absolute; top: 0; bottom: 0; background: color-mix(in srgb, #FFC53D 55%, transparent); }
-.gate-core { position: absolute; top: 0; bottom: 0; background: #FFC53D; }
-.gate-mark { position: absolute; top: -2px; bottom: -2px; width: 4px; margin-left: -2px; background: var(--text); border-radius: 2px; }
-.gate-marks { display: flex; gap: 6px; min-height: 30px; margin: 10px 0; flex-wrap: wrap; }
+.gate-round { margin: 0 0 8px; font-weight: 700; display: flex; justify-content: space-between; gap: 8px; }
+.gate-stage { position: relative; aspect-ratio: 1; max-width: 360px; margin: 0 auto; border-radius: 16px; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; cursor: crosshair;
+  background: radial-gradient(circle at 50% 50%, #2a1450 0%, #120a24 55%, #07040f 100%); box-shadow: inset 0 0 40px rgba(0,0,0,.7), 0 0 0 1px #3b2a66; }
+.gate-stage svg { display: block; width: 100%; height: 100%; }
+.gate-stage.shake { animation: g-shake .35s; }
+@keyframes g-shake { 20% { transform: translateX(-6px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(2px); } }
+.g-band { fill: none; stroke: rgba(195,91,255,.16); stroke-linecap: round; stroke-linejoin: round; }
+.g-rift-glow { fill: none; stroke: #c35bff; stroke-width: 34; stroke-linecap: round; stroke-linejoin: round; filter: url(#g-blur); opacity: .9; transition: opacity .6s, stroke .3s; }
+.g-rift-core { fill: none; stroke: #fbe9ff; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; transition: opacity .6s; }
+.g-pulse { animation: g-breathe 2.4s ease-in-out infinite; }
+@keyframes g-breathe { 50% { opacity: .6; } }
+.g-end { fill: #ffd36b; animation: g-ping 1.2s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes g-ping { 0% { opacity: 1; transform: scale(.8); } 100% { opacity: 0; transform: scale(2.4); } }
+.g-end-dot { fill: #ffd36b; stroke: #07040f; stroke-width: 4; }
+.g-thread { fill: none; stroke: #ffd36b; stroke-width: 12; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 6px #ffd36b); }
+.g-thread.off { stroke: #ff6b81; filter: drop-shadow(0 0 6px #ff4d6d); }
+.g-seal { fill: none; stroke: #ffe9a8; stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transition: opacity .4s; }
+.g-shard { fill: #b98cff; opacity: .7; animation: g-float 4s ease-in-out infinite; }
+@keyframes g-float { 50% { transform: translateY(-14px); opacity: .35; } }
+.gate-stage.closed .g-rift-glow, .gate-stage.closed .g-rift-core, .gate-stage.closed .g-band, .gate-stage.closed .g-thread { opacity: 0; transition: opacity 1.2s; }
+.gate-stage.closed .g-seal { opacity: 1; }
+.gate-stage.closed .g-light { opacity: 1; }
+.gate-stage.failed .g-rift-glow { stroke: #ff4d6d; }
+.g-light { opacity: 0; transition: opacity 1.2s; }
+.gate-tip { margin: 8px 0 0; text-align: center; color: var(--text-dim); font-size: 13px; }
+.gate-time { height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; max-width: 360px; margin: 0 auto 10px; }
+.gate-time i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #c35bff, #ffd36b); transform-origin: left; }
+.gate-marks { display: flex; gap: 6px; min-height: 30px; margin: 10px 0; flex-wrap: wrap; justify-content: center; }
 .gate-m { padding: 3px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; border: 1px solid var(--border); }
 .gate-m.perfect { background: #FFC53D; color: #3a2a00; border-color: #FFC53D; }
 .gate-m.good { background: color-mix(in srgb, #46A758 25%, transparent); }
 .gate-m.miss { opacity: .7; }
 .gate-press { min-height: 52px; font-size: 17px; }
-.rs-clock { margin: 0 0 8px; font-weight: 700; }
-.rs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 360px; margin: 0 auto; }
-.rs-cell { aspect-ratio: 1; border-radius: 12px; border: 1px solid var(--border); background: var(--surface-2); font: inherit; color: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; touch-action: manipulation; }
-.rs-cell b { font-size: 28px; line-height: 1; }
-.rs-cell small { font-size: 12px; font-weight: 700; }
-.rs-cell[data-kind="mob"] { background: color-mix(in srgb, #E5484D 22%, var(--surface)); border-color: #E5484D; }
-.rs-cell[data-kind="mob"] b { color: #E5484D; }
-.rs-cell[data-kind="hunter"] { background: color-mix(in srgb, #0090FF 18%, var(--surface)); border-color: #0090FF; }
-.rs-cell[data-kind="hunter"] b { color: #0090FF; }
-.rs-cell.rs-hit { outline: 3px solid #46A758; }
-.rs-cell.rs-bad { outline: 3px solid #E5484D; }
+/* 레이드 */
+.rd-hero { border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin: 0 0 14px; color: #f3ecff;
+  background: radial-gradient(120% 120% at 85% 0%, #5b1f2e 0%, #2a1240 45%, #120a20 100%); box-shadow: inset 0 0 40px rgba(0,0,0,.35); }
+.rd-hero h3 { margin: 2px 0 6px; font-size: 22px; letter-spacing: -.01em; }
+.rd-kicker { margin: 0; font-size: 12px; letter-spacing: .12em; color: #ffb3c1; font-weight: 700; }
+.rd-desc { margin: 0 0 8px; color: #e4d8ff; font-size: 14px; white-space: pre-wrap; }
+.rd-special { margin: 0 0 12px; font-size: 13px; color: #d8c8ff; }
+.rd-special b { color: #ffd36b; }
+.rd-hp-bar { height: 12px; border-radius: 6px; background: rgba(255,255,255,.12); overflow: hidden; }
+.rd-hp-bar i { display: block; height: 100%; background: linear-gradient(90deg, #ff4d6d, #ff8a5c); transition: width .6s; }
+.rd-hp-txt { display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; font-size: 13px; color: #e4d8ff; }
+.rd-phase { margin: 12px 0 0; font-size: 13px; color: #f3ecff; }
+.rd-box { margin: 0 0 12px; }
+.rd-slots { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.rd-slot { border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; display: grid; gap: 2px; font-size: 13px; }
+.rd-slot.open { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 8%, var(--bg)); }
+.rd-slot.closed { opacity: .55; }
+.rd-slot small { color: var(--text-dim); }
+.rd-group { margin-top: 10px; }
+.rd-members { display: flex; flex-wrap: wrap; gap: 6px; }
+.rd-mem { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 999px; padding: 3px 10px 3px 3px; font-size: 13px; }
+.rd-mem.me { border-color: var(--primary); }
+.rd-mem small { color: var(--text-dim); }
+.avatar.sm { width: 24px; height: 24px; font-size: 11px; border-radius: 7px; flex: none; }
+.rd-buffs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px 14px; }
+.rd-buff-top { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
+.rd-buff-top span { color: var(--text-dim); text-align: right; }
+.rd-buff .gauge i { background: linear-gradient(90deg, var(--secondary), var(--primary)); }
+.rd-buff.full .gauge i { background: linear-gradient(90deg, #ffb340, #ffd36b); }
+.rd-rank { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 4px; }
+.rd-rank li { display: grid; grid-template-columns: 22px 24px 1fr auto; gap: 8px; align-items: center; font-size: 14px; padding: 3px 0; }
+.rd-rank li.me b { color: var(--accent-text); }
+.rd-rank .rk { color: var(--text-dim); font-weight: 700; text-align: center; }
+.rd-editor { border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin: 8px 0; }
+.rd-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.rd-item-row { display: flex; gap: 6px; margin: 0 0 6px; }
+.rd-item-row select { flex: 1; min-width: 0; }
+/* 분석 집중: 분석 화면 같은 막대 */
+.fc-bar { position: relative; height: 56px; border-radius: 12px; overflow: hidden; cursor: pointer; touch-action: manipulation; user-select: none;
+  background: repeating-linear-gradient(90deg, rgba(111,227,255,.08) 0 1px, transparent 1px 10%), linear-gradient(180deg, #0c1b2b, #08111c); box-shadow: inset 0 0 0 1px #1f4b66, inset 0 0 24px rgba(0,0,0,.6); }
+.fc-bar::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 2px, transparent 2px 4px); pointer-events: none; }
+.fc-zone { position: absolute; top: 8px; bottom: 8px; border-radius: 4px; background: rgba(255,197,61,.35); box-shadow: 0 0 0 1px rgba(255,197,61,.6); }
+.fc-core { position: absolute; top: 8px; bottom: 8px; background: #FFC53D; box-shadow: 0 0 10px #FFC53D; }
+.fc-mark { position: absolute; top: 0; bottom: 0; width: 3px; margin-left: -1.5px; background: #6fe3ff; box-shadow: 0 0 10px #6fe3ff, 0 0 2px #fff; }
+.fc-wave { display: block; width: 100%; height: 34px; margin-top: 8px; }
+.fc-wave path { fill: none; stroke: #6fe3ff; stroke-width: 2; opacity: .7; }
+.fc-hit { animation: fc-hit .4s ease-out; }
+@keyframes fc-hit { from { box-shadow: inset 0 0 0 2px #ffd36b, inset 0 0 30px rgba(255,211,107,.5); } }
+.an-focus { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; padding: 8px 10px; border-radius: 10px; background: var(--surface-2); font-size: 13px; }
+.rs-clock { margin: 0 0 6px; font-weight: 700; }
+.rs-time { height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; max-width: 360px; margin: 0 auto 10px; }
+.rs-time i { display: block; height: 100%; background: linear-gradient(90deg, #E5484D, #FFC53D); }
+.rs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 360px; margin: 0 auto; padding: 10px; border-radius: 16px;
+  background: radial-gradient(circle at 50% 40%, #2b2140, #120d1e 75%); box-shadow: inset 0 0 30px rgba(0,0,0,.6), 0 0 0 1px #3b2a66; }
+.rs-cell { position: relative; aspect-ratio: 1; border-radius: 12px; border: 1px solid #3a3052; padding: 0; overflow: hidden; color: #fff; cursor: pointer; touch-action: manipulation;
+  background: linear-gradient(135deg, rgba(255,255,255,.05) 25%, transparent 25% 50%, rgba(255,255,255,.05) 50% 75%, transparent 75%) 0 0 / 22px 22px, #1d1730; }
+.rs-cell svg { position: absolute; inset: 8%; width: 84%; height: 84%; animation: rs-up .18s ease-out both; }
+@keyframes rs-up { from { transform: translateY(30%) scale(.6); opacity: 0; } }
+.rs-cell small { position: absolute; left: 0; right: 0; bottom: 4px; font-size: 11px; font-weight: 800; text-align: center; text-shadow: 0 1px 2px #000; }
+.rs-cell[data-kind="mob"] { background-color: #3a1420; border-color: #E5484D; box-shadow: inset 0 0 18px rgba(229,72,77,.45); }
+.rs-cell[data-kind="hunter"] { background-color: #102641; border-color: #3aa0ff; box-shadow: inset 0 0 18px rgba(58,160,255,.4); }
+.rs-life { position: absolute; left: 6px; right: 6px; top: 5px; height: 3px; border-radius: 2px; background: rgba(255,255,255,.85); transform-origin: left; animation: rs-life var(--dur, 1s) linear forwards; }
+@keyframes rs-life { to { transform: scaleX(0); } }
+.rs-fx { position: absolute; inset: 0; pointer-events: none; }
+.rs-fx.slash::before { content: ""; position: absolute; left: -10%; top: 48%; width: 120%; height: 5px; background: linear-gradient(90deg, transparent, #fff, #ffe08a, transparent); transform: rotate(-35deg) scaleX(0); animation: rs-slash .26s ease-out forwards; box-shadow: 0 0 10px #ffe08a; }
+@keyframes rs-slash { to { transform: rotate(-35deg) scaleX(1); opacity: .2; } }
+.rs-fx.bad { background: rgba(229,72,77,.45); animation: rs-flash .3s ease-out forwards; }
+.rs-fx.bad::before, .rs-fx.bad::after { content: ""; position: absolute; left: 20%; top: 47%; width: 60%; height: 5px; background: #fff; border-radius: 3px; transform: rotate(45deg); }
+.rs-fx.bad::after { transform: rotate(-45deg); }
+@keyframes rs-flash { to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .g-pulse, .g-shard, .g-end, .gate-stage.shake, .rs-cell svg { animation: none; } }
 .t-altar { color: #D9A000; }
 .ex-c.al { background: color-mix(in srgb, #FFC53D 26%, var(--surface)); color: #A67A00; font-size: 18px; font-weight: 800; }
 .ex-c.al-done { background: color-mix(in srgb, #FFC53D 55%, var(--surface)); color: #6b4f00; font-size: 18px; font-weight: 800; }
@@ -899,6 +981,9 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
 
 /* ===== 화면 소개 (튜토리얼) ===== */
 .dg-tabrow { display: flex; align-items: center; gap: 8px; }
+.dg-tabrow .tabs { min-width: 0; width: 0; overflow-x: auto; scrollbar-width: none; }
+.dg-tabrow .tabs::-webkit-scrollbar { display: none; }
+.dg-tabrow .tabs button { white-space: nowrap; flex: 1 0 auto; padding: 0 10px; }
 .tour-btn { flex: none; }
 /* 스토리 화면 */
 .story { position: fixed; inset: 0; z-index: 300; background: radial-gradient(120% 90% at 50% 0%, #2B1650 0%, #170B2E 55%, #0D0620 100%); color: #EDE4FF;
@@ -1865,8 +1950,8 @@ function paintSocialBadge() {
 const NOTIF_KINDS = [
   ["title", "타이틀"], ["friend", "친구 신청"], ["party", "파티 초대"], ["guild", "길드 초대"],
   ["notice", "공지"], ["sns", "SNS 댓글·답글"], ["market", "거래소 판매"], ["gift", "선물 도착"],
-  ["regional", "지역 안정화 완료"], ["infinite", "무한 던전 복귀"], ["analysis", "전력 분석 완료"]];
-const NOTIF_TAG = { title: "타이틀", friend: "친구", party: "파티", guild: "길드", notice: "공지", sns: "SNS", market: "거래소", gift: "선물", regional: "안정화", infinite: "무한 던전", analysis: "분석" };
+  ["regional", "지역 안정화 완료"], ["infinite", "무한 던전 복귀"], ["analysis", "전력 분석 완료"], ["raid", "레이드"]];
+const NOTIF_TAG = { title: "타이틀", friend: "친구", party: "파티", guild: "길드", notice: "공지", sns: "SNS", market: "거래소", gift: "선물", regional: "안정화", infinite: "무한 던전", analysis: "분석" , raid: "레이드" };
 const notif = { rows: [], unread: 0, settings: {}, seen: new Set(), ready: false, chan: null, timer: null, view: "list" };
 const lsGet = k => { try { return localStorage.getItem(k); } catch { return null; } };
 const lsSet = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} };
@@ -1940,6 +2025,7 @@ function notifGo(link) {
   if (where === "social") { nextSocialTab = tab || "sns"; if (tab === "sns") { snsView = "all"; snsCat = null; } return route() === "friends" ? renderSocial($("#main-pane"), nextSocialTab) : (location.hash = "#/friends"); }
   if (where === "union") { unionView = tab || "rank"; return route() === "union" ? renderUnion($("#main-pane")) : (location.hash = "#/union"); }
   if (where === "inv") { nextInvTab = tab || null; return route() === "inventory" ? renderInventory($("#main-pane"), tab) : (location.hash = "#/inventory"); }
+  if (tab === "raid" && (where === "regional" || where === "dungeon")) { nextRgTab = "raid"; return route() === "regional" ? renderRegional($("#main-pane"), "raid") : (location.hash = "#/regional"); }
   if (["regional", "dungeon", "home"].includes(where)) location.hash = "#/" + where;
 }
 async function notifOpen(r) {
@@ -3391,6 +3477,14 @@ async function renderHome(pane) {
         h("div", { class: "row" }, h("strong", {}, `${STAT_KO[ru.stat]} 분석 · ${ru.minutes}분`), ru.speed > 1 ? h("span", { class: "badge" }, `테스트 ${ru.speed}배`) : h("span", { class: "hint" }, `${fmtTime(ru.ends_at)} 완료`)),
         h("div", { class: "row", style: "margin-top:4px" }, h("span", { class: "hint" }, "남은 시간"), left),
         h("div", { class: "bar", style: "margin-top:8px" }, bar), btns));
+      // 분석 집중: 분석 한 번에 한 번
+      const fo = ru.focus;
+      if (released() && fo?.status === "done")
+        kids.push(h("div", { class: "an-focus" }, h("span", {}, "분석 집중 완료"),
+          h("span", { class: "hint" }, fo.result?.cut > 0 ? `${fo.result.cut}분 단축 · 가능성 +${fo.result.pot || 0}` : "단축 없음")));
+      else if (released() && Date.now() + off < end)
+        kids.push(h("div", { class: "an-focus", "data-tour": "hm-focus" }, h("span", {}, "분석 집중으로 남은 시간을 줄일 수 있습니다."),
+          h("button", { class: "btn small", type: "button", style: "white-space:nowrap;flex:none", onclick: () => playFocus(paintAnalysis) }, "분석 집중")));
       anTick();
     } else {
       anTick = null;
@@ -3483,6 +3577,8 @@ async function renderDungeon(pane, tab = "battle") {
         released() ? h("button", { type: "button", class: tab === "altar" ? "on" : null, onclick: () => renderDungeon(pane, "altar") }, "별의 제단") : null),
       h("button", { type: "button", class: "btn ghost small tour-btn", "aria-label": "이 화면 도움말 보기", onclick: () => startTour("dungeon-" + tab) }, "? 도움말")),
     body);
+  { const tb = pane.querySelector(".dg-tabrow .tabs"), on = tb?.querySelector(".on");   // 좁은 화면: 고른 탭이 보이게
+    if (tb && on) tb.scrollLeft = on.offsetLeft - (tb.clientWidth - on.clientWidth) / 2; }
   if (tab === "explore") return renderExplore(body);
   if (tab === "star") return renderStar(body);
   if (tab === "altar") return renderAltar(body);
@@ -3729,13 +3825,25 @@ const leftUntil = (iso, offset) => fmtDur(Date.parse(iso) - (Date.now() + offset
 const RG_GRADES = ["E", "D", "C", "B", "A"];
 let rgGrade = null;
 
-async function renderRegional(pane) {
+let nextRgTab = null;
+async function renderRegional(pane, tab) {
   stopDungeonTimers();
+  tab = tab || nextRgTab || "board"; nextRgTab = null;
+  if (!released()) tab = "board";
+  bgmPage(tab === "raid" ? "regional-raid" : "regional");
   const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
+  const tabs = released() ? h("div", { class: "tabs", style: "max-width:320px", "data-tour": "rg-tabs" },
+    h("button", { type: "button", class: tab === "board" ? "on" : null, onclick: () => renderRegional(pane, "board") }, "지역 안정화"),
+    h("button", { type: "button", class: tab === "raid" ? "on" : null, onclick: () => renderRegional(pane, "raid") }, "레이드")) : null;
+  if (tab === "raid") {
+    pane.replaceChildren(paneHead("지역 안정화", "regional-raid"),
+      h("p", { class: "hint", style: "margin:0 0 16px" }, "한 주 동안 모든 헌터가 힘을 모아 레이드 보스를 토벌합니다."), tabs, body);
+    return renderRaid(body);
+  }
   pane.replaceChildren(
     paneHead("지역 안정화", "regional"),
     h("p", { class: "hint", style: "margin:0 0 16px;white-space:pre-line" }, "활동 구역에 나타난 던전을 공략합니다. 현재 E~D급까지 출입할 수 있습니다. 이미 공략 중이거나 안정화한 던전에는 들어갈 수 없습니다.\n활동 구역은 아래에서 옮길 수 있습니다."),
-    body);
+    tabs, body);
   const { data: act, error: e1 } = await sb.rpc("get_current_action");
   if (e1) return body.replaceChildren(h("p", { class: "error" }, koError(e1)));
   if (act?.kind === "regional") {
@@ -4560,16 +4668,133 @@ $("#dlg-info")?.addEventListener("close", miniCleanup);
 const gatePos = (t, period) => { const ph = (t % period) / period; return ph < 0.5 ? ph * 2 : 2 - ph * 2; };
 const MARK_TXT = { perfect: "완벽", good: "좋음", miss: "빗나감" };
 
+const SVGNS = "http://www.w3.org/2000/svg";
+const sv = (tag, attrs = {}, ...kids) => { const el = document.createElementNS(SVGNS, tag); for (const [k, v] of Object.entries(attrs)) if (v != null) el.setAttribute(k, v); el.append(...kids); return el; };
+const ptsD = ps => "M" + ps.map(p => p.join(" ")).join(" L");
+
+/* 게이트 봉합: 제한 시간 안에 균열을 손을 떼지 않고 한 번에 따라 그린다.
+   서버가 균열 모양·제한 시간·허용 폭을 정하고, 화면은 그은 점(좌표·시각)만 보낸다. 판정은 서버가 다시 계산한다. */
 async function playGate(after) {
   const { data: g, error } = await sb.rpc("minigame_start", { p_kind: "gate" });
   if (error) return toast(koError(error));
+  const T0 = performance.now();
+  const P = g.params, PTS = P.pts, TOL = P.tol, LIMIT = P.limit;
+  // 화면에서만 쓰는 덮인 정도 계산용 점(서버와 같은 간격)
+  const samp = [];
+  for (let i = 0; i < PTS.length - 1; i++) {
+    const [ax, ay] = PTS[i], [bx, by] = PTS[i + 1], n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / 12));
+    for (let k = 0; k <= n; k++) samp.push({ x: ax + (bx - ax) * k / n, y: ay + (by - ay) * k / n, on: false });
+  }
+  const dseg = (px, py, ax, ay, bx, by) => {
+    const L = (bx - ax) ** 2 + (by - ay) ** 2, u = L ? Math.max(0, Math.min(1, ((px - ax) * (bx - ax) + (py - ay) * (by - ay)) / L)) : 0;
+    return Math.hypot(px - (ax + (bx - ax) * u), py - (ay + (by - ay) * u));
+  };
+  const nearCrack = (x, y) => { for (let i = 0; i < PTS.length - 1; i++) if (dseg(x, y, ...PTS[i], ...PTS[i + 1]) <= TOL) return true; return false; };
+
+  const d = ptsD(PTS);
+  const shards = sv("g", {}, ...[...Array(10)].map((_, i) => {
+    const x = 60 + Math.random() * 880, y = 60 + Math.random() * 880, r = 7 + Math.random() * 9;
+    return sv("polygon", { class: "g-shard", points: `${x},${y - r} ${x + r},${y} ${x},${y + r * 1.6} ${x - r},${y}`, style: `animation-delay:${(i * .4).toFixed(2)}s` });
+  }));
+  const thread = sv("path", { class: "g-thread", d: "" });
+  const ends = [PTS[0], PTS[PTS.length - 1]].map(([x, y]) => sv("g", {}, sv("circle", { class: "g-end", cx: x, cy: y, r: 22 }), sv("circle", { class: "g-end-dot", cx: x, cy: y, r: 16 })));
+  const svg = sv("svg", { viewBox: "0 0 1000 1000", "aria-hidden": "true" },
+    sv("defs", {},
+      sv("filter", { id: "g-blur", x: "-50%", y: "-50%", width: "200%", height: "200%" }, sv("feGaussianBlur", { stdDeviation: "12" })),
+      sv("radialGradient", { id: "g-lightgrad" }, sv("stop", { offset: "0", "stop-color": "#fff6d8", "stop-opacity": ".9" }), sv("stop", { offset: "1", "stop-color": "#ffd36b", "stop-opacity": "0" }))),
+    shards,
+    sv("path", { class: "g-band", d, "stroke-width": TOL * 2 }),
+    sv("g", { class: "g-pulse" }, sv("path", { class: "g-rift-glow", d }), sv("path", { class: "g-rift-core", d })),
+    thread, sv("path", { class: "g-seal", d }), ...ends,
+    sv("circle", { class: "g-light", cx: 500, cy: 500, r: 420, fill: "url(#g-lightgrad)" }));
+  const tip = h("div", { class: "gate-tip" }, "빛나는 끝점 중 한 곳을 누른 채, 손을 떼지 말고 균열을 따라 반대쪽 끝까지 그으세요");
+  const stage = h("div", { class: "gate-stage", role: "img", "aria-label": "게이트 균열" }, svg);
+  const tFill = h("i", {}), timeBar = h("div", { class: "gate-time" }, tFill);
+  const covEl = h("span", { class: "hint" }, "봉합 0%");
+  const head = h("p", { class: "gate-round" }, h("span", {}, `제한 시간 ${(LIMIT / 1000).toFixed(1)}초`), covEl);
+  const out = h("div", {});
+  const pts = [];          // [x, y, t] (0~1000 좌표, 판을 받은 뒤 지난 ms)
+  let drawing = false, done = false, startT = 0, raf = 0, last = null;
+  const toLocal = e => { const r = svg.getBoundingClientRect(); return [Math.round((e.clientX - r.left) / r.width * 1000), Math.round((e.clientY - r.top) / r.height * 1000)]; };
+  function cover(x0, y0, x1, y1) {
+    for (const s_ of samp) if (!s_.on && dseg(s_.x, s_.y, x0, y0, x1, y1) <= TOL) s_.on = true;
+    const c = samp.filter(s_ => s_.on).length / samp.length;
+    covEl.textContent = `봉합 ${Math.floor(c * 100)}%`;
+  }
+  function add(x, y) {
+    const t = Math.round(performance.now() - T0);
+    if (last && Math.hypot(x - last[0], y - last[1]) < 6) return;
+    if (pts.length >= 880) return finish();
+    pts.push([x, y, t]);
+    cover(last ? last[0] : x, last ? last[1] : y, x, y);
+    last = [x, y];
+    thread.setAttribute("d", ptsD(pts.map(p => [p[0], p[1]])));
+    thread.classList.toggle("off", !nearCrack(x, y));
+  }
+  function tick() {
+    const el = performance.now() - startT;
+    tFill.style.transform = `scaleX(${Math.max(0, 1 - el / LIMIT)})`;
+    if (el >= LIMIT) return finish();
+    raf = requestAnimationFrame(tick);
+  }
+  stage.addEventListener("pointerdown", e => {
+    if (done || drawing) return;
+    e.preventDefault();
+    stage.setPointerCapture?.(e.pointerId);
+    drawing = true; startT = performance.now(); tip.textContent = "손을 떼면 그 자리에서 봉합이 끝납니다";
+    add(...toLocal(e));
+    tick();
+  });
+  stage.addEventListener("pointermove", e => {
+    if (!drawing || done) return;
+    for (const ev of e.getCoalescedEvents?.() || [e]) add(...toLocal(ev));
+  });
+  const up = () => { if (!drawing || done) return; if (pts.length < 4) { // 살짝 누른 것은 없던 일로
+      drawing = false; pts.length = 0; last = null; thread.setAttribute("d", ""); cancelAnimationFrame(raf); tFill.style.transform = ""; samp.forEach(s_ => s_.on = false); covEl.textContent = "봉합 0%";
+      tip.textContent = "끝점을 누른 채로 균열을 따라 그어 주세요"; return; }
+    finish(); };
+  stage.addEventListener("pointerup", up);
+  stage.addEventListener("pointercancel", up);
+  async function finish() {
+    if (done) return;
+    done = true; drawing = false; cancelAnimationFrame(raf);
+    tip.textContent = "봉합을 확인하는 중…";
+    const { data: res, error } = await sb.rpc("minigame_finish", { p_id: g.id, p_input: pts });
+    miniCleanup();
+    if (error) { tip.textContent = ""; return out.replaceChildren(h("p", { class: "error" }, koError(error))); }
+    if (res.success) { stage.classList.add("closed"); tip.textContent = "균열이 닫혔습니다"; sfx(res.grade === "perfect" ? "mix" : "push"); }
+    else { stage.classList.add("failed"); tip.textContent = "균열이 다시 벌어졌습니다"; sfx("fumble"); if (!reduceMotion()) stage.classList.add("shake"); }
+    const GR = { perfect: "완벽", good: "좋음", fail: "실패" };
+    out.replaceChildren(h("div", { class: "report", style: "margin-top:14px" },
+      h("p", { style: "margin:0 0 8px;font-weight:700" }, res.success ? `균열을 봉합했습니다. (${GR[res.grade]})` : "균열이 다시 벌어졌습니다…"),
+      h("div", { class: "kv" }, h("span", {}, "균열을 덮은 정도"), h("span", {}, `${Math.round(res.cov * 100)}%`)),
+      h("div", { class: "kv" }, h("span", {}, "균열 위로 그은 정도"), h("span", {}, `${Math.round(res.acc * 100)}%`)),
+      h("div", { class: "kv" }, h("span", {}, "가능성"), h("span", {}, `+${Number(res.pot || 0).toLocaleString()}`)),
+      h("div", { class: "kv" }, h("span", {}, "아이템"), h("span", {}, res.items.length ? res.items.map(i => i.name).join(", ") : "없음 (균열을 거의 다 덮고, 벗어나지 않게 그으면 얻습니다)"))),
+      h("div", { style: "display:flex;gap:8px;margin-top:12px" },
+        res.left > 0 ? h("button", { class: "btn", type: "button", onclick: () => playGate(after) }, `다음 게이트 (${res.left}개 남음)`) : null,
+        h("button", { class: "btn ghost", type: "button", onclick: () => $("#dlg-info").close() }, "닫기")));
+    loadAll().then(renderHunter);
+    after?.();
+  }
+  info("게이트 봉합",
+    h("p", { class: "hint", style: "margin:0 0 12px" }, "균열의 한쪽 끝을 누른 채 손을 떼지 말고 반대쪽 끝까지 따라 그어 꿰매세요. 처음 누른 순간부터 제한 시간이 흐르고, 손을 떼면 그 자리에서 끝납니다. 균열을 거의 다 덮고 많이 벗어나지 않으면 봉합에 성공해 열매나 청정수 1개를 얻습니다."),
+    head, timeBar, stage, tip, out);
+  miniCleanup();
+}
+
+/* 분석 집중: 전력 분석 중 한 번. 오가는 표시가 금빛 구간에 들어왔을 때 누른다(5번).
+   잘 맞힐수록 분석 시간이 줄고, 분석 시간에 비례한 가능성을 조금 얻는다. */
+async function playFocus(after) {
+  const { data: g, error } = await sb.rpc("minigame_start", { p_kind: "focus" });
+  if (error) return toast(koError(error));
   const R = g.params.rounds;
-  const bar = h("div", { class: "gate-bar", role: "img", "aria-label": "봉합 막대" });
-  const zone = h("i", { class: "gate-zone" }), core = h("i", { class: "gate-core" }), mk = h("b", { class: "gate-mark" });
-  bar.append(zone, core, mk);
+  const zone = h("i", { class: "fc-zone" }), core = h("i", { class: "fc-core" }), mk = h("b", { class: "fc-mark" });
+  const bar = h("div", { class: "fc-bar", role: "img", "aria-label": "분석 막대" }, zone, core, mk);
+  const wave = sv("path", { d: "" }), waveSvg = sv("svg", { class: "fc-wave", viewBox: "0 0 300 34", preserveAspectRatio: "none", "aria-hidden": "true" }, wave);
   const roundEl = h("p", { class: "gate-round" });
   const marks = h("div", { class: "gate-marks", "aria-live": "polite" });
-  const press = h("button", { class: "btn block gate-press", type: "button" }, "봉합하기 (스페이스)");
+  const press = h("button", { class: "btn block gate-press", type: "button" }, "집중 (스페이스)");
   const out = h("div", {});
   const times = [];
   let r = 0, t0 = 0, raf = 0, waiting = false, done = false;
@@ -4577,21 +4802,31 @@ async function playGate(after) {
     const z = R[r];
     zone.style.left = `${(z.center - z.width / 2) * 100}%`; zone.style.width = `${z.width * 100}%`;
     core.style.left = `${(z.center - z.perfect / 2) * 100}%`; core.style.width = `${z.perfect * 100}%`;
-    roundEl.textContent = `균열 ${r + 1} / 5`;
+    roundEl.replaceChildren(h("span", {}, `집중 ${r + 1} / 5`));
     t0 = performance.now(); waiting = false;
     cancelAnimationFrame(raf);
-    const tick = () => { mk.style.left = `${gatePos(performance.now() - t0, z.period) * 100}%`; raf = requestAnimationFrame(tick); };
+    const tick = () => {
+      const now = performance.now() - t0, x = gatePos(now, z.period);
+      mk.style.left = `${x * 100}%`;
+      // 아래 파형: 표시가 금빛 구간에 가까울수록 크게 흔들린다
+      const amp = 4 + 12 * Math.max(0, 1 - Math.abs(x - z.center) / (z.width * 1.5));
+      let dd = "M0 17";
+      for (let k = 1; k <= 60; k++) dd += ` L${k * 5} ${(17 + Math.sin(k * .9 + now / 90) * amp * Math.sin(k / 60 * Math.PI)).toFixed(1)}`;
+      wave.setAttribute("d", dd);
+      raf = requestAnimationFrame(tick);
+    };
     tick();
   }
   function hit() {
     if (waiting || done) return;
     const t = Math.round(performance.now() - t0);
     times.push(t); waiting = true; cancelAnimationFrame(raf);
-    const z = R[r], d = Math.abs(gatePos(t, z.period) - z.center);
-    const m = d <= z.perfect / 2 ? "perfect" : d <= z.width / 2 ? "good" : "miss";
-    mk.style.left = `${gatePos(t, z.period) * 100}%`;
+    const z = R[r], x = gatePos(t, z.period), dd = Math.abs(x - z.center);
+    const m = dd <= z.perfect / 2 ? "perfect" : dd <= z.width / 2 ? "good" : "miss";
+    mk.style.left = `${x * 100}%`;
     marks.append(h("span", { class: `gate-m ${m}` }, MARK_TXT[m]));
     sfx(m === "miss" ? "fumble" : m === "perfect" ? "mix" : "push");
+    if (m !== "miss") { bar.classList.remove("fc-hit"); void bar.offsetWidth; bar.classList.add("fc-hit"); }
     r++;
     if (r < 5) setTimeout(setRound, 650); else finish();
   }
@@ -4602,26 +4837,39 @@ async function playGate(after) {
     if (error) return out.replaceChildren(h("p", { class: "error" }, koError(error)));
     const miss = 5 - res.perfect - res.good;
     out.replaceChildren(h("div", { class: "report", style: "margin-top:14px" },
-      h("p", { style: "margin:0 0 8px;font-weight:700" }, res.success ? "균열을 봉합했습니다." : "균열이 다시 벌어졌습니다…"),
+      h("p", { style: "margin:0 0 8px;font-weight:700" }, res.cut > 0 ? "분석에 속도가 붙었습니다." : "집중이 흐트러졌습니다…"),
       h("div", { class: "kv" }, h("span", {}, "결과"), h("span", {}, `완벽 ${res.perfect} · 좋음 ${res.good} · 빗나감 ${miss}`)),
-      h("div", { class: "kv" }, h("span", {}, "가능성"), h("span", {}, `+${Number(res.pot || 0).toLocaleString()}`)),
-      h("div", { class: "kv" }, h("span", {}, "아이템"), h("span", {}, res.items.length ? res.items.map(i => i.name).join(", ") : "없음 (3번 이상 맞히면 얻습니다)"))),
-      h("div", { style: "display:flex;gap:8px;margin-top:12px" },
-        res.left > 0 ? h("button", { class: "btn", type: "button", onclick: () => playGate(after) }, `다음 게이트 (${res.left}개 남음)`) : null,
-        h("button", { class: "btn ghost", type: "button", onclick: () => $("#dlg-info").close() }, "닫기")));
+      h("div", { class: "kv" }, h("span", {}, "분석 시간"), h("span", {}, res.cut > 0 ? `${res.cut}분 단축` : "그대로")),
+      h("div", { class: "kv" }, h("span", {}, "가능성"), h("span", {}, `+${Number(res.pot || 0).toLocaleString()}`))),
+      h("div", { style: "display:flex;gap:8px;margin-top:12px" }, h("button", { class: "btn ghost", type: "button", onclick: () => $("#dlg-info").close() }, "닫기")));
     loadAll().then(renderHunter);
     after?.();
   }
   press.onclick = hit;
-  bar.onclick = hit;
-  info("게이트 봉합",
-    h("p", { class: "hint", style: "margin:0 0 12px" }, "막대 위를 오가는 표시가 금빛 구간에 들어왔을 때 누르세요. 가운데의 밝은 부분이면 '완벽'입니다. 5번 누르며, 갈수록 구간이 좁아지고 빨라집니다. 3번 이상 맞히면 열매나 청정수 1개를 얻습니다."),
-    roundEl, bar, marks, press, out);
+  bar.addEventListener("pointerdown", e => { e.preventDefault(); hit(); });
+  info("분석 집중",
+    h("p", { class: "hint", style: "margin:0 0 12px" }, "오가는 푸른 표시가 금빛 구간에 들어왔을 때 누르세요. 가운데의 밝은 부분이면 '완벽'입니다. 5번 누르며 갈수록 구간이 좁아지고 빨라집니다. 잘 맞힐수록 남은 분석 시간이 줄고, 분석 시간에 걸맞은 가능성을 조금 얻습니다. 분석 한 번에 한 번만 할 수 있습니다."),
+    roundEl, bar, waveSvg, marks, press, out);
   miniCleanup();
   miniKey = e => { if ((e.code === "Space" || e.key === "Enter") && !done) { e.preventDefault(); hit(); } };
   addEventListener("keydown", miniKey);
   setRound();
 }
+
+// 구조 요청 그림: 마물(뿔 달린 그림자) · 헌터(도움을 청하는 사람)
+const RS_MOB = () => sv("svg", { viewBox: "0 0 100 100", "aria-hidden": "true" },
+  sv("ellipse", { cx: 50, cy: 90, rx: 30, ry: 5, fill: "rgba(0,0,0,.45)" }),
+  sv("path", { d: "M22 88 Q16 58 28 44 L20 18 L38 36 Q50 30 62 36 L80 18 L72 44 Q84 58 78 88 Q70 80 64 88 Q57 79 50 88 Q43 79 36 88 Q30 80 22 88Z", fill: "#2a0b14", stroke: "#E5484D", "stroke-width": 2.5 }),
+  sv("path", { d: "M34 56 L44 60 L34 62Z M66 56 L56 60 L66 62Z", fill: "#ff5a5f" }),
+  sv("path", { d: "M40 72 L44 68 L48 73 L52 68 L56 73 L60 68", fill: "none", stroke: "#ffb3b5", "stroke-width": 2 }));
+const RS_HUNTER = () => sv("svg", { viewBox: "0 0 100 100", "aria-hidden": "true" },
+  sv("ellipse", { cx: 50, cy: 90, rx: 22, ry: 4, fill: "rgba(0,0,0,.45)" }),
+  sv("circle", { cx: 50, cy: 36, r: 11, fill: "#cfe6ff", stroke: "#3aa0ff", "stroke-width": 2.5 }),
+  sv("path", { d: "M32 88 Q32 54 50 52 Q68 54 68 88Z", fill: "#16365e", stroke: "#3aa0ff", "stroke-width": 2.5 }),
+  sv("path", { d: "M34 60 L22 40 M66 60 L78 40", stroke: "#cfe6ff", "stroke-width": 5, "stroke-linecap": "round" }),
+  sv("rect", { x: 62, y: 8, width: 30, height: 20, rx: 6, fill: "#fff" }),
+  sv("path", { d: "M68 28 L66 34 L74 28Z", fill: "#fff" }),
+  sv("text", { x: 77, y: 23, "text-anchor": "middle", "font-size": 15, "font-weight": 900, fill: "#0b5cad" }, "!"));
 
 async function playRescue(after) {
   const { data: g, error } = await sb.rpc("minigame_start", { p_kind: "rescue" });
@@ -4630,6 +4878,7 @@ async function playRescue(after) {
   const cells = [...Array(9)].map((_, i) => h("button", { type: "button", class: "rs-cell", "aria-label": `${Math.floor(i / 3) + 1}번째 줄 ${i % 3 + 1}번째 칸` }));
   const grid = h("div", { class: "rs-grid" }, ...cells);
   const clock = h("p", { class: "rs-clock" }, "준비…");
+  const tbar = h("i", { style: "width:100%" }), timeBar = h("div", { class: "rs-time" }, tbar);
   const score = h("p", { class: "hint", style: "margin:6px 0 0", "aria-live": "polite" });
   const out = h("div", {});
   const clicks = [], hitSet = new Set();
@@ -4642,10 +4891,14 @@ async function playRescue(after) {
       const kind = s ? s.kind : "";
       if (el.dataset.kind !== kind) {
         el.dataset.kind = kind;
-        el.replaceChildren(...(s ? [h("b", {}, s.kind === "mob" ? "◆" : "♟"), h("small", {}, s.kind === "mob" ? "마물" : "헌터")] : []));
+        el.replaceChildren(...(s ? [s.kind === "mob" ? RS_MOB() : RS_HUNTER(),
+          h("i", { class: "rs-life", style: `--dur:${Math.max(50, s.at + s.dur - t)}ms` }),
+          h("small", {}, s.kind === "mob" ? "마물" : "헌터")] : []));
+        el.setAttribute("aria-label", `${Math.floor(c / 3) + 1}번째 줄 ${c % 3 + 1}번째 칸${s ? (s.kind === "mob" ? " 마물" : " 헌터") : ""}`);
       }
     });
     clock.textContent = `남은 시간 ${Math.max(0, Math.ceil((LEN - t) / 1000))}초`;
+    tbar.style.width = `${Math.max(0, 100 - t / LEN * 100)}%`;
     if (t >= LEN) return finish();
     raf = requestAnimationFrame(frame);
   }
@@ -4656,8 +4909,9 @@ async function playRescue(after) {
     const k = active(t, c);
     if (k < 0) return;
     hitSet.add(k);
-    if (S[k].kind === "mob") { hits++; sfx("push"); el.classList.add("rs-hit"); } else { wrong++; sfx("fumble"); el.classList.add("rs-bad"); }
-    setTimeout(() => el.classList.remove("rs-hit", "rs-bad"), 260);
+    const mob = S[k].kind === "mob";
+    if (mob) { hits++; sfx("push"); } else { wrong++; sfx("fumble"); }
+    el.dataset.kind = ""; el.replaceChildren(h("i", { class: `rs-fx ${mob ? "slash" : "bad"}` }));
     score.textContent = `처치 ${hits}${wrong ? ` · 헌터를 잘못 누름 ${wrong}` : ""}`;
   });
   async function finish() {
@@ -4679,14 +4933,14 @@ async function playRescue(after) {
     after?.();
   }
   info("구조 요청",
-    h("p", { class: "hint", style: "margin:0 0 12px" }, "다른 파티가 마물에게 둘러싸였습니다! 20초 동안 칸에 나타나는 마물(◆)만 눌러 처치하세요. 헌터(♟)를 누르면 안 됩니다. 마물을 60% 이상 처치하고 헌터를 1번까지만 잘못 누르면 소비 아이템 1개를 받습니다. 실패해도 무한 던전에는 영향이 없습니다."),
-    clock, grid, score, out);
+    h("p", { class: "hint", style: "margin:0 0 12px" }, "다른 파티가 마물에게 둘러싸였습니다! 20초 동안 칸에 나타나는 붉은 마물만 눌러 처치하세요. 손을 흔드는 파란 헌터는 누르면 안 됩니다. 칸 위의 흰 줄이 다 줄어들면 사라집니다. 마물을 60% 이상 처치하고 헌터를 1번까지만 잘못 누르면 소비 아이템 1개를 받습니다. 실패해도 무한 던전에는 영향이 없습니다."),
+    clock, timeBar, grid, score, out);
   let n = 3;
   const count = () => { if (n > 0) { clock.textContent = `${n}…`; n--; setTimeout(count, 700); } else { t0 = performance.now(); running = true; frame(); } };
   count();
 }
 
-window.__idMini = { playGate, playRescue };   // 화면 확인용
+window.__idMini = { playGate, playRescue, playFocus };   // 화면 확인용
 // 지역 안정화 화면 · 무한 던전 화면에 붙는 안내 칸
 async function miniCard(kind, after) {
   if (!released()) return null;
@@ -4704,6 +4958,353 @@ async function miniCard(kind, after) {
         h("p", { class: "hint", style: "margin:2px 0 0" }, (m.rescue > 0 ? "들어온 요청은 24시간 동안 남아 있습니다. " : "") + (next ? `다음 요청은 ${fmtAt(next)}쯤 들어옵니다.` : "무한 던전 진행 중 6시간마다 들어옵니다."))),
       m.rescue > 0 ? h("button", { class: "btn small", type: "button", onclick: () => playRescue(after) }, "구조하러 가기") : null));
   }
+  return box;
+}
+
+/* ===== 레이드 =====
+   한 테마로 한 주. 평일(월~금)에는 하루 한 번 개인 도전으로 보스 체력을 깎고, 깎은 만큼 포지션별 토벌 버프가 쌓인다.
+   주말(토·일 14시·22시)에는 최대 10명이 함께 토벌한다. 한 주가 끝났을 때 보스 체력이 0 이하면 성공. */
+const RAID_OPT = {
+  gallantry: ["갤런트리", "치명타 확률", 10, "%p"], scout: ["스카우트", "주는 피해", 15, "%"], vanguard: ["뱅가드", "회피 확률", 10, "%p"],
+  citadel: ["시타델", "받는 피해 감소", 15, "%"], catalyst: ["카탈리스트", "선호 스테이터스 보정", 10, "%"], artifice: ["아티피스", "보스 특화 능력 약화", 50, "%"],
+  recovery: ["리커버리", "보호막 (최대 HP에 추가)", 20, "%"], supply: ["서플라이", "여분 MP (최대 MP에 추가)", 20, "%"] };
+const RAID_SPECIAL = { fury: "광폭화", armor: "단단한 외피", sweep: "휩쓸기", drain: "마나 흡수", curse: "저주" };
+const RAID_SPECIAL_DESC = { fury: "시간이 지날수록 보스의 공격이 강해집니다.", armor: "보스에게 주는 피해가 줄어듭니다.", sweep: "광역 공격이 더 자주, 더 강하게 들어옵니다.",
+  drain: "헌터의 MP가 더 빨리 줄어듭니다.", curse: "회복 효과가 줄어듭니다." };
+const fmtN = n => Number(n || 0).toLocaleString();
+const fmtKDay = iso => new Date(iso).toLocaleString("ko-KR", { month: "numeric", day: "numeric", weekday: "short", hour: "numeric", minute: "2-digit", timeZone: "Asia/Seoul" });
+let raidSpeed = 1;
+
+async function renderRaid(body) {
+  const { data: r, error } = await sb.rpc("raid_state");
+  if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
+  const off = Date.parse(r.now) - Date.now();
+  const w = r.week;
+  if (!w) {
+    const before = Date.now() + off < Date.parse(r.open_at);
+    body.replaceChildren(
+      h("div", { class: "rd-hero" }, h("p", { class: "rd-kicker" }, "RAID"), h("h3", {}, before ? "레이드가 곧 시작됩니다" : "이번 주 레이드를 준비하고 있습니다"),
+        h("p", { class: "hint", style: "margin:0" }, before ? `${fmtKDay(r.open_at)}부터 매주 새로운 레이드 보스가 나타납니다.` : "레이드 보스가 정해지면 알림으로 알려 드립니다.")),
+      raidRules(),
+      r.last ? raidLastBox(r.last) : null);
+    if (before) maybeTour("regional-raid");
+    return;
+  }
+  const th = w.theme || {};
+  const now = Date.now() + off;
+  const run = r.run && r.run.status === "running" && Date.parse(r.run.ends_at) > now ? r.run : null;
+  const kids = [];
+  if (w.test) kids.push(h("p", { class: "rg-notice", style: "margin:0 0 10px;font-size:13px" }, "운영자 시험용 레이드 — 다른 헌터에게는 보이지 않습니다"));
+  const hpPct = w.max_hp > 0 ? Math.max(0, Math.min(100, w.hp / w.max_hp * 100)) : 0;
+  kids.push(h("div", { class: "rd-hero", "data-tour": "rd-boss" },
+    h("p", { class: "rd-kicker" }, `RAID · ${th.name || ""}`),
+    h("h3", {}, th.boss || "레이드 보스"),
+    th.description ? h("p", { class: "rd-desc" }, th.description) : null,
+    h("p", { class: "rd-special" }, h("b", {}, `특화 능력 · ${th.special_name || RAID_SPECIAL[th.special] || ""}`), " ", th.special_desc || RAID_SPECIAL_DESC[th.special] || ""),
+    h("div", { class: "rd-hp" }, h("div", { class: "rd-hp-bar" }, h("i", { style: `width:${hpPct}%` })),
+      h("div", { class: "rd-hp-txt" }, h("span", {}, w.hp > 0 ? "남은 체력" : "체력 소진 — 토벌 성공 확정"), h("b", {}, `${fmtN(Math.max(0, w.hp))} / ${fmtN(w.max_hp)}`))),
+    h("p", { class: "rd-phase" }, w.status === "settled" ? (w.result?.success ? "이번 레이드는 성공했습니다." : "이번 레이드는 실패했습니다.")
+      : w.phase === "weekday" ? "평일 — 개인 도전 기간입니다. 하루 한 번 도전해 보스 체력을 깎고 주말 토벌 버프를 쌓으세요."
+      : "주말 — 토벌 기간입니다. 토·일 오후 2시와 오후 10시에 열립니다.")));
+
+  if (run) kids.push(raidRunBox(run, w, off, () => renderRaid(body)));
+  else {
+    if (r.run && r.run.status !== "running" || (r.run && Date.parse(r.run.ends_at) <= now)) kids.push(raidDoneBox(r.run));
+    if (w.status === "open" && w.phase === "weekday") kids.push(raidChallengeBox(r, () => renderRaid(body)));
+    if (w.status === "open" && w.phase === "weekend") kids.push(raidSlotBox(r, off, () => renderRaid(body)));
+  }
+  if (w.status === "settled" && r.mine) kids.push(raidRewardBox(r.mine, w.result));
+  kids.push(raidBuffBox(w));
+  kids.push(raidMeBox(r));
+  if (r.last) kids.push(raidLastBox(r.last));
+  kids.push(raidRules(w.rewards));
+  body.replaceChildren(...kids);
+  maybeTour("regional-raid");
+}
+
+function raidChallengeBox(r, refresh) {
+  const c = r.challenge || {}, lv = r.level || 0;
+  const err = h("div", { class: "error", role: "alert" });
+  const why = lv < 5 ? "5레벨부터 참여할 수 있습니다" : c.done_today ? "오늘은 이미 도전했습니다" : r.busy ? "다른 활동이 끝난 뒤에 도전할 수 있습니다" : null;
+  const btn = h("button", { class: "btn block", type: "button", disabled: !c.can, "data-tour": "rd-go" }, why || "개인 도전 시작 (15~20분)");
+  btn.onclick = async () => {
+    err.textContent = "";
+    busy(btn, true, "준비 중…");
+    const { error } = await sb.rpc("raid_challenge", { p_speed: raidSpeed });
+    busy(btn, false);
+    if (error) return (err.textContent = koError(error));
+    sfx("push"); refresh();
+  };
+  const kids = [h("p", { class: "panel-title", style: "margin:0 0 6px" }, "개인 도전"),
+    h("p", { class: "hint", style: "margin:0 0 10px" }, "혼자 보스에게 맞섭니다. 준 피해만큼 보스 체력이 줄고, 내 포지션의 토벌 버프가 쌓입니다. 혼자일 때는 지원할 아군이 없어 지원 능력이 보스 피해로 바뀝니다."),
+    r.busy ? h("p", { class: "hint", style: "margin:0 0 8px" }, r.busy) : null];
+  if (state.profile?.is_admin) kids.push(adminSpeedSelect());
+  kids.push(err, btn);
+  return h("div", { class: "home-box rd-box" }, ...kids);
+}
+function adminSpeedSelect() {
+  const sel = h("select", { class: "input", "aria-label": "운영자 테스트 속도", style: "min-height:36px;margin-bottom:8px" },
+    h("option", { value: "1" }, "실시간"), h("option", { value: "60" }, "테스트 60배"), h("option", { value: "360" }, "테스트 360배"));
+  sel.value = String(raidSpeed);
+  sel.onchange = () => { raidSpeed = Number(sel.value); };
+  return sel;
+}
+
+function raidSlotBox(r, off, refresh) {
+  const now = Date.now() + off;
+  const kids = [h("p", { class: "panel-title", style: "margin:0 0 8px" }, "주말 토벌")];
+  kids.push(h("div", { class: "rd-slots" }, ...(r.slots || []).map(s => h("div", { class: `rd-slot ${s.state}` },
+    h("b", {}, `${s.no}회차`), h("span", {}, fmtKDay(s.at)),
+    h("small", {}, s.state === "open" ? "참여 가능" : s.state === "upcoming" ? "열리기 전" : "마감")))));
+  const sl = r.slot;
+  const err = h("div", { class: "error", role: "alert" });
+  if (!sl) {
+    kids.push(h("p", { class: "hint", style: "margin:8px 0 0" }, "지금 열린 회차가 없습니다. 회차가 열리면 1시간 동안 참여할 수 있습니다."));
+    return h("div", { class: "home-box rd-box", "data-tour": "rd-slots" }, ...kids);
+  }
+  const g = sl.group;
+  if (g && g.status === "waiting") {
+    const n = g.members?.length || 0;
+    const auto = Date.parse(sl.auto_at);
+    kids.push(h("div", { class: "rd-group" },
+      h("p", { style: "margin:0 0 6px;font-weight:700" }, `토벌대 ${n} / 10명 모임`),
+      h("p", { class: "hint", style: "margin:0 0 8px" }, n >= 10 ? "곧 출발합니다." : now < auto
+        ? `10명이 모이면 바로, ${fmtTime(sl.auto_at)}부터는 5명 이상이면 출발합니다.`
+        : n >= 5 ? "곧 출발합니다." : `5명이 모이면 출발합니다. ${fmtTime(sl.closes_at)}까지 모이지 않으면 취소됩니다.`),
+      h("div", { class: "rd-members" }, ...(g.members || []).map(m => {
+        const av = h("span", { class: "avatar sm" }); avatarEl(av, { url: m.avatar_url, color: m.avatar_color, name: m.codename });
+        return h("span", { class: `rd-mem${m.me ? " me" : ""}` }, av, h("b", {}, m.codename), h("small", {}, `Lv.${m.level} · ${POSITIONS[m.position]?.[m.option]?.name || ""}`));
+      })),
+      h("div", { style: "display:flex;gap:8px;margin-top:10px;flex-wrap:wrap" },
+        h("button", { class: "btn ghost small", type: "button", onclick: async () => {
+          const { error } = await sb.rpc("raid_leave"); if (error) return (err.textContent = koError(error)); refresh(); } }, "대기 그만두기"),
+        g.test ? h("button", { class: "btn small", type: "button", onclick: async () => {
+          const { error } = await sb.rpc("raid_admin_test", { p_action: "start" }); if (error) return (err.textContent = koError(error)); refresh(); } }, "지금 출발 (시험용)") : null),
+      err));
+    return h("div", { class: "home-box rd-box", "data-tour": "rd-slots" }, ...kids);
+  }
+  const lv = r.level || 0;
+  const why = lv < 5 ? "5레벨부터 참여할 수 있습니다" : g ? "이번 회차에는 이미 참여했습니다" : r.busy ? "다른 활동이 끝난 뒤에 참여할 수 있습니다" : null;
+  const btn = h("button", { class: "btn block", type: "button", disabled: !!why }, why || "토벌 참여");
+  btn.onclick = async () => {
+    err.textContent = "";
+    busy(btn, true, "참여하는 중…");
+    const { error } = await sb.rpc("raid_join", { p_speed: raidSpeed });
+    busy(btn, false);
+    if (error) return (err.textContent = koError(error));
+    sfx("push"); refresh();
+  };
+  kids.push(h("p", { class: "hint", style: "margin:8px 0" }, `${fmtTime(sl.at)} 회차가 열려 있습니다 (${fmtTime(sl.closes_at)}까지). 지금 기다리는 헌터 ${sl.waiting}명 · 출발한 헌터 ${sl.joined}명`),
+    r.busy ? h("p", { class: "hint", style: "margin:0 0 8px" }, r.busy) : null);
+  if (state.profile?.is_admin && r.week?.test) kids.push(adminSpeedSelect());
+  kids.push(err, btn);
+  return h("div", { class: "home-box rd-box", "data-tour": "rd-slots" }, ...kids);
+}
+
+function raidRunBox(run, w, off, refresh) {
+  const start = Date.parse(run.started_at), end = Date.parse(run.ends_at);
+  const bar = h("i", { style: "width:0%" });
+  const left = h("span", { class: "hint" });
+  const bars = h("div", {});
+  const list = h("ol", { class: "dg-log", "aria-live": "polite" });
+  const dealtEl = h("b", {});
+  let shown = 0, timer = null;
+  const ev = run.log || [];
+  const before = w.dealt;   // 이 판의 피해는 끝나야 보스 체력에 반영된다
+  function paint() {
+    const now = Date.now() + off;
+    if (!document.body.contains(box)) return clearInterval(timer);
+    bar.style.width = Math.min(100, (now - start) / (end - start) * 100) + "%";
+    left.textContent = now < end ? `남은 시간 ${fmtDur(end - now)}` : "전투 종료";
+    const vis = ev.filter(e => Date.parse(e.at) <= now);
+    const nearBottom = list.scrollTop + list.clientHeight >= list.scrollHeight - 40;
+    for (const e of vis.slice(shown)) list.append(h("li", { class: `ev ev-${e.type}${e.boss ? " ev-boss" : ""}` }, h("time", {}, fmtTime(e.at)), h("span", {}, e.text)));
+    if (vis.length > shown && nearBottom) list.scrollTop = list.scrollHeight;
+    shown = vis.length;
+    const lastAct = [...vis].reverse().find(e => e.party);
+    const dealt = lastAct?.dealt || 0;
+    dealtEl.textContent = fmtN(dealt);
+    const party = lastAct?.party || (run.kind === "raid" ? (run.members || []).map(m => ({ n: m.name, hp: 1, mhp: 1 })) : [{ n: state.profile?.codename || "나", ...(myStartBars() || {}) }]);
+    bars.replaceChildren(battleBars({ party, foes: [{ n: w.theme?.boss || "레이드 보스", boss: true, hp: Math.max(0, w.max_hp - before - dealt), max: w.max_hp }] }, state.profile?.codename || "나"));
+    if (now >= end) { clearInterval(timer); sfx("notice"); setTimeout(refresh, 1500); }
+  }
+  const box = h("div", { class: "home-box rd-box" },
+    h("div", { class: "dg-head" }, h("div", {}, h("strong", {}, run.kind === "raid" ? `토벌 · ${run.members?.length || 1}명` : "개인 도전"),
+      run.speed > 1 ? h("span", { class: "badge", style: "margin-left:6px" }, `테스트 ${run.speed}배`) : null), left),
+    h("div", { class: "bar" }, bar),
+    h("p", { class: "hint", style: "margin:8px 0" }, "이번 전투에서 보스에게 준 피해 ", dealtEl),
+    bars, list,
+    h("p", { class: "hint", style: "margin:8px 0 0" }, "전투가 끝나면 준 피해가 보스 체력에 반영됩니다. 전투 중에는 무한 던전·지역 안정화·탐색·별의 무덤·별의 제단에 들어갈 수 없습니다."));
+  setTimeout(() => { paint(); timer = setInterval(paint, 1000); dgTimer = timer; }, 0);
+  return box;
+}
+
+function raidDoneBox(run) {
+  if (!run) return null;
+  return h("div", { class: "home-box rd-box" },
+    h("p", { class: "panel-title", style: "margin:0 0 6px" }, run.kind === "raid" ? "지난 토벌 결과" : "지난 개인 도전 결과"),
+    h("div", { class: "kv" }, h("span", {}, "보스에게 준 피해"), h("b", {}, fmtN(run.dmg))),
+    h("div", { class: "kv" }, h("span", {}, "기여도"), h("b", {}, fmtN(run.contrib))),
+    run.kind === "raid" && run.members?.length > 1 ? h("details", { style: "margin-top:8px" }, h("summary", {}, "토벌대 기여도"),
+      h("div", {}, ...[...run.members].sort((a, b) => b.contrib - a.contrib).map(m =>
+        h("div", { class: "kv" }, h("span", {}, m.name, m.alive ? "" : " (쓰러짐)"), h("span", {}, fmtN(Math.round(m.contrib))))))) : null);
+}
+
+function raidBuffBox(w) {
+  const b = w.buffs || {};
+  return h("div", { class: "home-box rd-box", "data-tour": "rd-buffs" },
+    h("p", { class: "panel-title", style: "margin:0 0 4px" }, "주말 토벌 버프"),
+    h("p", { class: "hint", style: "margin:0 0 10px" }, "평일 개인 도전에서 포지션별로 보스에게 준 피해만큼 차오릅니다. 서브 포지션은 절반만큼 보탭니다. 토벌에 나서는 모든 헌터에게 적용됩니다."),
+    h("div", { class: "rd-buffs" }, ...Object.entries(RAID_OPT).map(([k, [nm, eff, max, unit]]) => {
+      const f = Math.max(0, Math.min(1, Number(b[k] || 0)));
+      const v = Math.round(max * f * 10) / 10;
+      return h("div", { class: "rd-buff" + (f >= 1 ? " full" : "") },
+        h("div", { class: "rd-buff-top" }, h("b", {}, nm), h("span", {}, `${eff} ${k === "citadel" || k === "artifice" ? "-" : "+"}${v}${unit}`)),
+        h("div", { class: "gauge" }, h("i", { style: `width:${f * 100}%` })));
+    })));
+}
+
+function raidMeBox(r) {
+  const me = r.me || {};
+  return h("div", { class: "home-box rd-box", "data-tour": "rd-rank" },
+    h("p", { class: "panel-title", style: "margin:0 0 6px" }, "이번 주 기여도"),
+    h("div", { class: "kv" }, h("span", {}, "내 기여도"), h("b", {}, fmtN(me.contrib))),
+    h("div", { class: "kv" }, h("span", {}, "참여"), h("span", {}, `개인 도전 ${me.challenges || 0}번 · 토벌 ${me.raids || 0}번`)),
+    r.ranking?.length ? h("ol", { class: "rd-rank" }, ...r.ranking.map((q, i) => {
+      const av = h("span", { class: "avatar sm" }); avatarEl(av, { url: q.avatar_url, color: q.avatar_color, name: q.codename });
+      return h("li", { class: q.codename === state.profile?.codename ? "me" : null }, h("span", { class: "rk" }, String(i + 1)), av, h("b", {}, q.codename), h("span", {}, fmtN(q.contrib)));
+    })) : h("p", { class: "hint", style: "margin:8px 0 0" }, "아직 참여한 헌터가 없습니다."),
+    h("p", { class: "hint", style: "margin:8px 0 0" }, "기여도는 포지션과 상관없이 헌터 자신의 능력으로 보스에게 준 피해로 매깁니다. 같은 능력이면 어떤 포지션이든 비슷한 기여도를 얻습니다."));
+}
+
+function raidRewardBox(mine, res) {
+  return h("div", { class: "home-box rd-box" },
+    h("p", { class: "panel-title", style: "margin:0 0 6px" }, res?.success ? "레이드 성공 보상" : "참여 보상"),
+    h("div", { class: "kv" }, h("span", {}, "기여도 순위"), h("b", {}, `${mine.rank}위 / ${res?.participants || "-"}명`)),
+    h("div", { class: "kv" }, h("span", {}, "가능성"), h("span", {}, `+${fmtN(mine.pot)}`)),
+    h("div", { class: "kv" }, h("span", {}, "메헨"), h("span", {}, `+${fmtN(mine.cur)} Mh`)),
+    mine.items?.length ? h("div", { class: "kv" }, h("span", {}, "아이템"), h("span", {}, mine.items.map(i => `${i.name} ×${i.qty}`).join(", "))) : null,
+    res?.granted === false ? h("p", { class: "hint", style: "margin:6px 0 0" }, "시험용 레이드라 실제로 지급하지는 않았습니다.") : null);
+}
+
+function raidLastBox(l) {
+  return h("div", { class: "home-box rd-box" },
+    h("p", { class: "panel-title", style: "margin:0 0 6px" }, "지난 레이드"),
+    h("div", { class: "kv" }, h("span", {}, l.boss || "-"), h("b", { class: l.success ? "ok-text" : null }, l.success ? "토벌 성공" : "토벌 실패")),
+    h("div", { class: "kv" }, h("span", {}, "준 피해 / 보스 체력"), h("span", {}, `${fmtN(l.dealt)} / ${fmtN(l.max_hp)}`)),
+    h("div", { class: "kv" }, h("span", {}, "참여 헌터"), h("span", {}, `${l.participants || 0}명`)),
+    l.mine ? h("div", { class: "kv" }, h("span", {}, "내 순위"), h("span", {}, `${l.mine.rank}위 · 기여도 ${fmtN(l.mine.contrib)}`)) : null);
+}
+
+function raidRules(rw) {
+  const rwText = x => x ? [x.pot ? `가능성 ${fmtN(x.pot)}` : null, x.cur ? `메헨 ${fmtN(x.cur)}` : null, ...(x.items || []).map(i => `${i.name || i.code} ×${i.qty}`)].filter(Boolean).join(" · ") : "";
+  return h("details", { class: "home-box rd-box", "data-tour": "rd-rules" },
+    h("summary", { class: "panel-title", style: "cursor:pointer" }, "레이드 규칙"),
+    h("ul", { class: "hint", style: "margin:8px 0 0;padding-left:18px;line-height:1.7" },
+      h("li", {}, "한 테마로 한 주(월~일) 동안 진행합니다. 5레벨부터 참여할 수 있습니다."),
+      h("li", {}, "평일에는 하루 한 번 개인 도전을 할 수 있습니다. 15~20분 동안 혼자 보스와 싸웁니다."),
+      h("li", {}, "개인 도전으로 깎은 피해만큼 내 포지션의 주말 토벌 버프가 차오릅니다."),
+      h("li", {}, "토·일 오후 2시와 오후 10시, 모두 4번 토벌이 열립니다. 회차마다 한 번씩 참여할 수 있고, 한 토벌대는 최대 10명입니다."),
+      h("li", {}, "10명이 모이면 바로, 회차가 열리고 10분이 지나면 5명 이상일 때 출발합니다. 1시간 안에 5명이 모이지 않으면 취소됩니다."),
+      h("li", {}, "도전과 토벌 중에는 무한 던전·지역 안정화 같은 공략에 들어갈 수 없습니다."),
+      h("li", {}, "모든 도전과 토벌이 끝난 뒤 보스 체력이 0 이하면 성공입니다. 성공하면 기여도에 따라 보상을, 실패하면 참여 보상만 받습니다."),
+      rw && (rwText(rw.join) || rwText(rw.win)) ? h("li", {}, `참여 보상: ${rwText(rw.join) || "없음"}`) : null,
+      rw && rwText(rw.win) ? h("li", {}, `성공 보상(평균 기여도 기준, 기여도에 따라 늘고 줄어듭니다): ${rwText(rw.win)}`) : null));
+}
+
+/* 운영: 레이드 테마 · 보상 · 시험 */
+function adminRaidSection() {
+  const box = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
+  let A = null;
+  const SPECIALS = Object.entries(RAID_SPECIAL);
+  async function load(data) {
+    if (!data) { const res = await sb.rpc("raid_admin"); if (res.error) return box.replaceChildren(h("p", { class: "error" }, koError(res.error))); data = res.data; }
+    A = data; paint();
+  }
+  function itemRows(list) {
+    const wrap = h("div", { class: "rd-items" });
+    const add = (code = "", qty = 1) => {
+      const sel = h("select", { class: "input" }, h("option", { value: "" }, "아이템 고르기"), ...(A.items || []).map(i => h("option", { value: i.code }, i.name)));
+      sel.value = code;
+      const q = h("input", { class: "input", type: "number", min: "1", max: "99", value: String(qty), style: "width:80px" });
+      const row = h("div", { class: "rd-item-row" }, sel, q, h("button", { class: "btn ghost small", type: "button", onclick: () => row.remove() }, "빼기"));
+      wrap.append(row);
+    };
+    (list || []).forEach(i => add(i.code, i.qty));
+    const addBtn = h("button", { class: "btn ghost small", type: "button", onclick: () => add() }, "+ 아이템");
+    return { el: h("div", {}, wrap, addBtn), read: () => [...wrap.querySelectorAll(".rd-item-row")].map(r => ({ code: r.querySelector("select").value, qty: Number(r.querySelector("input").value) })).filter(i => i.code) };
+  }
+  function editor(t) {
+    t = t || { name: "", boss: "", description: "", special: "fury", special_name: "", special_desc: "", power: 1, rewards: { join: { pot: 0, cur: 0, items: [] }, win: { pot: 0, cur: 0, items: [] } } };
+    const f = (label, el) => h("div", { class: "field", style: "margin:0 0 8px" }, h("label", {}, label), el);
+    const name = h("input", { class: "input", maxlength: "40", value: t.name });
+    const boss = h("input", { class: "input", maxlength: "40", value: t.boss });
+    const desc = h("textarea", { class: "input", maxlength: "1000", rows: "3" }, t.description || "");
+    const sp = h("select", { class: "input" }, ...SPECIALS.map(([k, v]) => h("option", { value: k }, `${v} — ${RAID_SPECIAL_DESC[k]}`)));
+    sp.value = t.special;
+    const spn = h("input", { class: "input", maxlength: "30", value: t.special_name, placeholder: "비우면 기본 이름" });
+    const spd = h("input", { class: "input", maxlength: "300", value: t.special_desc, placeholder: "비우면 기본 설명" });
+    const pw = h("input", { class: "input", type: "number", min: "0.5", max: "2", step: "0.05", value: String(t.power ?? 1) });
+    const num = v => h("input", { class: "input", type: "number", min: "0", step: "1", value: String(v || 0) });
+    const jp = num(t.rewards?.join?.pot), jc = num(t.rewards?.join?.cur), wp = num(t.rewards?.win?.pot), wc = num(t.rewards?.win?.cur);
+    const ji = itemRows(t.rewards?.join?.items), wi = itemRows(t.rewards?.win?.items);
+    const err = h("div", { class: "error", role: "alert" });
+    const save = h("button", { class: "btn", type: "button" }, t.id ? "테마 저장" : "테마 추가");
+    save.onclick = async () => {
+      err.textContent = ""; busy(save, true);
+      const { data, error } = await sb.rpc("raid_theme_save", { p: { id: t.id || null, name: name.value, boss: boss.value, description: desc.value, special: sp.value,
+        special_name: spn.value, special_desc: spd.value, power: Number(pw.value),
+        rewards: { join: { pot: Number(jp.value), cur: Number(jc.value), items: ji.read() }, win: { pot: Number(wp.value), cur: Number(wc.value), items: wi.read() } } } });
+      busy(save, false);
+      if (error) return (err.textContent = koError(error));
+      toast("저장했습니다."); load(data);
+    };
+    return h("div", { class: "rd-editor" },
+      f("테마 이름", name), f("보스 이름", boss), f("설명", desc), f("특화 능력", sp),
+      h("div", { class: "rd-2col" }, f("특화 능력 이름", spn), f("보스 위력 (1이 기본)", pw)), f("특화 능력 설명", spd),
+      h("p", { class: "panel-title", style: "margin:12px 0 6px" }, "참여 보상 (성공·실패와 상관없이 모두)"),
+      h("div", { class: "rd-2col" }, f("가능성", jp), f("메헨", jc)), ji.el,
+      h("p", { class: "panel-title", style: "margin:12px 0 6px" }, "성공 보상 (평균 기여도 = 이만큼, 기여도에 비례해 최대 3배)"),
+      h("div", { class: "rd-2col" }, f("가능성", wp), f("메헨", wc)), wi.el,
+      err, h("div", { style: "display:flex;gap:8px;margin-top:10px" }, save,
+        t.id ? h("button", { class: "btn ghost", type: "button", onclick: async () => {
+          if (!confirm(`'${t.name}' 테마를 지울까요?`)) return;
+          const { data, error } = await sb.rpc("raid_theme_delete", { p_id: t.id }); if (error) return toast(koError(error)); load(data); } }, "지우기") : null));
+  }
+  function paint() {
+    const edit = h("div", {});
+    const test = A.test;
+    const tsel = h("select", { class: "input" }, ...(A.themes || []).map(t => h("option", { value: String(t.id) }, `${t.name} — ${t.boss}`)));
+    const thp = h("input", { class: "input", type: "number", min: "1000", step: "1000", placeholder: `비우면 ${fmtN(A.size?.hp)}` });
+    const act = async (a, arg = {}) => { const { data, error } = await sb.rpc("raid_admin_test", { p_action: a, p_arg: arg }); if (error) return toast(koError(error)); toast("반영했습니다."); load(data); };
+    box.replaceChildren(
+      h("p", { class: "hint", style: "margin:0 0 8px" }, `레이드는 ${fmtKDay("2026-11-16T00:00:00+09:00")}부터 열립니다. 매주 월요일 0시에 아직 안 쓴(또는 가장 오래전에 쓴) 테마가 정해집니다. 지금 기준 첫 보스 체력은 약 ${fmtN(A.size?.hp)} (5레벨 이상 헌터 ${A.size?.eligible}명)입니다.`),
+      h("table", { class: "list" }, h("thead", {}, h("tr", {}, h("th", {}, "테마"), h("th", {}, "보스"), h("th", {}, "쓴 주"), h("th", {}, ""))),
+        h("tbody", {}, ...(A.themes || []).map(t => h("tr", {}, h("td", {}, t.name), h("td", {}, t.boss), h("td", {}, (t.used || []).join(", ") || "-"),
+          h("td", {}, h("button", { class: "btn ghost small", type: "button", onclick: () => { edit.replaceChildren(editor(t)); edit.scrollIntoView({ block: "nearest" }); } }, "고치기")))))),
+      h("button", { class: "btn ghost small", type: "button", style: "margin:8px 0", onclick: () => edit.replaceChildren(editor(null)) }, "+ 새 테마"),
+      edit,
+      A.weeks?.length ? h("details", { style: "margin:12px 0" }, h("summary", {}, "지난 레이드 기록"),
+        h("table", { class: "list" }, h("tbody", {}, ...A.weeks.map(x => h("tr", {}, h("td", {}, x.week_start), h("td", {}, x.boss || "(테마 없음)"),
+          h("td", {}, `${fmtN(x.dealt)} / ${fmtN(x.max_hp)}`), h("td", {}, x.status === "settled" ? (x.success ? "성공" : "실패") + ` · ${x.participants}명` : "진행 중")))))) : null,
+      h("p", { class: "panel-title", style: "margin:16px 0 6px" }, "시험용 레이드"),
+      h("p", { class: "hint", style: "margin:0 0 8px" }, "운영자에게만 보이는 레이드를 만들어 지역 안정화 › 레이드에서 직접 해 볼 수 있습니다. 평일·주말을 바꾸고, 토벌 회차를 지금 열고, 혼자서도 출발시킬 수 있습니다. 정산해도 보상은 실제로 지급하지 않습니다."),
+      test ? h("div", { class: "rd-box", style: "margin-bottom:8px" },
+        h("div", { class: "kv" }, h("span", {}, "보스"), h("b", {}, test.theme)),
+        h("div", { class: "kv" }, h("span", {}, "체력"), h("span", {}, `${fmtN(test.max_hp - test.dealt)} / ${fmtN(test.max_hp)}`)),
+        h("div", { class: "kv" }, h("span", {}, "상태"), h("span", {}, test.status === "settled" ? `정산됨 · ${test.result?.success ? "성공" : "실패"}` : test.phase === "weekday" ? "평일(개인 도전)" : "주말(토벌)")),
+        h("div", { style: "display:flex;gap:6px;flex-wrap:wrap;margin-top:8px" },
+          h("button", { class: "btn ghost small", type: "button", onclick: () => act("phase", { phase: "weekday" }) }, "평일로"),
+          h("button", { class: "btn ghost small", type: "button", onclick: () => act("phase", { phase: "weekend" }) }, "주말로"),
+          h("button", { class: "btn ghost small", type: "button", onclick: () => act("slot") }, "토벌 회차 지금 열기"),
+          h("button", { class: "btn ghost small", type: "button", onclick: () => act("settle") }, "정산해 보기"),
+          h("button", { class: "btn ghost small", type: "button", onclick: () => confirm("시험용 레이드를 지울까요?") && act("delete") }, "지우기"))) : null,
+      A.themes?.length ? h("div", { style: "display:grid;grid-template-columns:1fr 160px auto;gap:8px;align-items:end" },
+        h("div", { class: "field", style: "margin:0" }, h("label", {}, "테마"), tsel), h("div", { class: "field", style: "margin:0" }, h("label", {}, "보스 체력"), thp),
+        h("button", { class: "btn small", type: "button", onclick: () => act("create", { theme_id: Number(tsel.value), ...(thp.value ? { hp: Number(thp.value) } : {}) }) }, test ? "새로 만들기" : "만들기"))
+        : h("p", { class: "hint" }, "테마를 먼저 추가해 주세요."));
+  }
+  load();
   return box;
 }
 
@@ -5964,6 +6565,8 @@ async function renderAdmin(pane) {
     h("p", { class: "panel-title", style: "margin:16px 0 8px" }, "헌터 조회"),
     h("p", { class: "hint", style: "margin:0 0 10px" }, "헌터의 스탯(분배·장비 포함), 포지션, 최근 공략과 공략마다 받은 피해를 확인합니다. 파티 공략은 같은 판의 파티원과 나란히 보여 줍니다."),
     adminHunterSection(),
+    h("p", { class: "panel-title", style: "margin:24px 0 8px" }, "레이드"),
+    adminRaidSection(),
     h("p", { class: "panel-title", style: "margin:24px 0 8px" }, "신고 처리"),
     adminReportsSection(),
     h("p", { class: "panel-title", style: "margin:16px 0 8px" }, "가능성 획득률"),
@@ -6252,6 +6855,9 @@ const DOCS = {
 <li><b>DEF</b> — 외부 충격을 얼마나 상쇄할 수 있는지에 대한 척도로, 기본 10으로 시작하며 스탯 1 포인트 당 1이 오릅니다.</li>
 <li><b>LUK</b> — 이능력을 얼마나 적재적소에 사용할 수 있는지에 대한 척도로, 높을수록 치명타 확률이 증가합니다. 던전에서 함정을 만날 경우, 해당 확률에 따라 회피할 수 있습니다. 기본 5로 시작하며 스탯 1포인트 당 1이 오릅니다.</li>
 </ol>
+<h3>분석 집중</h3>
+<p>홈의 전력 분석이 진행되는 동안 <b>분석 한 번에 한 번</b> [분석 집중]을 할 수 있습니다. 막대 위를 오가는 푸른 표시가 금빛 구간에 들어왔을 때 누르며, 가운데 밝은 부분이면 '완벽'입니다.</p>
+<p>모두 5번 누르며 갈수록 구간이 좁아지고 빨라집니다. 잘 맞힐수록 남은 분석 시간이 줄어들고, 분석 시간에 걸맞은 가능성을 조금 받습니다. 줄어든 시간도 분석한 시간으로 그대로 인정됩니다.</p>
 </article>
 
 <article class="card prose" id="g-pos">
@@ -6308,6 +6914,19 @@ const DOCS = {
 <h3>구조 요청</h3>
 <p>전투로 진입해 있는 동안 <b>6시간마다 다른 파티의 [구조 요청]</b>이 들어옵니다. 무한 던전 화면에서 [구조하러 가기]를 누르면 20초 동안 3×3 칸에 마물과 헌터가 번갈아 나타나며, <b>마물만 눌러 처치</b>해야 합니다.</p>
 <p>마물을 60% 이상 처치하고 헌터를 1번까지만 잘못 누르면 감사의 선물로 소비 아이템 1개를 받습니다. 구조에 실패하거나 요청을 놓쳐도 무한 던전 공략에는 아무 영향이 없으며, 들어온 요청은 24시간 동안 남아 있습니다.</p>
+<h3>레이드</h3>
+<p>11월 16일부터 매주 한 명의 레이드 보스가 나타납니다. 한 주(월~일) 동안 모든 헌터가 힘을 모아 보스의 체력을 깎으며, <b>5레벨 이상</b>이면 참여할 수 있습니다. 지역 안정화 화면의 [레이드]에서 확인할 수 있습니다.</p>
+<p><b>평일(월~금)</b>에는 하루 한 번 <b>개인 도전</b>을 할 수 있습니다. 15~20분 동안 혼자 보스와 싸우며, 혼자일 때는 지원할 아군이 없어 지원 능력이 보스 피해로 바뀝니다. 개인 도전으로 준 피해만큼 보스 체력이 줄고, 헌터님 포지션의 <b>주말 토벌 버프</b>가 차오릅니다(서브 포지션은 절반만큼 보탭니다).</p>
+<ul>
+<li>갤런트리 — 치명타 확률 증가 · 스카우트 — 주는 피해 증가</li>
+<li>뱅가드 — 회피 확률 증가 · 시타델 — 받는 피해 감소</li>
+<li>카탈리스트 — 선호 스테이터스 보정 · 아티피스 — 레이드 보스의 특화 능력 약화</li>
+<li>리커버리 — 보호막(최대 HP 위에 더해지는 HP) · 서플라이 — 여분 MP(최대 MP 위에 더해지는 MP)</li>
+</ul>
+<p><b>주말(토·일)</b>에는 오후 2시와 오후 10시, 모두 4번 <b>토벌</b>이 열립니다. 회차가 열리면 1시간 동안 참여할 수 있고, 회차마다 한 번씩 참여할 수 있습니다. 한 토벌대는 최대 10명이며, 10명이 모이면 바로, 회차가 열리고 10분이 지나면 5명 이상일 때 출발합니다. 1시간 안에 5명이 모이지 않으면 그 토벌대는 취소됩니다.</p>
+<p>도전과 토벌은 공략으로 치기 때문에, 그동안에는 무한 던전·지역 안정화·탐색·별의 무덤·별의 제단에 들어갈 수 없습니다. 토벌을 기다리는 동안도 마찬가지이며, 대기를 그만두면 바로 들어갈 수 있습니다.</p>
+<p>기여도는 포지션과 상관없이 <b>헌터님 자신의 능력으로 보스에게 준 피해</b>로 매깁니다. 아군을 돕는 효과는 함께 싸우는 헌터의 기여도를 깎지 않고 토벌 전체를 돕습니다. 같은 능력이라면 어떤 포지션이든 비슷한 기여도를 얻습니다.</p>
+<p>한 주의 모든 도전과 토벌이 끝난 뒤 <b>보스 체력이 0 이하면 레이드 성공</b>입니다. 성공하면 참여 보상과 함께 기여도에 따른 성공 보상을, 실패하면 참여 보상만 받습니다. 보스의 위력은 지난 레이드의 결과에 맞춰 매주 달라집니다.</p>
 <h3>별의 제단</h3>
 <p>별의 무덤 깊은 곳에서 발견된 제단입니다. <b>20레벨 이상, 그날 별의 무덤을 한 번 다녀온 헌터만 하루 1번</b> 들어갈 수 있으며, 8+(레벨÷5)칸을 이동합니다.</p>
 <p>지도에는 처음부터 <b>제단 4개</b>가 보입니다. 제단에 닿으면 별가루 3~5개와 별조각 사탕·은하수 이슬·마석 중 하나를 받고, <b>4개를 모두 봉헌하면 맥동하는 마석</b>을 더 받습니다.</p>
@@ -6336,8 +6955,8 @@ const DOCS = {
 <p>대기실 채팅은 대기실에 있는 헌터에게만 보이며, 출발하면 사라집니다.</p>
 <p>파티에 있는 경우에는 대기실 대신 파티장이 파티로 출발합니다.</p>
 <h3>게이트 봉합</h3>
-<p>지역 안정화 결과를 받을 때마다 작은 균열이 하나씩 남습니다(최대 5개까지 쌓입니다). 지역 안정화 화면의 [게이트 봉합]을 누르면, 막대 위를 오가는 표시가 <b>금빛 구간에 들어왔을 때 눌러</b> 균열을 닫습니다.</p>
-<p>모두 5번 누르며 갈수록 구간이 좁아지고 빨라집니다. 가운데 밝은 부분이면 '완벽'입니다. 결과에 따라 극소량의 가능성을 받고, 3번 이상 맞히면 달콤열매·새콤열매·청정수 중 1개를 받습니다.</p>
+<p>지역 안정화 결과를 받을 때마다 작은 균열이 하나씩 남습니다(최대 5개까지 쌓입니다). 지역 안정화 화면의 [게이트 봉합]을 누르면 균열이 나타나며, <b>빛나는 끝점 한 곳을 누른 채 손을 떼지 않고 반대쪽 끝까지 따라 그어</b> 꿰매어 닫습니다.</p>
+<p>처음 누른 순간부터 제한 시간이 흐르고, 손을 떼면 그 자리에서 끝납니다. 균열을 덮은 정도와 균열에서 벗어나지 않은 정도에 따라 극소량의 가능성을 받고, 균열을 거의 다 덮고 많이 벗어나지 않으면 봉합에 성공해 달콤열매·새콤열매·청정수 중 1개를 받습니다.</p>
 </article>
 
 <article class="card prose" id="g-union">
@@ -6637,7 +7256,7 @@ const BGM_TRACKS = {
 };
 // 페이지마다 자동으로 트는 곡 (여러 곡이면 순서대로 돌며 반복). 없는 페이지는 지금 곡을 이어서 튼다.
 const BGM_PAGES = {
-  home: ["deltoton"], "dungeon-battle": ["variant"], "dungeon-explore": ["psyche"], "dungeon-star": ["guardianoftheboundary"], "dungeon-altar": ["guardianoftheboundary"],
+  home: ["deltoton"], "dungeon-battle": ["variant"], "dungeon-explore": ["psyche"], "dungeon-star": ["guardianoftheboundary"], "dungeon-altar": ["guardianoftheboundary"], "regional-raid": ["guardianoftheboundary"],
   regional: ["rusty", "dansemacabre"], union: ["mayday"], inventory: ["mayday"], friends: ["connect"],
 };
 const bgm = { audio: new Audio(), list: [], idx: 0, page: null, loaded: null, loading: false, missing: false, urls: {},
@@ -7084,6 +7703,13 @@ const TOURS = {
       ...["cur", "pot", "mat", "item", "gear"].map(k => h("span", {}, h("b", {}, EX_MARK[k][0]), EX_MARK[k][1]))) },
     { text: "유한함과 마주치면 그 자리에서 탐색이 종료됩니다.\n그 전까지 습득한 재료는 가져가실 수 있습니다.", art: () => h("div", { class: "tour-legend" }, h("span", { class: "bad" }, h("b", {}, "!"), "유한함")) },
     { sel: '[data-tour="ex-start"]', text: "이동은 방향 버튼, 키보드 방향키, 또는 지도 위 움직일 수 있는 칸을 선택하여 가능합니다.\n그럼 무사히 다녀오시길 바랍니다." },
+  ],
+  "regional-raid": [
+    { text: "매주 한 명의 레이드 보스가 나타납니다.\n헌터님들이 한 주 동안 힘을 모아 보스의 체력을 모두 깎아 내면 레이드 성공입니다. 5레벨부터 참여할 수 있습니다." },
+    { sel: '[data-tour="rd-boss"]', text: "이번 주 보스와 특화 능력, 남은 체력입니다.\n특화 능력은 아티피스 버프가 차오를수록 약해집니다." },
+    { sel: '[data-tour="rd-buffs"]', text: "평일에는 하루 한 번 개인 도전을 할 수 있습니다.\n개인 도전으로 보스에게 준 피해만큼, 헌터님 포지션의 주말 토벌 버프가 차오릅니다." },
+    { text: "토·일 오후 2시와 오후 10시에 토벌이 열립니다. 최대 10명이 함께 싸우며, 회차마다 한 번씩 참여할 수 있습니다.\n도전과 토벌은 공략으로 치기 때문에 그동안 무한 던전·지역 안정화에는 들어갈 수 없습니다." },
+    { sel: '[data-tour="rd-rank"]', text: "기여도는 포지션과 상관없이 헌터님의 능력으로 보스에게 준 피해로 매겨집니다.\n레이드에 성공하면 기여도에 따라 보상을, 실패하면 참여 보상을 받습니다." },
   ],
   "dungeon-altar": [
     { text: "별의 무덤 깊은 곳에서 별빛을 바치는 제단이 발견되었습니다.\n20레벨 이상, 오늘 별의 무덤을 한 번 다녀온 헌터만 들어갈 수 있습니다." },
