@@ -82,6 +82,7 @@ body {
   background: transparent; color: var(--text);
   font-family: "IBM Plex Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   font-size: 16px; line-height: 1.55;
+  word-break: keep-all; overflow-wrap: anywhere;   /* 한글 낱말이 줄 끝에서 쪼개지지 않게 */
 }
 button, input, select, textarea { font: inherit; color: inherit; }
 a { color: var(--accent-text); }
@@ -98,7 +99,7 @@ a { color: var(--accent-text); }
 .btn:disabled { opacity: .5; cursor: default; filter: none; }
 .btn.ghost { background: transparent; color: var(--text); border-color: var(--border); }
 .btn.ghost:hover { background: var(--surface-2); }
-.btn.small { min-height: 36px; padding: 0 12px; font-size: 15px; }
+.btn.small { min-height: 36px; padding: 0 12px; font-size: 15px; white-space: nowrap; }
 .btn.block { width: 100%; }
 .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
 .field label { font-size: 14px; font-weight: 700; color: var(--text-dim); }
@@ -152,7 +153,8 @@ textarea.input { min-height: 88px; resize: vertical; }
 }
 .tagline { color: var(--text-dim); margin: 0 0 20px; font-size: 15px; }
 .tabs { display: flex; gap: 4px; background: var(--surface-2); border-radius: 10px; padding: 4px; margin-bottom: 18px; }
-.tabs button { flex: 1; min-height: 38px; border: 0; border-radius: 8px; background: transparent; cursor: pointer; font-weight: 700; color: var(--text-dim); }
+.tabs button { flex: 1; min-height: 38px; border: 0; border-radius: 8px; background: transparent; cursor: pointer; font-weight: 700; color: var(--text-dim); white-space: nowrap; padding: 0 8px; }
+.tabs { overflow-x: auto; scrollbar-width: none; }
 .tabs button.on { background: var(--bg); color: var(--text); box-shadow: var(--shadow); }
 
 .pos-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
@@ -225,7 +227,9 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
 .hello { font-size: 14px; color: var(--text-dim); }
 .codename { font-size: 20px; font-weight: 700; word-break: break-all; }
 .kv { display: flex; justify-content: space-between; padding: 6px 0; border-top: 1px dashed var(--border); font-size: 15px; }
-.kv span:first-child { color: var(--text-dim); }
+.kv span:first-child { color: var(--text-dim); flex-shrink: 0; white-space: nowrap; }
+.kv { gap: 10px; }
+td, th, .prose td, .prose th { overflow-wrap: break-word; }
 .bar { height: 8px; background: var(--surface-2); border-radius: 99px; overflow: hidden; margin: 4px 0 2px; }
 .bar > i { display: block; height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); }
 .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 10px; }
@@ -270,6 +274,17 @@ code.c { font-family: ui-monospace, Menlo, monospace; background: var(--surface-
 .ev-rest { color: var(--text-dim); font-style: italic; }
 .ev-theme { justify-content: center; color: var(--accent-text); font-weight: 700; letter-spacing: .02em; padding: 10px 12px 6px; }
 .ev-theme time { display: none; }
+.rep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 6px; }
+.rep-chip { border: 1px solid var(--border); border-radius: 10px; padding: 7px 9px; display: grid; gap: 2px; font-size: 12px; opacity: .75; }
+.rep-chip.on { opacity: 1; border-color: var(--accent); }
+.rep-chip b { font-size: 13px; }
+.rep-chip small { color: var(--text-dim); }
+.bar.thin { height: 4px; margin: 3px 0 1px; }
+.chron { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 2px; }
+.chron li { display: grid; grid-template-columns: 20px 1fr auto; gap: 6px; align-items: baseline; font-size: 13px; padding: 4px 0; border-bottom: 1px dashed var(--border); }
+.chron li i { font-style: normal; color: var(--accent-text); text-align: center; }
+.chron li time { color: var(--text-dim); font-size: 12px; white-space: nowrap; }
+.ev-hint span { font-style: italic; color: var(--text-dim); }
 .ev-boss span { color: var(--danger); font-weight: 700; }
 .ev-enter.ev-boss span { color: var(--danger); }
 .ev-down { color: var(--danger); font-weight: 700; }
@@ -377,6 +392,7 @@ mark { background: color-mix(in srgb, #FFC53D 45%, transparent); color: inherit;
 .cx-regions { margin: 0 0 10px; }
 .cx-only { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; white-space: nowrap; }
 .mini-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
+.mini-card > .btn { flex-shrink: 0; white-space: nowrap; }
 .gate-round { margin: 0 0 8px; font-weight: 700; display: flex; justify-content: space-between; gap: 8px; }
 .gate-stage { position: relative; aspect-ratio: 1; max-width: 360px; margin: 0 auto; border-radius: 16px; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; cursor: crosshair;
   background: radial-gradient(circle at 50% 50%, #2a1450 0%, #120a24 55%, #07040f 100%); box-shadow: inset 0 0 40px rgba(0,0,0,.7), 0 0 0 1px #3b2a66; }
@@ -449,7 +465,8 @@ mark { background: color-mix(in srgb, #FFC53D 45%, transparent); color: inherit;
 .rd-mem small { color: var(--text-dim); }
 .avatar.sm { width: 24px; height: 24px; font-size: 11px; border-radius: 7px; flex: none; }
 .rd-buffs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px 14px; }
-.rd-buff-top { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
+.rd-buff-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 13px; }
+.rd-buff-top b { white-space: nowrap; flex-shrink: 0; }
 .rd-buff-top span { color: var(--text-dim); text-align: right; }
 .rd-buff .gauge i { background: linear-gradient(90deg, var(--secondary), var(--primary)); }
 .rd-buff.full .gauge i { background: linear-gradient(90deg, #ffb340, #ffd36b); }
@@ -1083,7 +1100,7 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
   html, body { max-width: 100%; overflow-x: clip; }
   .app { min-width: 0; }
   .topbar { padding: 0 12px; }
-  .topbar .logo { font-size: 24px; margin-right: auto; min-width: 0; overflow: hidden; }
+  .topbar .logo { font-size: 24px; margin-right: auto; min-width: 0; flex-wrap: wrap; column-gap: .25em; row-gap: 1px; white-space: normal; overflow-wrap: normal; word-break: normal; }
   .top-actions { flex: none; }
   .top-actions .btn { padding: 0 10px; }
   .nav { display: none; }
@@ -1113,7 +1130,7 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
 }
 @media (max-width: 400px) {
   .tabbar a { font-size: 11px; letter-spacing: -0.04em; }
-  .topbar .logo { font-size: 20px; }
+  .topbar .logo { font-size: 19px; }
   .top-actions .btn { padding: 0 8px; font-size: 13px; }
 }
 </style>
@@ -1463,7 +1480,10 @@ function fmtEffect(e) {
   if (e.rest_half) out.push("다음 휴식 시간 절반");
   return out.join(", ");
 }
-const gearName = g => `${g.name}${g.enhance ? ` +${g.enhance}` : ""}`;
+// 장비 숙련도: 장착하고 결과를 받을 때마다 1씩 쌓이고, 10 · 30 · 60 · 100 · 150번에 별이 붙는다
+const MASTERY_STEPS = [10, 30, 60, 100, 150];
+const masteryText = g => { const nx = MASTERY_STEPS.find(t => t > g.mastery); return `숙련 ${g.star ? "★".repeat(g.star) : "☆"} · ${g.mastery}번 함께함` + (nx ? ` (다음 별까지 ${nx - g.mastery}번)` : " (최고 숙련)"); };
+const gearName = g => `${g.name}${g.enhance ? ` +${g.enhance}` : ""}${g.star ? ` ${"★".repeat(g.star)}` : ""}`;
 function josa(word, withB, withoutB) {   // 받침에 맞는 조사
   const c = word.charCodeAt(word.length - 1);
   if (c < 0xAC00 || c > 0xD7A3) return word + withoutB;
@@ -1979,8 +1999,8 @@ function paintSocialBadge() {
 const NOTIF_KINDS = [
   ["title", "타이틀"], ["friend", "친구 신청"], ["party", "파티 초대"], ["guild", "길드 초대"],
   ["notice", "공지"], ["sns", "SNS 댓글·답글"], ["market", "거래소 판매"], ["gift", "선물 도착"],
-  ["regional", "지역 안정화 완료"], ["infinite", "무한 던전 복귀"], ["analysis", "전력 분석 완료"], ["raid", "레이드"]];
-const NOTIF_TAG = { title: "타이틀", friend: "친구", party: "파티", guild: "길드", notice: "공지", sns: "SNS", market: "거래소", gift: "선물", regional: "안정화", infinite: "무한 던전", analysis: "분석" , raid: "레이드" };
+  ["regional", "지역 안정화 완료"], ["infinite", "무한 던전 복귀"], ["analysis", "전력 분석 완료"], ["raid", "레이드"], ["rescue", "구조 요청"]];
+const NOTIF_TAG = { title: "타이틀", friend: "친구", party: "파티", guild: "길드", notice: "공지", sns: "SNS", market: "거래소", gift: "선물", regional: "안정화", infinite: "무한 던전", analysis: "분석", raid: "레이드", rescue: "구조" };
 const notif = { rows: [], unread: 0, settings: {}, seen: new Set(), ready: false, chan: null, timer: null, view: "list" };
 const lsGet = k => { try { return localStorage.getItem(k); } catch { return null; } };
 const lsSet = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} };
@@ -3134,9 +3154,45 @@ async function openPublicHunter(codename) {
     h("p", { style: "margin:0;white-space:pre-wrap" }, p.bio || h("span", { class: "hint" }, "공개하지 않았습니다.")),
     p.codex ? h("p", { class: "panel-title", style: "margin:14px 0 6px" }, `도감 달성률 ${p.codex.all ?? 0}%`) : null,
     p.codex ? h("div", { class: "codex-sum", style: "margin:0" }, ...CODEX_CATS.map(([k, n]) => h("div", {}, h("span", {}, n), h("b", {}, `${p.codex[k] ?? 0}%`)))) : null,
+    p.admin ? null : progressBox(p.codename),
     released() ? hunterPostsBox(p.codename) : null,
     btns.length ? h("div", { style: "display:flex;gap:8px;flex-wrap:wrap;margin-top:16px" }, ...btns) : null);
 }
+/* ===== 헌터 연대기 · 지역 평판 =====
+   연대기: 승급, 레벨 이정표, 등급별 첫 지역 안정화, 무한 던전 역 이정표, 레이드 성공, 타이틀, 장비 숙련이 날짜와 함께 쌓인다.
+   지역 평판: 구역마다 지역 안정화에 성공한 횟수로 단계가 오른다. */
+const CHRON_ICON = { start: "✦", level: "▲", grade: "★", regional: "◆", infinite: "∞", raid: "⚔", title: "❖", rep: "⚑", mastery: "✧" };
+function repChips(rep, bonus) {
+  return h("div", { class: "rep-grid" }, ...(rep || []).map(r => h("div", { class: "rep-chip" + (r.level ? " on" : ""), title: r.next ? `다음 단계까지 ${r.next - r.clears}번` : "최고 단계" },
+    h("span", {}, r.name), h("b", {}, r.level_name),
+    h("div", { class: "bar thin" }, h("i", { style: `width:${r.next ? Math.min(100, r.clears / r.next * 100) : 100}%` })),
+    h("small", {}, r.next ? `안정화 ${r.clears} / ${r.next}` : `안정화 ${r.clears}`))));
+}
+function progressBox(codename) {
+  const box = h("div", { class: "prog-box" }, h("p", { class: "hint", style: "margin:0" }, "기록을 불러오는 중…"));
+  sb.rpc("hunter_progress", codename ? { p_codename: codename } : {}).then(({ data, error }) => {
+    if (error || !data) return box.replaceChildren();
+    const rows = data.chronicle || [];
+    let n = 6;
+    const list = h("ol", { class: "chron" });
+    const more = h("button", { class: "btn ghost small", type: "button" }, "더 보기");
+    const paint = () => {
+      list.replaceChildren(...rows.slice(0, n).map(e => h("li", { class: `chron-${e.kind}` },
+        h("i", { "aria-hidden": "true" }, CHRON_ICON[e.kind] || "·"), h("span", {}, e.text), h("time", {}, fmtKDate(e.at)))));
+      more.hidden = rows.length <= n;
+    };
+    more.onclick = () => { n += 12; paint(); };
+    paint();
+    box.replaceChildren(
+      h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "지역 평판"),
+      repChips(data.rep, data.bonus),
+      !codename ? h("p", { class: "hint", style: "margin:6px 0 0;font-size:12px" }, "구역마다 지역 안정화에 성공할수록 평판이 오릅니다." + (data.bonus ? " 평판이 높은 구역에서는 메헨을 조금 더 받습니다." : "")) : null,
+      h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "헌터 연대기"),
+      rows.length ? list : h("p", { class: "hint", style: "margin:0" }, "아직 남긴 기록이 없습니다."), more);
+  });
+  return box;
+}
+const fmtKDate = iso => new Date(iso).toLocaleDateString("ko-KR", { year: "2-digit", month: "numeric", day: "numeric", timeZone: "Asia/Seoul" });
 // 헌터 정보 창: 이 헌터가 SNS에 쓴 글 모아 보기 (누르면 SNS의 그 글로 이동)
 function hunterPostsBox(codename) {
   const box = h("div", { class: "hp-posts" });
@@ -4703,8 +4759,10 @@ const ptsD = ps => "M" + ps.map(p => p.join(" ")).join(" L");
 
 /* 게이트 봉합: 제한 시간 안에 균열을 손을 떼지 않고 한 번에 따라 그린다.
    서버가 균열 모양·제한 시간·허용 폭을 정하고, 화면은 그은 점(좌표·시각)만 보낸다. 판정은 서버가 다시 계산한다. */
+let miniTest = false;   // 운영 화면의 미니게임 시험: 조건 · 보상 없이 한 판
 async function playGate(after) {
-  const { data: g, error } = await sb.rpc("minigame_start", { p_kind: "gate" });
+  const test = miniTest; miniTest = false;
+  const { data: g, error } = await sb.rpc(test ? "minigame_test" : "minigame_start", { p_kind: "gate" });
   if (error) return toast(koError(error));
   const T0 = performance.now();
   const P = g.params, PTS = P.pts, TOL = P.tol, LIMIT = P.limit;
@@ -4789,6 +4847,7 @@ async function playGate(after) {
     done = true; drawing = false; cancelAnimationFrame(raf);
     tip.textContent = "봉합을 확인하는 중…";
     const { data: res, error } = await sb.rpc("minigame_finish", { p_id: g.id, p_input: pts });
+    if (res?.test) toast("시험 판이라 결과만 보여 주고 보상 · 기록은 남기지 않았습니다.");
     miniCleanup();
     if (error) { tip.textContent = ""; return out.replaceChildren(h("p", { class: "error" }, koError(error))); }
     if (res.success) { stage.classList.add("closed"); tip.textContent = "균열이 닫혔습니다"; sfx(res.grade === "perfect" ? "mix" : "push"); }
@@ -4815,7 +4874,8 @@ async function playGate(after) {
 /* 분석 집중: 전력 분석 중 한 번. 오가는 표시가 금빛 구간에 들어왔을 때 누른다(5번).
    잘 맞힐수록 분석 시간이 줄고, 분석 시간에 비례한 가능성을 조금 얻는다. */
 async function playFocus(after) {
-  const { data: g, error } = await sb.rpc("minigame_start", { p_kind: "focus" });
+  const test = miniTest; miniTest = false;
+  const { data: g, error } = await sb.rpc(test ? "minigame_test" : "minigame_start", { p_kind: "focus" });
   if (error) return toast(koError(error));
   const R = g.params.rounds;
   // 분석 파형: 파형 묶음이 좌우로 오가며, 가운데 선과 겹칠 때 누른다
@@ -4826,8 +4886,10 @@ async function playFocus(after) {
   const center = sv("line", { class: "fc-center", x1: 150, x2: 150, y1: 0, y2: 100 });
   const waveSvg = sv("svg", { viewBox: "0 0 300 100", preserveAspectRatio: "none", "aria-hidden": "true" }, grid, zone, core, ghost, wave, center);
   const bar = h("div", { class: "fc-scope", role: "img", "aria-label": "분석 파형" }, waveSvg);
-  const packet = (px, ph, amp = 38) => { let d = ""; for (let x = 0; x <= 300; x += 2) { const u = x - px;
-    d += `${x ? " L" : "M"}${x} ${(50 - amp * Math.exp(-((u / 22) ** 2)) * Math.cos(u / 5 + ph)).toFixed(1)}`; } return d; };
+  // 꼭대기 하나는 크게 솟고, 나머지 진동은 작게 남는다
+  const packet = (px, ph, amp = 42) => { let d = ""; for (let x = 0; x <= 300; x += 2) { const u = x - px;
+    const y = 50 - amp * Math.exp(-((u / 9) ** 2)) - 6 * Math.exp(-((u / 45) ** 2)) * Math.sin(u / 4 + ph);
+    d += `${x ? " L" : "M"}${x} ${y.toFixed(1)}`; } return d; };
   const roundEl = h("p", { class: "gate-round" });
   const marks = h("div", { class: "gate-marks", "aria-live": "polite" });
   const press = h("button", { class: "btn block gate-press", type: "button" }, "집중 (스페이스)");
@@ -4867,6 +4929,7 @@ async function playFocus(after) {
   async function finish() {
     done = true; press.disabled = true;
     const { data: res, error } = await sb.rpc("minigame_finish", { p_id: g.id, p_input: times });
+    if (res?.test) toast("시험 판이라 결과만 보여 주고 보상 · 기록은 남기지 않았습니다.");
     miniCleanup();
     if (error) return out.replaceChildren(h("p", { class: "error" }, koError(error)));
     const miss = 5 - res.perfect - res.good;
@@ -4906,7 +4969,8 @@ const RS_HUNTER = () => sv("svg", { viewBox: "0 0 100 100", "aria-hidden": "true
   sv("text", { x: 77, y: 23, "text-anchor": "middle", "font-size": 15, "font-weight": 900, fill: "#0b5cad" }, "!"));
 
 async function playRescue(after) {
-  const { data: g, error } = await sb.rpc("minigame_start", { p_kind: "rescue" });
+  const test = miniTest; miniTest = false;
+  const { data: g, error } = await sb.rpc(test ? "minigame_test" : "minigame_start", { p_kind: "rescue" });
   if (error) return toast(koError(error));
   const S = g.params.spawns, LEN = g.params.length;
   const cells = [...Array(9)].map((_, i) => h("button", { type: "button", class: "rs-cell", "aria-label": `${Math.floor(i / 3) + 1}번째 줄 ${i % 3 + 1}번째 칸` }));
@@ -4953,6 +5017,7 @@ async function playRescue(after) {
     cells.forEach(el => { el.disabled = true; el.replaceChildren(); el.dataset.kind = ""; });
     clock.textContent = "구조 완료 — 결과를 확인하는 중…";
     const { data: res, error } = await sb.rpc("minigame_finish", { p_id: g.id, p_input: clicks });
+    if (res?.test) toast("시험 판이라 결과만 보여 주고 보상 · 기록은 남기지 않았습니다.");
     miniCleanup();
     if (error) return out.replaceChildren(h("p", { class: "error" }, koError(error)));
     clock.textContent = res.success ? "구조 성공!" : "구조 실패";
@@ -4989,7 +5054,7 @@ async function miniCard(kind, after) {
     const next = m.rescue_next && m.rescue_end && Date.parse(m.rescue_next) <= Date.parse(m.rescue_end) ? m.rescue_next : null;
     box.append(h("div", { class: "rg-notice mini-card" },
       h("div", {}, h("b", {}, m.rescue > 0 ? `구조 요청 ${m.rescue}건` : "구조 요청 없음"),
-        h("p", { class: "hint", style: "margin:2px 0 0" }, (m.rescue > 0 ? "들어온 요청은 24시간 동안 남아 있습니다. " : "") + (next ? `다음 요청은 ${fmtAt(next)}쯤 들어옵니다.` : "무한 던전 진행 중 6시간마다 들어옵니다."))),
+        h("p", { class: "hint", style: "margin:2px 0 0" }, (m.rescue > 0 && m.rescue_until ? `${fmtAt(m.rescue_until)}까지 도와줄 수 있습니다. ` : "") + (next ? `다음 요청은 ${fmtAt(next)}에 들어옵니다.` : "무한 던전 진행 중 3시간마다, 복귀 30분 전에 한 번 더 들어옵니다."))),
       m.rescue > 0 ? h("button", { class: "btn small", type: "button", onclick: () => playRescue(after) }, "구조하러 가기") : null));
   }
   return box;
@@ -5468,6 +5533,7 @@ function renderOwned(body, inv, act, refresh) {
       h("strong", { class: `tier${g.tier}` }, gearName(g)),
       g.equipped ? h("span", { class: "badge", style: "margin-left:6px" }, "장착 중") : null,
       h("div", { class: "hint" }, `${SLOT_NAME[g.slot]} · ${TIER_NAME[g.tier]} · Lv.${g.req_level}부터 · ${fmtStats(g.stats)}`),
+      g.mastery ? h("div", { class: "hint", style: "font-size:12px" }, masteryText(g)) : null,
       h("div", { class: "hint item-desc" }, g.description)),
     h("div", { class: "item-actions" },
       g.equipped ? null : h("button", { class: "btn small", type: "button", disabled: inv.level < g.req_level,
@@ -5716,7 +5782,7 @@ async function renderDismantle(body, inv, refresh) {
       const n = Math.max(1, Math.min(x.have, 99, Math.floor(Number(qty.value) || 1)));
       const use = x.gears ? x.gears.slice(0, n) : null;
       const enh = use ? use.filter(g => g.enhance > 0) : [];
-      if (!confirm(`${josa(`${x.name} ${n}개`, "을", "를")} 분해할까요? 하나마다 재료 중 1개를 무작위로 돌려받습니다.` + (enh.length ? `\n강화된 장비(${enh.map(gearName).join(", ")})의 강화 단계도 함께 사라집니다.` : ""))) return;
+      if (!confirm(`${josa(`${x.name} ${n}개`, "을", "를")} 분해할까요? 하나마다 재료 중 1개를 무작위로 돌려받습니다.` + (enh.length ? `\n강화된 장비(${enh.map(gearName).join(", ")})의 강화 단계는 사라지고, 강화에 쓴 별가루 중 일부(1개~전부)를 돌려받습니다.` : ""))) return;
       busy(go, true, "…");
       const { data, error } = await sb.rpc("dismantle", { p_code: x.code, p_qty: n, p_gear_ids: use ? use.map(g => g.id) : [] });
       busy(go, false);
@@ -5740,7 +5806,7 @@ async function renderDismantle(body, inv, refresh) {
   const msg = dismantleMsg ? h("p", { class: "craft-msg", role: "status" }, dismantleMsg) : null;
   dismantleMsg = null;
   body.replaceChildren(
-    h("p", { class: "hint", style: "margin:16px 0 10px" }, "조합식을 알고 있는 아이템을 분해할 수 있습니다. 하나를 분해할 때마다 그 조합식에 들어간 재료 중 1개를 무작위로 돌려받습니다. 장착 중인 장비는 분해할 수 없습니다."),
+    h("p", { class: "hint", style: "margin:16px 0 10px" }, "조합식을 알고 있는 아이템을 분해할 수 있습니다. 하나를 분해할 때마다 그 조합식에 들어간 재료 중 1개를 무작위로 돌려받습니다. 강화한 장비는 강화에 쓴 별가루도 1개부터 전부까지 무작위로 돌려받습니다. 장착 중인 장비는 분해할 수 없습니다."),
     msg, h("div", { style: "margin:0 0 10px" }, q), list);
   paint();
 }
@@ -6422,14 +6488,15 @@ function codexMap(found, onPick, unseen = []) {
     const byGrade = {};
     for (const d of g.items) byGrade[d.grade] = (byGrade[d.grade] || 0) + 1;
     const gradeTxt = Object.entries(byGrade).sort().map(([k, n]) => `${k}급 ${n}곳`).join(", ");
-    const a = el("a", { href: "#", class: "city unknown", tabindex: "0", "aria-label": `아직 발견하지 못한 던전 ${g.items.length}곳 (${gradeTxt})` });
+    const a = el("a", { href: "#", class: "city unknown", tabindex: "0", "aria-label": `아직 발견하지 못한 던전: ${g.items.map(d => `${d.grade}급 ${d.place || d.loc}`).join(", ")}` });
     a.append(el("circle", { cx: g.x, cy: g.y, r: 11, class: "qdot" }));
     const q = el("text", { x: g.x, y: g.y + 5.5, class: "qmark", "text-anchor": "middle" }); q.textContent = "?"; a.append(q);
     if (g.items.length > 1) { const t = el("text", { x: g.x + 12, y: g.y - 9, class: "cnt" }); t.textContent = g.items.length; a.append(t); }
-    const ttl = el("title"); ttl.textContent = `아직 발견하지 못한 던전 ${g.items.length}곳 (${gradeTxt})`; a.append(ttl);
+    const ttl = el("title"); ttl.textContent = `아직 발견하지 못한 던전\n` + g.items.map(d => `${d.grade}급 · ${d.place || d.loc}`).join("\n"); a.append(ttl);
     a.addEventListener("click", e => {
       e.preventDefault();
-      info("아직 발견하지 못한 던전", h("p", { style: "margin:0 0 8px" }, `이 근처에 아직 발견하지 못한 던전이 ${g.items.length}곳 있습니다. (${gradeTxt})`),
+      info("아직 발견하지 못한 던전", h("p", { style: "margin:0 0 8px" }, `이 근처에 아직 발견하지 못한 던전이 ${g.items.length}곳 있습니다.`),
+        h("ul", { style: "margin:0 0 10px;padding-left:18px" }, ...g.items.map(d => h("li", {}, `${d.grade}급 · ${d.place || d.loc} · ???`))),
         h("p", { class: "hint", style: "margin:0" }, "그 도시가 있는 활동 구역에서 지역 안정화에 들어가면 도감에 기록됩니다."));
     });
     svg.append(a);
@@ -6507,7 +6574,7 @@ async function renderCodex(pane) {
         h("div", { class: "cat-row cx-regions", role: "tablist", "aria-label": "활동 구역", "data-tour": "cx-regions" },
           chip("all", "전체", rgAll), ...regs.map(k => chip(k, REGIONS[k], rgAll.filter(d => d.region === k)))));
       const dSort = arr => cxApply(arr, d => !!d.seen, d => `${d.name || ""} ${d.place || ""}`, d => d.first_at, d => d.clears);
-      const dCell = d => cell(!!d.seen, d.name, d.seen ? `${d.grade}급 · ${d.place || ""}${d.clears ? ` · 클리어 ${d.clears}` : ""}` : `${d.grade}급`, () => dungeonInfo(d));
+      const dCell = d => cell(!!d.seen, d.name, d.seen ? `${d.grade}급 · ${d.place || ""}${d.clears ? ` · 클리어 ${d.clears}` : ""}` : `${d.grade}급${d.place ? ` · ${d.place}` : ""}`, () => dungeonInfo(d));
       const sec = (title, all) => { const arr = dSort(all); return (arr.length || (all.length && !cxFiltering())) && out.push(h("p", { class: "codex-group" }, `${title} · ${all.filter(d => d.seen).length}/${all.length}`),
         h("div", { class: "codex-grid" }, ...arr.map(d => cell(!!d.seen, d.name, d.seen ? `${d.place || ""}${d.clears ? ` · 클리어 ${d.clears}` : ""}` : null, () => dungeonInfo(d))))); };
       const regSec = (k, all) => { const arr = dSort(all); if (!arr.length && cxFiltering()) return;
@@ -6523,9 +6590,11 @@ async function renderCodex(pane) {
       const rs = cxApply(all, r => !!r.known, r => `${r.name} ${(r.ingredients || []).join(" ")}`, r => r.first_at, () => 0);
       if (!rs.length && cxFiltering()) return;
       out.push(h("p", { class: "codex-group" }, `알아낸 조합식 ${all.filter(r => r.known).length}/${all.length}`),
-        h("div", { class: "codex-grid" }, ...rs.map(r => cell(r.known, r.name, r.known ? `× ${r.qty}` : null, () => info(r.known ? r.name : "???",
+        h("div", { class: "codex-grid" }, ...rs.map(r => cell(r.known, r.name, r.known ? `× ${r.qty}` : r.hint ? "낙서 발견" : null, () => info(r.known ? r.name : "???",
+          r.hint ? desc(`“${r.hint}”`) : null,
           r.known ? h("div", { class: "report" }, kv("재료", list(r.ingredients)), kv("결과", `${r.name} × ${r.qty}`), kv("알아낸 날", r.first_at ? fmtDay(r.first_at) : null))
-            : desc("아직 알아내지 못한 조합식입니다. 인벤토리의 조합에서 재료를 이리저리 섞어 보세요."))))));
+            : r.hint ? h("p", { class: "hint", style: "margin:0" }, "공략이나 탐색 중 벽에 새겨진 낙서에서 찾은 실마리입니다. 인벤토리의 조합에서 재료를 섞어 보세요.")
+            : desc("아직 알아내지 못한 조합식입니다. 인벤토리의 조합에서 재료를 이리저리 섞어 보세요. 공략이나 탐색 중 벽의 낙서에서 실마리를 찾을 수도 있습니다."))))));
     },
     title(out) {
       const ts = cx.titles || [];
@@ -6663,6 +6732,11 @@ async function renderAdmin(pane) {
     adminHunterSection(),
     h("p", { class: "panel-title", style: "margin:24px 0 8px" }, "레이드"),
     adminRaidSection(),
+    h("p", { class: "panel-title", style: "margin:24px 0 8px" }, "미니게임 시험"),
+    h("p", { class: "hint", style: "margin:0 0 10px" }, "조건 없이 바로 한 판 해 봅니다. 보상과 기록은 남지 않습니다."),
+    h("div", { style: "display:flex;gap:8px;flex-wrap:wrap" },
+      ...[["게이트 봉합", "playGate"], ["구조 요청", "playRescue"], ["분석 집중", "playFocus"]].map(([n, f]) =>
+        h("button", { class: "btn ghost small", type: "button", onclick: () => { miniTest = true; window.__idMini[f](); } }, n))),
     h("p", { class: "panel-title", style: "margin:24px 0 8px" }, "신고 처리"),
     adminReportsSection(),
     h("p", { class: "panel-title", style: "margin:16px 0 8px" }, "가능성 획득률"),
@@ -6713,7 +6787,8 @@ function openHunter() {
     !c.sub_position && c.level >= 25
       ? h("button", { class: "btn ghost block small", style: "margin-top:8px", type: "button", onclick: () => { $("#dlg-hunter").close(); openSubPosition(); } }, "서브 포지션 정하기")
       : null,
-    resetStatsBtn(() => { $("#dlg-hunter").close(); }));
+    resetStatsBtn(() => { $("#dlg-hunter").close(); }),
+    progressBox(null));
   swatches($("#e-swatches"), edit.color, col => { edit.color = col; renderEditAvatar(); });
   renderEditAvatar();
   $("#dlg-hunter").showModal();
@@ -6870,7 +6945,7 @@ function info(title, ...body) {
 /* ===== 소개 · 개인정보 (로그인 없이 볼 수 있는 페이지) ===== */
 // 문구를 바꾸려면 아래 HTML을 직접 고치세요.
 const POLICY_UPDATED = "2026.10.28";      // 개인정보 안내 최종 수정일
-const CREDITS_UPDATED = "2026.11.08";     // 저작권 안내 최종 수정일
+const CREDITS_UPDATED = "2026.11.09";     // 저작권 안내 최종 수정일
 // 레이드 보스 아이콘(game-icons.net, CC BY 3.0) 출처는 서버(game_icon_credits)에서 받아 저작권 페이지에 채운다
 async function fillIconCredits(body) {
   const rows = body.querySelector("#gi-rows"), au = body.querySelector("#gi-authors");
@@ -7021,8 +7096,8 @@ const DOCS = {
 <p><b>하루 최대 3번, 탐색과 별도로 기회를 가지며 방식은 탐색과 동일</b>합니다. 다만, 별의 무덤에서는 별가루·별조각 사탕·은하수 이슬·가능성이 발견되는 것으로 보고되었습니다.</p>
 <p>탐색과 달리 별의 무덤에서는 헌터님이 <b>2칸 움직일 때마다 1칸 움직이는 [별지기]라는 무덤의 수호 몬스터가 존재</b>합니다. 별지기와 조우할 경우 즉시 마치게 되니 별지기의 위치를 확인하며 움직이시길 바랍니다.</p>
 <h3>구조 요청</h3>
-<p>전투로 진입해 있는 동안 <b>6시간마다 다른 파티의 [구조 요청]</b>이 들어옵니다. 무한 던전 화면에서 [구조하러 가기]를 누르면 20초 동안 3×3 칸에 마물과 헌터가 번갈아 나타나며, <b>마물만 눌러 처치</b>해야 합니다.</p>
-<p>마물을 60% 이상 처치하고 헌터를 1번까지만 잘못 누르면 감사의 선물로 소비 아이템 1개를 받습니다. 구조에 실패하거나 요청을 놓쳐도 무한 던전 공략에는 아무 영향이 없으며, 들어온 요청은 24시간 동안 남아 있습니다.</p>
+<p>전투로 진입해 있는 동안 <b>3시간마다, 그리고 복귀 30분 전에 한 번 더 다른 파티의 [구조 요청]</b>이 들어오고 알림으로 알려 드립니다. 무한 던전 화면에서 [구조하러 가기]를 누르면 20초 동안 3×3 칸에 마물과 헌터가 번갈아 나타나며, <b>마물만 눌러 처치</b>해야 합니다.</p>
+<p>마물을 60% 이상 처치하고 헌터를 1번까지만 잘못 누르면 감사의 선물로 소비 아이템 1개를 받습니다. 구조에 실패하거나 요청을 놓쳐도 무한 던전 공략에는 아무 영향이 없습니다. 다만 <b>요청은 들어온 뒤 10분 동안만</b> 받을 수 있고, 그 뒤에는 지나갑니다.</p>
 <h3>레이드</h3>
 <p>11월 16일부터 매주 한 명의 레이드 보스가 나타납니다. 한 주(월~일) 동안 모든 헌터가 힘을 모아 보스의 체력을 깎으며, <b>5레벨 이상</b>이면 참여할 수 있습니다. 지역 안정화 화면의 [레이드]에서 확인할 수 있습니다.</p>
 <p><b>평일(월~금)</b>에는 하루 한 번 <b>개인 도전</b>을 할 수 있습니다. 15~20분 동안 혼자 보스와 싸우며, 혼자일 때는 지원할 아군이 없어 지원 능력이 보스 피해로 바뀝니다. 개인 도전으로 준 피해만큼 보스 체력이 줄고, 헌터님 포지션의 <b>주말 토벌 버프</b>가 차오릅니다(서브 포지션은 절반만큼 보탭니다).</p>
@@ -7074,6 +7149,9 @@ const DOCS = {
 <h3>랭킹</h3>
 <p>무한 던전 랭킹은 형평성을 위해 개인 공략과 파티 공략으로 나누어 발표하며, 같은 수의 역을 공략한 경우, 먼저 도달한 헌터님이 높은 순위가 됩니다.</p>
 <p>한국 기준 매주 월요일 0시에 새로 시작되며, 그 이전 주 랭킹은 확정된 순위로 참고하여 주세요.</p>
+<h3>헌터 연대기 · 지역 평판</h3>
+<p>승급, 레벨 달성, 등급별 첫 지역 안정화, 무한 던전 역 도달, 레이드 토벌, 타이틀 획득 같은 순간이 날짜와 함께 <b>헌터 연대기</b>에 남습니다. 세부 정보 창에서 볼 수 있고, 다른 헌터도 헌터 정보 창에서 볼 수 있습니다.</p>
+<p>아시아, 유럽, 아프리카, 아메리카, 오세아니아 구역마다 지역 안정화에 성공한 만큼 <b>지역 평판</b>이 오릅니다. 낯선 이방인에서 시작해 알려진 헌터, 믿음직한 헌터, 지역의 수호자, 지역의 영웅, 살아 있는 전설까지 오를 수 있습니다.</p>
 <h3>도감</h3>
 <p>던전, 몬스터, 조합식, 아이템, 타이틀, 스토리를 확인할 때마다 자동으로 기록하고 있습니다.</p>
 <p>몬스터의 경우 10번 쓰러뜨리면 강한 정도와 드롭 정보를 제공합니다(보스는 1번).</p>
@@ -7107,10 +7185,13 @@ const DOCS = {
 <h3>조합</h3>
 <p>2~3개의 재료 아이템을 합쳐 새로운 아이템을 획득할 수 있습니다. 처음 성공한 조합식은 도감 및 조합 메뉴에 기록되어 계속 참고할 수 있습니다.</p>
 <p>조합식이 틀려도 아이템이 사라지진 않으나, <b>조합 중 1% 확률로 아이템이 대실패하여 재료 아이템이 모두 파괴</b>되는 경우가 존재합니다. 반대로, <b>조합 성공 시 5% 확률로 아이템을 2개 획득할 수 있는 대성공</b> 현상도 관측되고 있습니다.</p>
+<p>공략 기록이나 탐색 중에 <b>벽에 새겨진 낙서</b>를 발견할 때가 있습니다. 아직 모르는 조합식을 빗대어 적은 것이 많으며, 발견한 낙서는 도감의 조합식 설명에 남습니다.</p>
 <p>알게 된 조합식은 전체 · 장비 · 소비로 나누어 볼 수 있고, 아이템 이름으로 검색하면 결과뿐 아니라 재료에 그 아이템이 들어간 조합식도 찾아 줍니다.</p>
 <p>[칸 채우기] 기능을 통해 자동으로 재료 아이템을 채울 수 있으며, 옆 칸에 횟수를 정하면 가진 재료만큼 여러 번을 한꺼번에 조합할 수 있습니다. 한꺼번에 조합해도 대실패와 대성공은 한 번마다 따로 정해집니다. 장비가 재료로 들어가는 조합식은 강화 단계가 낮은 장비부터 사용합니다.</p>
 <h3>분해</h3>
-<p>조합식을 알고 있는 아이템을 분해할 수 있습니다. 하나를 분해할 때마다 그 조합식에 들어간 재료 중 1개를 무작위로 돌려받습니다. 장착 중인 장비는 분해할 수 없으며, 강화된 장비를 분해하면 강화 단계도 함께 사라집니다.</p>
+<p>조합식을 알고 있는 아이템을 분해할 수 있습니다. 하나를 분해할 때마다 그 조합식에 들어간 재료 중 1개를 무작위로 돌려받습니다. 장착 중인 장비는 분해할 수 없으며, 강화된 장비를 분해하면 강화 단계는 사라지지만, 강화에 쓴 별가루를 1개부터 전부까지 무작위로 돌려받습니다.</p>
+<h3>장비 숙련도</h3>
+<p>장비를 장착한 채로 지역 안정화나 무한 던전 결과를 받을 때마다 그 장비의 숙련이 쌓입니다. 오래 함께한 장비에는 이름 옆에 <b>★</b>이 붙고, 별은 최대 5개까지 늘어납니다. 장비가 다른 헌터에게 넘어가면 숙련은 처음부터 다시 쌓입니다.</p>
 <h3>거래소</h3>
 <p>헌터들끼리 아이템을 사고 팔 수 있습니다. 상점에 팔지 않는 아이템을 등록할 수 있으며, 한 번에 10건, 7일 동안 팔리지 않으면 인벤토리에 회수됩니다.</p>
 <p>거래소 운영을 위해 판매가의 5%를 수수료로 국제헌터연합이 가져가고 있으니 양해 부탁드립니다.</p>
@@ -7292,7 +7373,7 @@ const DOCS = {
 <div class="table-scroll"><table>
 <thead><tr><th>구분</th><th>제작 · 출처</th><th>이용 약관</th><th>사용처</th></tr></thead>
 <tbody>
-<tr><td>배경음악 11곡</td><td>zippy (zippysound) — Deltoton · Variant · Psyche · 境界の守り人 · Rusty · Danse Macabre · Mayday · Connect! · Res Arcana · Toddler · 月は知っている</td><td><a href="https://zippysound.fanbox.cc/posts/8574304" target="_blank" rel="noopener">Zippy 무료 배경음악 이용약관</a></td><td>화면별 배경음악</td></tr>
+<tr><td>배경음악 12곡</td><td>zippy (zippysound) — Deltoton · Variant · Psyche · 境界の守り人 · Rusty · Danse Macabre · Mayday · Connect! · Res Arcana · Toddler · 月は知っている · Nemesis</td><td><a href="https://zippysound.fanbox.cc/posts/8574304" target="_blank" rel="noopener">Zippy 무료 배경음악 이용약관</a></td><td>화면별 배경음악</td></tr>
 <tr><td>효과음</td><td>みんなの創作支援サイトＴスタ (T-STUDIO)</td><td><a href="https://tnosite.com/ko/agreement-5/" target="_blank" rel="noopener">T-STUDIO 서비스 약관</a></td><td>버튼 · 구매 · 판매 · 조합 · 이동 · 알림 소리</td></tr>
 </tbody>
 </table></div>
@@ -7398,11 +7479,11 @@ const BGM_TRACKS = {
   deltoton:  { title: "Deltoton" },      variant: { title: "Variant" },   psyche: { title: "Psyche" },
   guardianoftheboundary: { title: "境界の守り人" },   rusty:   { title: "Rusty" },     dansemacabre: { title: "Danse Macabre" },
   mayday:    { title: "Mayday" },        connect: { title: "Connect!" },  resarcana: { title: "Res Arcana" },
-  toddler:   { title: "Toddler" },       themoonknowsit: { title: "月は知っている" },
+  toddler:   { title: "Toddler" },       themoonknowsit: { title: "月は知っている" }, nemesis: { title: "Nemesis" },
 };
 // 페이지마다 자동으로 트는 곡 (여러 곡이면 순서대로 돌며 반복). 없는 페이지는 지금 곡을 이어서 튼다.
 const BGM_PAGES = {
-  home: ["deltoton"], "dungeon-battle": ["variant"], "dungeon-explore": ["psyche"], "dungeon-star": ["guardianoftheboundary"], "dungeon-altar": ["guardianoftheboundary"], "regional-raid": ["guardianoftheboundary"],
+  home: ["deltoton"], "dungeon-battle": ["variant"], "dungeon-explore": ["psyche"], "dungeon-star": ["guardianoftheboundary"], "dungeon-altar": ["guardianoftheboundary"], "regional-raid": ["nemesis"],
   regional: ["rusty", "dansemacabre"], union: ["mayday"], inventory: ["mayday"], friends: ["connect"],
 };
 const bgm = { audio: new Audio(), list: [], idx: 0, page: null, loaded: null, loading: false, missing: false, urls: {},
