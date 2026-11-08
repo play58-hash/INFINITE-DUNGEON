@@ -1941,6 +1941,9 @@ const hunterSub = card => !card ? "" : card.admin ? "운영자" : `${card.grade 
 /* 11월 10일 업데이트: 그 전에는 운영자 계정에서만 열린다 (서버도 같은 시각으로 막음) */
 const RELEASE_1110 = Date.parse("2026-11-10T00:00:00+09:00");
 const released = () => Date.now() >= RELEASE_1110 || !!state.profile?.is_admin;
+// 11/16 패치(레이드 · 헌터 연대기 · 지역 평판 · 장비 숙련도): 그 전에는 운영자만 본다
+const PATCH_1116 = Date.parse("2026-11-16T00:00:00+09:00");
+const patched = () => Date.now() >= PATCH_1116 || !!state.profile?.is_admin;
 const starMax = () => released() ? 3 : 1;
 /* 길드: 가입 방식 · 색 · 코드네임 옆 동그라미 */
 const GUILD_MODE = { open: "상시 가입", apply: "가입 신청 후 수락", invite: "초대 가입" };
@@ -3169,9 +3172,10 @@ function repChips(rep, bonus) {
     h("small", {}, r.next ? `안정화 ${r.clears} / ${r.next}` : `안정화 ${r.clears}`))));
 }
 function progressBox(codename) {
+  if (!patched()) return null;
   const box = h("div", { class: "prog-box" }, h("p", { class: "hint", style: "margin:0" }, "기록을 불러오는 중…"));
   sb.rpc("hunter_progress", codename ? { p_codename: codename } : {}).then(({ data, error }) => {
-    if (error || !data) return box.replaceChildren();
+    if (error || !data || data.open === false) return box.replaceChildren();
     const rows = data.chronicle || [];
     let n = 6;
     const list = h("ol", { class: "chron" });
@@ -7149,9 +7153,9 @@ const DOCS = {
 <h3>랭킹</h3>
 <p>무한 던전 랭킹은 형평성을 위해 개인 공략과 파티 공략으로 나누어 발표하며, 같은 수의 역을 공략한 경우, 먼저 도달한 헌터님이 높은 순위가 됩니다.</p>
 <p>한국 기준 매주 월요일 0시에 새로 시작되며, 그 이전 주 랭킹은 확정된 순위로 참고하여 주세요.</p>
-<h3>헌터 연대기 · 지역 평판</h3>
-<p>승급, 레벨 달성, 등급별 첫 지역 안정화, 무한 던전 역 도달, 레이드 토벌, 타이틀 획득 같은 순간이 날짜와 함께 <b>헌터 연대기</b>에 남습니다. 세부 정보 창에서 볼 수 있고, 다른 헌터도 헌터 정보 창에서 볼 수 있습니다.</p>
-<p>아시아, 유럽, 아프리카, 아메리카, 오세아니아 구역마다 지역 안정화에 성공한 만큼 <b>지역 평판</b>이 오릅니다. 낯선 이방인에서 시작해 알려진 헌터, 믿음직한 헌터, 지역의 수호자, 지역의 영웅, 살아 있는 전설까지 오를 수 있습니다.</p>
+<h3 data-patch>헌터 연대기 · 지역 평판</h3>
+<p data-patch>승급, 레벨 달성, 등급별 첫 지역 안정화, 무한 던전 역 도달, 레이드 토벌, 타이틀 획득 같은 순간이 날짜와 함께 <b>헌터 연대기</b>에 남습니다. 세부 정보 창에서 볼 수 있고, 다른 헌터도 헌터 정보 창에서 볼 수 있습니다.</p>
+<p data-patch>아시아, 유럽, 아프리카, 아메리카, 오세아니아 구역마다 지역 안정화에 성공한 만큼 <b>지역 평판</b>이 오릅니다. 낯선 이방인에서 시작해 알려진 헌터, 믿음직한 헌터, 지역의 수호자, 지역의 영웅, 살아 있는 전설까지 오를 수 있습니다.</p>
 <h3>도감</h3>
 <p>던전, 몬스터, 조합식, 아이템, 타이틀, 스토리를 확인할 때마다 자동으로 기록하고 있습니다.</p>
 <p>몬스터의 경우 10번 쓰러뜨리면 강한 정도와 드롭 정보를 제공합니다(보스는 1번).</p>
@@ -7190,8 +7194,8 @@ const DOCS = {
 <p>[칸 채우기] 기능을 통해 자동으로 재료 아이템을 채울 수 있으며, 옆 칸에 횟수를 정하면 가진 재료만큼 여러 번을 한꺼번에 조합할 수 있습니다. 한꺼번에 조합해도 대실패와 대성공은 한 번마다 따로 정해집니다. 장비가 재료로 들어가는 조합식은 강화 단계가 낮은 장비부터 사용합니다.</p>
 <h3>분해</h3>
 <p>조합식을 알고 있는 아이템을 분해할 수 있습니다. 하나를 분해할 때마다 그 조합식에 들어간 재료 중 1개를 무작위로 돌려받습니다. 장착 중인 장비는 분해할 수 없으며, 강화된 장비를 분해하면 강화 단계는 사라지지만, 강화에 쓴 별가루를 1개부터 전부까지 무작위로 돌려받습니다.</p>
-<h3>장비 숙련도</h3>
-<p>장비를 장착한 채로 지역 안정화나 무한 던전 결과를 받을 때마다 그 장비의 숙련이 쌓입니다. 오래 함께한 장비에는 이름 옆에 <b>★</b>이 붙고, 별은 최대 5개까지 늘어납니다. 장비가 다른 헌터에게 넘어가면 숙련은 처음부터 다시 쌓입니다.</p>
+<h3 data-patch>장비 숙련도</h3>
+<p data-patch>장비를 장착한 채로 지역 안정화나 무한 던전 결과를 받을 때마다 그 장비의 숙련이 쌓입니다. 오래 함께한 장비에는 이름 옆에 <b>★</b>이 붙고, 별은 최대 5개까지 늘어납니다. 장비가 다른 헌터에게 넘어가면 숙련은 처음부터 다시 쌓입니다.</p>
 <h3>거래소</h3>
 <p>헌터들끼리 아이템을 사고 팔 수 있습니다. 상점에 팔지 않는 아이템을 등록할 수 있으며, 한 번에 10건, 7일 동안 팔리지 않으면 인벤토리에 회수됩니다.</p>
 <p>거래소 운영을 위해 판매가의 5%를 수수료로 국제헌터연합이 가져가고 있으니 양해 부탁드립니다.</p>
@@ -7423,6 +7427,7 @@ function syncDoc() {
   const html = typeof d.html === "function" ? d.html() : d.html;
   const body = h("div", { class: "doc-body" });
   body.innerHTML = html;   // 위에 적어 둔 고정 문구만 넣는다 (사용자 입력 없음)
+  if (!patched()) body.querySelectorAll("[data-patch]").forEach(e => e.remove());   // 11/16 패치 전에는 안내도 숨긴다
   // 문서 안의 #/privacy 같은 링크는 같은 창에서 문서를 바꾼다
   body.querySelectorAll('a[href^="#/"]').forEach(a => a.onclick = e => { e.preventDefault(); location.hash = a.getAttribute("href"); });
   const toc = d.toc ? h("nav", { class: "card doc-toc", "aria-label": "목차" },
