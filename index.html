@@ -1735,6 +1735,7 @@ function renderHunter() {
         h("small", {}, `가능성 ${Number(c.potential_level).toLocaleString()} / ${need.toLocaleString()} (${Math.floor(pct)}%)`))),
     canPromote(c) ? h("button", { class: "btn small", type: "button", onclick: e => { e.stopPropagation(); doPromote(e.currentTarget); } }, `${nextGrade(c.grade)}급 승급`) : null,
     c.stat_points > 0 ? h("span", { class: "badge" }, `포인트 ${c.stat_points}`) : null,
+    !c.sub_position && c.level >= 25 ? h("span", { class: "badge" }, "서브 포지션") : null,
     h("span", { class: "hint" }, "정보 ›"));
   $("#mobile-summary").onclick = openHunter;
 }
@@ -6009,6 +6010,9 @@ function openHunter() {
       .map(([k, v]) => h("div", { class: "stat" }, h("b", {}, String(v)), h("small", {}, k)))),
     c.stat_points > 0
       ? h("button", { class: "btn block small", type: "button", onclick: () => { $("#dlg-hunter").close(); openStats(); } }, `스탯 포인트 ${c.stat_points} 분배`)
+      : null,
+    !c.sub_position && c.level >= 25
+      ? h("button", { class: "btn ghost block small", style: "margin-top:8px", type: "button", onclick: () => { $("#dlg-hunter").close(); openSubPosition(); } }, "서브 포지션 정하기")
       : null,
     resetStatsBtn(() => { $("#dlg-hunter").close(); }));
   swatches($("#e-swatches"), edit.color, col => { edit.color = col; renderEditAvatar(); });
