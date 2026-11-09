@@ -213,6 +213,8 @@ textarea.input { min-height: 88px; resize: vertical; }
 .nav a.on { color: var(--accent-text); background: color-mix(in srgb, var(--primary) 10%, transparent); }
 .top-actions { display: flex; gap: 6px; }
 .top-actions .btn { white-space: nowrap; }
+.lbl-s { display: none; }
+@media (max-width: 720px) { .lbl-s { display: inline; } }
 a.btn { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
 
 .layout {
@@ -1100,7 +1102,10 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
   html, body { max-width: 100%; overflow-x: clip; }
   .app { min-width: 0; }
   .topbar { padding: 0 12px; }
-  .topbar .logo { font-size: 24px; margin-right: auto; min-width: 0; flex-wrap: wrap; column-gap: .25em; row-gap: 1px; white-space: normal; overflow-wrap: normal; word-break: normal; }
+  .topbar .logo { font-size: clamp(15px, 4.6vw, 24px); margin-right: auto; min-width: 0; white-space: nowrap; overflow-wrap: normal; word-break: normal; letter-spacing: .02em; }
+  .top-actions { gap: 4px; }
+  .lbl-l { display: none; }
+  .topbar .logo .mark { flex-shrink: 0; }
   .top-actions { flex: none; }
   .top-actions .btn { padding: 0 10px; }
   .nav { display: none; }
@@ -1128,9 +1133,13 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
   .tabbar a.on { color: var(--accent-text); }
   .pos-grid { grid-template-columns: 1fr; }
 }
+@media (max-width: 420px) {
+  /* 좁은 화면: 글자는 숨기고 ∞ 로고만 */
+  .topbar .logo { font-size: 0; gap: 0; }
+  .topbar .logo .mark { font-size: 32px; display: inline-block; }
+}
 @media (max-width: 400px) {
   .tabbar a { font-size: 11px; letter-spacing: -0.04em; }
-  .topbar .logo { font-size: 19px; }
   .top-actions .btn { padding: 0 8px; font-size: 13px; }
 }
 </style>
@@ -1570,7 +1579,11 @@ function applyTheme(theme) {
   else delete root.dataset.theme;
   try { localStorage.setItem("id-theme", theme); } catch {}
   const btn = $("#btn-theme");
-  if (btn) btn.textContent = { light: "밝은 테마", dark: "어두운 테마", system: "기기 설정" }[theme] || "테마";
+  if (btn) {   // 좁은 화면에서는 짧은 이름
+    const [l, sh] = { light: ["밝은 테마", "밝게"], dark: ["어두운 테마", "어둡게"], system: ["기기 설정", "자동"] }[theme] || ["테마", "테마"];
+    btn.replaceChildren(h("span", { class: "lbl-l" }, l), h("span", { class: "lbl-s" }, sh));
+    btn.setAttribute("aria-label", `테마: ${l}`);
+  }
 }
 try { applyTheme(localStorage.getItem("id-theme") || "system"); } catch { applyTheme("system"); }
 
@@ -5119,7 +5132,8 @@ async function renderRaid(body) {
     th.description ? h("p", { class: "rd-desc" }, th.description) : null,
     h("p", { class: "rd-special" }, h("b", {}, `특화 능력 · ${th.special_name || RAID_SPECIAL[th.special] || ""}`), " ", th.special_desc || RAID_SPECIAL_DESC[th.special] || ""),
     h("div", { class: "rd-hp" }, h("div", { class: "rd-hp-bar" }, h("i", { style: `width:${hpPct}%` })),
-      h("div", { class: "rd-hp-txt" }, h("span", {}, w.hp > 0 ? "남은 체력" : "체력 소진 — 토벌 성공 확정"), h("b", {}, `${fmtN(Math.max(0, w.hp))} / ${fmtN(w.max_hp)}`))),
+      h("div", { class: "rd-hp-txt" }, h("span", {}, w.hp > 0 ? "남은 체력" : "체력 소진 — 토벌 성공 확정"), h("b", {}, `${fmtN(Math.max(0, w.hp))} / ${fmtN(w.max_hp)}`)),
+      w.overkill > 0 ? h("div", { class: "rd-hp-txt" }, h("span", {}, "추가 토벌 피해"), h("b", {}, fmtN(w.overkill))) : null),
     h("p", { class: "rd-phase" }, w.status === "settled" ? (w.result?.success ? "이번 레이드는 성공했습니다." : "이번 레이드는 실패했습니다.")
       : w.phase === "weekday" ? "평일 — 개인 도전 기간입니다. 하루 한 번 도전해 보스 체력을 깎고 주말 토벌 버프를 쌓으세요."
       : "주말 — 토벌 기간입니다. 토·일 오후 2시와 오후 10시에 열립니다.")));
@@ -5262,6 +5276,7 @@ function raidDoneBox(run) {
     h("p", { class: "panel-title", style: "margin:0 0 6px" }, run.kind === "raid" ? "지난 토벌 결과" : "지난 개인 도전 결과"),
     h("div", { class: "kv" }, h("span", {}, "보스에게 준 피해"), h("b", {}, fmtN(run.dmg))),
     h("div", { class: "kv" }, h("span", {}, "기여도"), h("b", {}, fmtN(run.contrib))),
+    run.overkill > 0 ? h("p", { class: "hint", style: "margin:6px 0 0;font-size:13px" }, "보스 체력이 다한 뒤에 준 피해는 추가 토벌로 기여도에 일부만 반영되었습니다.") : null,
     run.kind === "raid" && run.members?.length > 1 ? h("details", { style: "margin-top:8px" }, h("summary", {}, "토벌대 기여도"),
       h("div", {}, ...[...run.members].sort((a, b) => b.contrib - a.contrib).map(m =>
         h("div", { class: "kv" }, h("span", {}, m.name, m.alive ? "" : " (쓰러짐)"), h("span", {}, fmtN(Math.round(m.contrib))))))) : null);
@@ -5324,7 +5339,8 @@ function raidRules(rw) {
       h("li", {}, "토·일 오후 2시와 오후 10시, 모두 4번 토벌이 열립니다. 회차마다 한 번씩 참여할 수 있고, 한 토벌대는 최대 10명입니다."),
       h("li", {}, "10명이 모이면 바로, 회차가 열리고 10분이 지나면 5명 이상일 때 출발합니다. 1시간 안에 5명이 모이지 않으면 취소됩니다."),
       h("li", {}, "도전과 토벌 중에는 무한 던전·지역 안정화 같은 공략에 들어갈 수 없습니다."),
-      h("li", {}, "모든 도전과 토벌이 끝난 뒤 보스 체력이 0 이하면 성공입니다. 성공하면 기여도에 따라 보상을, 실패하면 참여 보상만 받습니다."),
+      h("li", {}, "보스 체력을 0까지 깎으면 그 순간 이번 주 레이드는 성공으로 확정됩니다. 성공하면 기여도에 따라 보상을, 실패하면 참여 보상만 받습니다."),
+      h("li", {}, "주 중간에 성공이 확정되어도 남은 기간 동안 개인 도전과 주말 토벌을 계속할 수 있습니다(추가 토벌). 다만 체력이 다한 뒤에 준 피해는 기여도에 일부만 반영됩니다."),
       rw && (rwText(rw.join) || rwText(rw.win)) ? h("li", {}, `참여 보상: ${rwText(rw.join) || "없음"}`) : null,
       rw && rwText(rw.win) ? h("li", {}, `성공 보상(평균 기여도 기준, 기여도에 따라 늘고 줄어듭니다): ${rwText(rw.win)}`) : null));
 }
@@ -7114,7 +7130,7 @@ const DOCS = {
 <p><b>주말(토·일)</b>에는 오후 2시와 오후 10시, 모두 4번 <b>토벌</b>이 열립니다. 회차가 열리면 1시간 동안 참여할 수 있고, 회차마다 한 번씩 참여할 수 있습니다. 한 토벌대는 최대 10명이며, 10명이 모이면 바로, 회차가 열리고 10분이 지나면 5명 이상일 때 출발합니다. 1시간 안에 5명이 모이지 않으면 그 토벌대는 취소됩니다.</p>
 <p>도전과 토벌은 공략으로 치기 때문에, 그동안에는 무한 던전·지역 안정화·탐색·별의 무덤·별의 제단에 들어갈 수 없습니다. 토벌을 기다리는 동안도 마찬가지이며, 대기를 그만두면 바로 들어갈 수 있습니다.</p>
 <p>기여도는 포지션과 상관없이 <b>헌터님 자신의 능력으로 보스에게 준 피해</b>로 매깁니다. 아군을 돕는 효과는 함께 싸우는 헌터의 기여도를 깎지 않고 토벌 전체를 돕습니다. 같은 능력이라면 어떤 포지션이든 비슷한 기여도를 얻습니다.</p>
-<p>한 주의 모든 도전과 토벌이 끝난 뒤 <b>보스 체력이 0 이하면 레이드 성공</b>입니다. 성공하면 참여 보상과 함께 기여도에 따른 성공 보상을, 실패하면 참여 보상만 받습니다. 보스의 위력은 지난 레이드의 결과에 맞춰 매주 달라집니다.</p>
+<p><b>보스 체력을 0까지 깎으면 그 주 레이드는 성공</b>으로 확정되고, 알림으로 알려 드립니다. 남은 기간에도 개인 도전과 주말 토벌을 계속할 수 있지만(추가 토벌), 체력이 다한 뒤에 준 피해는 기여도에 일부만 반영됩니다. 성공하면 참여 보상과 함께 기여도에 따른 성공 보상을, 실패하면 참여 보상만 받습니다. 보스의 위력은 지난 레이드의 결과에 맞춰 매주 달라집니다.</p>
 <h3>별의 제단</h3>
 <p>별의 무덤 깊은 곳에서 발견된 제단입니다. <b>20레벨 이상, 그날 별의 무덤을 한 번 다녀온 헌터만 하루 1번</b> 들어갈 수 있으며, 8+(레벨÷5)칸을 이동합니다.</p>
 <p>지도에는 처음부터 <b>제단 4개</b>가 보입니다. 제단에 닿으면 별가루 3~5개와 별조각 사탕·은하수 이슬·마석 중 하나를 받고, <b>4개를 모두 봉헌하면 맥동하는 마석</b>을 더 받습니다.</p>
