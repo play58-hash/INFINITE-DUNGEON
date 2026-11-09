@@ -306,11 +306,11 @@ code.c { font-family: ui-monospace, Menlo, monospace; background: var(--surface-
 .bg-waves svg { position: absolute; left: 0; bottom: 0; width: 100%; height: 100%; }
 /* 심전도 모니터처럼 왼쪽에서 오른쪽으로 그려지고, 지나간 자리는 서서히 사라진다 */
 .bg-waves .ecg { fill: none; stroke: var(--secondary); stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke;
-  animation: ecg-t1 7s linear infinite; }
-.bg-waves .t1 { animation-name: ecg-t1; stroke-dasharray: 140 3000; opacity: .95; filter: drop-shadow(0 0 4px var(--secondary)); }
-.bg-waves .t2 { animation-name: ecg-t2; stroke-dasharray: 380 3000; opacity: .45; }
-.bg-waves .t3 { animation-name: ecg-t3; stroke-dasharray: 700 3000; opacity: .18; }
-.bg-waves .head { animation-name: ecg-head; stroke: #fff; stroke-width: 7; stroke-dasharray: 0.1 3000; filter: drop-shadow(0 0 6px var(--secondary)) drop-shadow(0 0 12px var(--secondary)); }
+  animation: ecg-t1 12s linear infinite; }
+.bg-waves .t1 { animation-name: ecg-t1; stroke-dasharray: 140 3000; opacity: .55; filter: drop-shadow(0 0 3px var(--secondary)); }
+.bg-waves .t2 { animation-name: ecg-t2; stroke-dasharray: 380 3000; opacity: .26; }
+.bg-waves .t3 { animation-name: ecg-t3; stroke-dasharray: 700 3000; opacity: .1; }
+.bg-waves .head { animation-name: ecg-head; stroke: #fff; stroke-width: 6; stroke-dasharray: 0.1 3000; opacity: .7; filter: drop-shadow(0 0 6px var(--secondary)) drop-shadow(0 0 12px var(--secondary)); }
 @keyframes ecg-t1 { from { stroke-dashoffset: 140; } to { stroke-dashoffset: -1560; } }
 @keyframes ecg-t2 { from { stroke-dashoffset: 380; } to { stroke-dashoffset: -1320; } }
 @keyframes ecg-t3 { from { stroke-dashoffset: 700; } to { stroke-dashoffset: -1000; } }
@@ -8595,7 +8595,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-10-0150";
+const BUILD = "2026-11-10-0200";
 let buildNoticed = false;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
