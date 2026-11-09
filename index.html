@@ -292,6 +292,7 @@ code.c { font-family: ui-monospace, Menlo, monospace; background: var(--surface-
 .mini-cover { position: absolute; inset: 0; display: grid; place-items: center; background: color-mix(in srgb, var(--bg) 55%, transparent); z-index: 3; border-radius: inherit; }
 .mini-cover .mini-start-btn { width: auto; min-width: 140px; }
 .mini-start-btn { margin-top: 12px; }
+.build-bar { position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%); z-index: 60; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--accent); box-shadow: var(--shadow); font-size: 14px; white-space: nowrap; }
 .ev-hint span { font-style: italic; color: var(--text-dim); }
 .ev-boss span { color: var(--danger); font-weight: 700; }
 .ev-enter.ev-boss span { color: var(--danger); }
@@ -599,6 +600,8 @@ table.list.rank tr.me td { background: color-mix(in srgb, var(--primary) 10%, tr
 .home-act + .home-act { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
 .home-act .row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .home-count { display: flex; gap: 10px; }
+.home-count .dg-stat { flex: 1; min-width: 0; }
+.home-count .dg-stat small { white-space: nowrap; }
 .home-count .dg-stat { flex: 1; }
 .quest-list { list-style: none; margin: 0; padding: 0; }
 .quest-list li { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
@@ -3466,7 +3469,8 @@ async function renderHome(pane) {
     h("small", {}, label), h("b", { class: `home-big${n > 0 ? "" : " hint"}`, style: "display:block" }, `${n}`, h("span", { class: "hint", style: "font-size:15px;font-weight:600" }, ` / ${max}`)));
   const countBox = h("div", { class: "home-box", "data-tour": "hm-count" },
     h("p", { class: "panel-title" }, "오늘 남은 횟수"),
-    h("div", { class: "home-count" }, countTile("탐색", d.explore.left_today, 3, "explore"), countTile("별의 무덤", d.star.left_today, d.star.max_today || 1, "star")),
+    h("div", { class: "home-count" }, countTile("탐색", d.explore.left_today, 3, "explore"), countTile("별의 무덤", d.star.left_today, d.star.max_today || 1, "star"),
+      released() && d.altar ? countTile("별의 제단", d.altar.left_today, d.altar.max_today || 1, "altar") : null),
     h("p", { class: "hint", style: "margin:10px 0 0" }, "다시 채워지기까지 ", reset, " · 매일 0시(한국 시간)"));
 
   /* 할 일 */
@@ -8338,6 +8342,25 @@ async function loadAll() {
   if (state.settings) applyTheme(state.settings.theme);
 }
 
+/* ===== 새 버전 알림 =====
+   올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
+const BUILD = "2026-11-09-1710";
+let buildNoticed = false;
+async function checkBuild() {
+  if (buildNoticed || document.hidden) return;
+  try {
+    const r = await fetch(`${location.pathname}?v=${Date.now()}`, { cache: "no-store" });
+    const m = (await r.text()).match(/const BUILD = "([^"]+)"/);
+    if (!m || m[1] === BUILD) return;
+    buildNoticed = true;
+    const bar = h("div", { class: "build-bar", role: "status" }, "게임이 업데이트되었습니다. ",
+      h("button", { class: "btn small", type: "button", onclick: () => location.reload() }, "새로고침"));
+    document.body.append(bar);
+  } catch {}
+}
+setInterval(checkBuild, 5 * 60e3);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) checkBuild(); });
+setTimeout(checkBuild, 15e3);
 async function boot() {
   syncDoc();   // #/about · #/privacy 로 바로 들어와도 로그인 없이 보인다
   const { data: { session } } = await sb.auth.getSession();
