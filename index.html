@@ -302,14 +302,20 @@ code.c { font-family: ui-monospace, Menlo, monospace; background: var(--surface-
 .mini-start-btn { margin-top: 12px; }
 .build-bar { position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%); z-index: 60; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--accent); box-shadow: var(--shadow); font-size: 14px; white-space: nowrap; }
 /* 배경 파형: 화면 아래쪽에 느리게 흐르는 선 3개 (그림 1장, 움직임은 transform만 써서 가볍게) */
-.bg-waves { position: fixed; left: 0; right: 0; bottom: 0; height: 38vh; z-index: -1; pointer-events: none; overflow: hidden; opacity: .55; }
-.bg-waves svg { position: absolute; left: 0; bottom: 0; width: 200%; height: 100%; animation: bg-wave 46s linear infinite; will-change: transform; }
-.bg-waves path { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; }
-.bg-waves .w1 { stroke: color-mix(in srgb, var(--secondary) 45%, transparent); }
-.bg-waves .w2 { stroke: color-mix(in srgb, var(--primary) 30%, transparent); }
-.bg-waves .w3 { stroke: color-mix(in srgb, var(--frame) 35%, transparent); }
-@keyframes bg-wave { to { transform: translateX(-50%); } }
-@media (prefers-reduced-motion: reduce) { .bg-waves svg { animation: none; } }
+.bg-waves { position: fixed; left: 0; right: 0; bottom: 0; height: 46vh; z-index: -1; pointer-events: none; overflow: hidden; }
+.bg-waves svg { position: absolute; left: 0; bottom: 0; width: 100%; height: 100%; }
+/* 심전도 모니터처럼 왼쪽에서 오른쪽으로 그려지고, 지나간 자리는 서서히 사라진다 */
+.bg-waves .ecg { fill: none; stroke: var(--secondary); stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke;
+  animation: ecg-t1 7s linear infinite; }
+.bg-waves .t1 { animation-name: ecg-t1; stroke-dasharray: 140 3000; opacity: .95; filter: drop-shadow(0 0 4px var(--secondary)); }
+.bg-waves .t2 { animation-name: ecg-t2; stroke-dasharray: 380 3000; opacity: .45; }
+.bg-waves .t3 { animation-name: ecg-t3; stroke-dasharray: 700 3000; opacity: .18; }
+.bg-waves .head { animation-name: ecg-head; stroke: #fff; stroke-width: 7; stroke-dasharray: 0.1 3000; filter: drop-shadow(0 0 6px var(--secondary)) drop-shadow(0 0 12px var(--secondary)); }
+@keyframes ecg-t1 { from { stroke-dashoffset: 140; } to { stroke-dashoffset: -1560; } }
+@keyframes ecg-t2 { from { stroke-dashoffset: 380; } to { stroke-dashoffset: -1320; } }
+@keyframes ecg-t3 { from { stroke-dashoffset: 700; } to { stroke-dashoffset: -1000; } }
+@keyframes ecg-head { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -1700; } }
+@media (prefers-reduced-motion: reduce) { .bg-waves .ecg { animation: none; stroke-dasharray: none; opacity: .3; } .bg-waves .head { display: none; } }
 .help-btns { display: inline-flex; gap: 6px; flex-wrap: nowrap; }
 dialog.guide-dlg { width: min(760px, calc(100vw - 24px)); }
 .cat-row.guide-cats { margin: 0 0 10px; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; }
@@ -329,6 +335,8 @@ dialog.guide-dlg { width: min(760px, calc(100vw - 24px)); }
 .lic-barcode { width: min(150px, 45%); height: 30px; flex: none; fill: var(--text); opacity: .85; }
 .lic-meta { display: grid; text-align: right; font-size: 11px; white-space: nowrap; color: var(--text-dim); font-variant-numeric: tabular-nums; }
 .lic-bio { margin-top: 12px; } .lic-bio summary { cursor: pointer; font-weight: 700; }
+.lic-bio-part { margin-top: 8px; } .lic-bio-part + .lic-bio-part { border-top: 1px dashed var(--border); padding-top: 8px; }
+.lic-bio-tag { font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--accent-text); }
 .lic-sub:empty { display: none; }
 .ev-hint span { font-style: italic; color: var(--text-dim); }
 .ev-boss span { color: var(--danger); font-weight: 700; }
@@ -789,6 +797,8 @@ html.doc-open, html.doc-open body { overflow: hidden; }
 .notif-text time { display: block; font-size: 12px; color: var(--text-dim); font-weight: 400; margin-top: 2px; }
 .notif-dot { flex: 0 0 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--primary); margin-top: 8px; }
 .notif-set { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 14px; margin: 4px 0 12px; }
+.notif-set-head { grid-column: 1 / -1; margin: 6px 0 0; font-size: 13px; font-weight: 700; color: var(--accent-text); }
+.notif-cats { margin: 0 0 8px; }
 .notif-set label { display: flex; gap: 8px; align-items: center; font-size: 14.5px; cursor: pointer; }
 @media (max-width: 720px) { .notif-btn .wide { display: none; } }
 @media (max-width: 1520px) { #btn-updates .upd-word { display: none; } }
@@ -1208,7 +1218,7 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
 </style>
 </head>
 <body>
-<div class="bg-waves" aria-hidden="true"><svg viewBox="0 0 2400 300" preserveAspectRatio="none"><path class="w1" d="M0,120.0 L20,125.4 L40,130.6 L60,135.3 L80,139.3 L100,142.5 L120,144.7 L140,145.9 L160,145.9 L180,144.7 L200,142.5 L220,139.3 L240,135.3 L260,130.6 L280,125.4 L300,120.0 L320,114.6 L340,109.4 L360,104.7 L380,100.7 L400,97.5 L420,95.3 L440,94.1 L460,94.1 L480,95.3 L500,97.5 L520,100.7 L540,104.7 L560,109.4 L580,114.6 L600,120.0 L620,125.4 L640,130.6 L660,135.3 L680,139.3 L700,142.5 L720,144.7 L740,145.9 L760,145.9 L780,144.7 L800,142.5 L820,139.3 L840,135.3 L860,130.6 L880,125.4 L900,120.0 L920,114.6 L940,109.4 L960,104.7 L980,100.7 L1000,97.5 L1020,95.3 L1040,94.1 L1060,94.1 L1080,95.3 L1100,97.5 L1120,100.7 L1140,104.7 L1160,109.4 L1180,114.6 L1200,120.0 L1220,125.4 L1240,130.6 L1260,135.3 L1280,139.3 L1300,142.5 L1320,144.7 L1340,145.9 L1360,145.9 L1380,144.7 L1400,142.5 L1420,139.3 L1440,135.3 L1460,130.6 L1480,125.4 L1500,120.0 L1520,114.6 L1540,109.4 L1560,104.7 L1580,100.7 L1600,97.5 L1620,95.3 L1640,94.1 L1660,94.1 L1680,95.3 L1700,97.5 L1720,100.7 L1740,104.7 L1760,109.4 L1780,114.6 L1800,120.0 L1820,125.4 L1840,130.6 L1860,135.3 L1880,139.3 L1900,142.5 L1920,144.7 L1940,145.9 L1960,145.9 L1980,144.7 L2000,142.5 L2020,139.3 L2040,135.3 L2060,130.6 L2080,125.4 L2100,120.0 L2120,114.6 L2140,109.4 L2160,104.7 L2180,100.7 L2200,97.5 L2220,95.3 L2240,94.1 L2260,94.1 L2280,95.3 L2300,97.5 L2320,100.7 L2340,104.7 L2360,109.4 L2380,114.6 L2400,120.0"/><path class="w2" d="M0,160.0 L20,165.6 L40,170.6 L60,174.6 L80,177.1 L100,178.0 L120,177.1 L140,174.6 L160,170.6 L180,165.6 L200,160.0 L220,154.4 L240,149.4 L260,145.4 L280,142.9 L300,142.0 L320,142.9 L340,145.4 L360,149.4 L380,154.4 L400,160.0 L420,165.6 L440,170.6 L460,174.6 L480,177.1 L500,178.0 L520,177.1 L540,174.6 L560,170.6 L580,165.6 L600,160.0 L620,154.4 L640,149.4 L660,145.4 L680,142.9 L700,142.0 L720,142.9 L740,145.4 L760,149.4 L780,154.4 L800,160.0 L820,165.6 L840,170.6 L860,174.6 L880,177.1 L900,178.0 L920,177.1 L940,174.6 L960,170.6 L980,165.6 L1000,160.0 L1020,154.4 L1040,149.4 L1060,145.4 L1080,142.9 L1100,142.0 L1120,142.9 L1140,145.4 L1160,149.4 L1180,154.4 L1200,160.0 L1220,165.6 L1240,170.6 L1260,174.6 L1280,177.1 L1300,178.0 L1320,177.1 L1340,174.6 L1360,170.6 L1380,165.6 L1400,160.0 L1420,154.4 L1440,149.4 L1460,145.4 L1480,142.9 L1500,142.0 L1520,142.9 L1540,145.4 L1560,149.4 L1580,154.4 L1600,160.0 L1620,165.6 L1640,170.6 L1660,174.6 L1680,177.1 L1700,178.0 L1720,177.1 L1740,174.6 L1760,170.6 L1780,165.6 L1800,160.0 L1820,154.4 L1840,149.4 L1860,145.4 L1880,142.9 L1900,142.0 L1920,142.9 L1940,145.4 L1960,149.4 L1980,154.4 L2000,160.0 L2020,165.6 L2040,170.6 L2060,174.6 L2080,177.1 L2100,178.0 L2120,177.1 L2140,174.6 L2160,170.6 L2180,165.6 L2200,160.0 L2220,154.4 L2240,149.4 L2260,145.4 L2280,142.9 L2300,142.0 L2320,142.9 L2340,145.4 L2360,149.4 L2380,154.4 L2400,160.0"/><path class="w3" d="M0,200.0 L20,203.6 L40,207.1 L60,210.5 L80,213.8 L100,217.0 L120,220.0 L140,222.8 L160,225.3 L180,227.5 L200,229.4 L220,231.1 L240,232.3 L260,233.3 L280,233.8 L300,234.0 L320,233.8 L340,233.3 L360,232.3 L380,231.1 L400,229.4 L420,227.5 L440,225.3 L460,222.8 L480,220.0 L500,217.0 L520,213.8 L540,210.5 L560,207.1 L580,203.6 L600,200.0 L620,196.4 L640,192.9 L660,189.5 L680,186.2 L700,183.0 L720,180.0 L740,177.2 L760,174.7 L780,172.5 L800,170.6 L820,168.9 L840,167.7 L860,166.7 L880,166.2 L900,166.0 L920,166.2 L940,166.7 L960,167.7 L980,168.9 L1000,170.6 L1020,172.5 L1040,174.7 L1060,177.2 L1080,180.0 L1100,183.0 L1120,186.2 L1140,189.5 L1160,192.9 L1180,196.4 L1200,200.0 L1220,203.6 L1240,207.1 L1260,210.5 L1280,213.8 L1300,217.0 L1320,220.0 L1340,222.8 L1360,225.3 L1380,227.5 L1400,229.4 L1420,231.1 L1440,232.3 L1460,233.3 L1480,233.8 L1500,234.0 L1520,233.8 L1540,233.3 L1560,232.3 L1580,231.1 L1600,229.4 L1620,227.5 L1640,225.3 L1660,222.8 L1680,220.0 L1700,217.0 L1720,213.8 L1740,210.5 L1760,207.1 L1780,203.6 L1800,200.0 L1820,196.4 L1840,192.9 L1860,189.5 L1880,186.2 L1900,183.0 L1920,180.0 L1940,177.2 L1960,174.7 L1980,172.5 L2000,170.6 L2020,168.9 L2040,167.7 L2060,166.7 L2080,166.2 L2100,166.0 L2120,166.2 L2140,166.7 L2160,167.7 L2180,168.9 L2200,170.6 L2220,172.5 L2240,174.7 L2260,177.2 L2280,180.0 L2300,183.0 L2320,186.2 L2340,189.5 L2360,192.9 L2380,196.4 L2400,200.0"/></svg></div>
+<div class="bg-waves" aria-hidden="true"><svg viewBox="0 0 1200 300" preserveAspectRatio="none"><path class="ecg t3" pathLength="1000" d="M0.0,215.0 L33.0,214.9 L35.5,214.4 L38.0,213.1 L40.5,210.1 L43.0,205.4 L45.5,200.6 L48.0,198.5 L50.5,200.6 L53.0,205.4 L55.5,210.1 L58.0,213.1 L60.5,214.4 L63.0,214.9 L90.0,215.0 L99.0,226.6 L108.0,50.0 L118.5,264.5 L129.0,215.0 L150.0,214.7 L154.0,213.7 L158.0,210.8 L162.0,204.2 L166.0,193.8 L170.0,183.3 L174.0,178.7 L178.0,183.3 L182.0,193.8 L186.0,204.2 L190.0,210.8 L194.0,213.7 L198.0,214.7 L225.0,215.0 L300.0,215.0 L333.0,214.9 L335.5,214.4 L338.0,213.1 L340.5,210.1 L343.0,205.4 L345.5,200.6 L348.0,198.5 L350.5,200.6 L353.0,205.4 L355.5,210.1 L358.0,213.1 L360.5,214.4 L363.0,214.9 L390.0,215.0 L399.0,226.6 L408.0,50.0 L418.5,264.5 L429.0,215.0 L450.0,214.7 L454.0,213.7 L458.0,210.8 L462.0,204.2 L466.0,193.8 L470.0,183.3 L474.0,178.7 L478.0,183.3 L482.0,193.8 L486.0,204.2 L490.0,210.8 L494.0,213.7 L498.0,214.7 L525.0,215.0 L600.0,215.0 L633.0,214.9 L635.5,214.4 L638.0,213.1 L640.5,210.1 L643.0,205.4 L645.5,200.6 L648.0,198.5 L650.5,200.6 L653.0,205.4 L655.5,210.1 L658.0,213.1 L660.5,214.4 L663.0,214.9 L690.0,215.0 L699.0,226.6 L708.0,50.0 L718.5,264.5 L729.0,215.0 L750.0,214.7 L754.0,213.7 L758.0,210.8 L762.0,204.2 L766.0,193.8 L770.0,183.3 L774.0,178.7 L778.0,183.3 L782.0,193.8 L786.0,204.2 L790.0,210.8 L794.0,213.7 L798.0,214.7 L825.0,215.0 L900.0,215.0 L933.0,214.9 L935.5,214.4 L938.0,213.1 L940.5,210.1 L943.0,205.4 L945.5,200.6 L948.0,198.5 L950.5,200.6 L953.0,205.4 L955.5,210.1 L958.0,213.1 L960.5,214.4 L963.0,214.9 L990.0,215.0 L999.0,226.6 L1008.0,50.0 L1018.5,264.5 L1029.0,215.0 L1050.0,214.7 L1054.0,213.7 L1058.0,210.8 L1062.0,204.2 L1066.0,193.8 L1070.0,183.3 L1074.0,178.7 L1078.0,183.3 L1082.0,193.8 L1086.0,204.2 L1090.0,210.8 L1094.0,213.7 L1098.0,214.7 L1125.0,215.0 L1200.0,215.0"/><path class="ecg t2" pathLength="1000" d="M0.0,215.0 L33.0,214.9 L35.5,214.4 L38.0,213.1 L40.5,210.1 L43.0,205.4 L45.5,200.6 L48.0,198.5 L50.5,200.6 L53.0,205.4 L55.5,210.1 L58.0,213.1 L60.5,214.4 L63.0,214.9 L90.0,215.0 L99.0,226.6 L108.0,50.0 L118.5,264.5 L129.0,215.0 L150.0,214.7 L154.0,213.7 L158.0,210.8 L162.0,204.2 L166.0,193.8 L170.0,183.3 L174.0,178.7 L178.0,183.3 L182.0,193.8 L186.0,204.2 L190.0,210.8 L194.0,213.7 L198.0,214.7 L225.0,215.0 L300.0,215.0 L333.0,214.9 L335.5,214.4 L338.0,213.1 L340.5,210.1 L343.0,205.4 L345.5,200.6 L348.0,198.5 L350.5,200.6 L353.0,205.4 L355.5,210.1 L358.0,213.1 L360.5,214.4 L363.0,214.9 L390.0,215.0 L399.0,226.6 L408.0,50.0 L418.5,264.5 L429.0,215.0 L450.0,214.7 L454.0,213.7 L458.0,210.8 L462.0,204.2 L466.0,193.8 L470.0,183.3 L474.0,178.7 L478.0,183.3 L482.0,193.8 L486.0,204.2 L490.0,210.8 L494.0,213.7 L498.0,214.7 L525.0,215.0 L600.0,215.0 L633.0,214.9 L635.5,214.4 L638.0,213.1 L640.5,210.1 L643.0,205.4 L645.5,200.6 L648.0,198.5 L650.5,200.6 L653.0,205.4 L655.5,210.1 L658.0,213.1 L660.5,214.4 L663.0,214.9 L690.0,215.0 L699.0,226.6 L708.0,50.0 L718.5,264.5 L729.0,215.0 L750.0,214.7 L754.0,213.7 L758.0,210.8 L762.0,204.2 L766.0,193.8 L770.0,183.3 L774.0,178.7 L778.0,183.3 L782.0,193.8 L786.0,204.2 L790.0,210.8 L794.0,213.7 L798.0,214.7 L825.0,215.0 L900.0,215.0 L933.0,214.9 L935.5,214.4 L938.0,213.1 L940.5,210.1 L943.0,205.4 L945.5,200.6 L948.0,198.5 L950.5,200.6 L953.0,205.4 L955.5,210.1 L958.0,213.1 L960.5,214.4 L963.0,214.9 L990.0,215.0 L999.0,226.6 L1008.0,50.0 L1018.5,264.5 L1029.0,215.0 L1050.0,214.7 L1054.0,213.7 L1058.0,210.8 L1062.0,204.2 L1066.0,193.8 L1070.0,183.3 L1074.0,178.7 L1078.0,183.3 L1082.0,193.8 L1086.0,204.2 L1090.0,210.8 L1094.0,213.7 L1098.0,214.7 L1125.0,215.0 L1200.0,215.0"/><path class="ecg t1" pathLength="1000" d="M0.0,215.0 L33.0,214.9 L35.5,214.4 L38.0,213.1 L40.5,210.1 L43.0,205.4 L45.5,200.6 L48.0,198.5 L50.5,200.6 L53.0,205.4 L55.5,210.1 L58.0,213.1 L60.5,214.4 L63.0,214.9 L90.0,215.0 L99.0,226.6 L108.0,50.0 L118.5,264.5 L129.0,215.0 L150.0,214.7 L154.0,213.7 L158.0,210.8 L162.0,204.2 L166.0,193.8 L170.0,183.3 L174.0,178.7 L178.0,183.3 L182.0,193.8 L186.0,204.2 L190.0,210.8 L194.0,213.7 L198.0,214.7 L225.0,215.0 L300.0,215.0 L333.0,214.9 L335.5,214.4 L338.0,213.1 L340.5,210.1 L343.0,205.4 L345.5,200.6 L348.0,198.5 L350.5,200.6 L353.0,205.4 L355.5,210.1 L358.0,213.1 L360.5,214.4 L363.0,214.9 L390.0,215.0 L399.0,226.6 L408.0,50.0 L418.5,264.5 L429.0,215.0 L450.0,214.7 L454.0,213.7 L458.0,210.8 L462.0,204.2 L466.0,193.8 L470.0,183.3 L474.0,178.7 L478.0,183.3 L482.0,193.8 L486.0,204.2 L490.0,210.8 L494.0,213.7 L498.0,214.7 L525.0,215.0 L600.0,215.0 L633.0,214.9 L635.5,214.4 L638.0,213.1 L640.5,210.1 L643.0,205.4 L645.5,200.6 L648.0,198.5 L650.5,200.6 L653.0,205.4 L655.5,210.1 L658.0,213.1 L660.5,214.4 L663.0,214.9 L690.0,215.0 L699.0,226.6 L708.0,50.0 L718.5,264.5 L729.0,215.0 L750.0,214.7 L754.0,213.7 L758.0,210.8 L762.0,204.2 L766.0,193.8 L770.0,183.3 L774.0,178.7 L778.0,183.3 L782.0,193.8 L786.0,204.2 L790.0,210.8 L794.0,213.7 L798.0,214.7 L825.0,215.0 L900.0,215.0 L933.0,214.9 L935.5,214.4 L938.0,213.1 L940.5,210.1 L943.0,205.4 L945.5,200.6 L948.0,198.5 L950.5,200.6 L953.0,205.4 L955.5,210.1 L958.0,213.1 L960.5,214.4 L963.0,214.9 L990.0,215.0 L999.0,226.6 L1008.0,50.0 L1018.5,264.5 L1029.0,215.0 L1050.0,214.7 L1054.0,213.7 L1058.0,210.8 L1062.0,204.2 L1066.0,193.8 L1070.0,183.3 L1074.0,178.7 L1078.0,183.3 L1082.0,193.8 L1086.0,204.2 L1090.0,210.8 L1094.0,213.7 L1098.0,214.7 L1125.0,215.0 L1200.0,215.0"/><path class="ecg head" pathLength="1000" d="M0.0,215.0 L33.0,214.9 L35.5,214.4 L38.0,213.1 L40.5,210.1 L43.0,205.4 L45.5,200.6 L48.0,198.5 L50.5,200.6 L53.0,205.4 L55.5,210.1 L58.0,213.1 L60.5,214.4 L63.0,214.9 L90.0,215.0 L99.0,226.6 L108.0,50.0 L118.5,264.5 L129.0,215.0 L150.0,214.7 L154.0,213.7 L158.0,210.8 L162.0,204.2 L166.0,193.8 L170.0,183.3 L174.0,178.7 L178.0,183.3 L182.0,193.8 L186.0,204.2 L190.0,210.8 L194.0,213.7 L198.0,214.7 L225.0,215.0 L300.0,215.0 L333.0,214.9 L335.5,214.4 L338.0,213.1 L340.5,210.1 L343.0,205.4 L345.5,200.6 L348.0,198.5 L350.5,200.6 L353.0,205.4 L355.5,210.1 L358.0,213.1 L360.5,214.4 L363.0,214.9 L390.0,215.0 L399.0,226.6 L408.0,50.0 L418.5,264.5 L429.0,215.0 L450.0,214.7 L454.0,213.7 L458.0,210.8 L462.0,204.2 L466.0,193.8 L470.0,183.3 L474.0,178.7 L478.0,183.3 L482.0,193.8 L486.0,204.2 L490.0,210.8 L494.0,213.7 L498.0,214.7 L525.0,215.0 L600.0,215.0 L633.0,214.9 L635.5,214.4 L638.0,213.1 L640.5,210.1 L643.0,205.4 L645.5,200.6 L648.0,198.5 L650.5,200.6 L653.0,205.4 L655.5,210.1 L658.0,213.1 L660.5,214.4 L663.0,214.9 L690.0,215.0 L699.0,226.6 L708.0,50.0 L718.5,264.5 L729.0,215.0 L750.0,214.7 L754.0,213.7 L758.0,210.8 L762.0,204.2 L766.0,193.8 L770.0,183.3 L774.0,178.7 L778.0,183.3 L782.0,193.8 L786.0,204.2 L790.0,210.8 L794.0,213.7 L798.0,214.7 L825.0,215.0 L900.0,215.0 L933.0,214.9 L935.5,214.4 L938.0,213.1 L940.5,210.1 L943.0,205.4 L945.5,200.6 L948.0,198.5 L950.5,200.6 L953.0,205.4 L955.5,210.1 L958.0,213.1 L960.5,214.4 L963.0,214.9 L990.0,215.0 L999.0,226.6 L1008.0,50.0 L1018.5,264.5 L1029.0,215.0 L1050.0,214.7 L1054.0,213.7 L1058.0,210.8 L1062.0,204.2 L1066.0,193.8 L1070.0,183.3 L1074.0,178.7 L1078.0,183.3 L1082.0,193.8 L1086.0,204.2 L1090.0,210.8 L1094.0,213.7 L1098.0,214.7 L1125.0,215.0 L1200.0,215.0"/></svg></div>
 <div id="doc-view" class="doc-view hidden" role="region" aria-label="안내 문서"></div>
 
 <!-- ===== 1. 로그인 / 가입 ===== -->
@@ -1418,17 +1428,13 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
       <label for="e-credit">프로필 사진 출처</label>
       <input id="e-credit" class="input" maxlength="100" placeholder="예) 그림 @작가명, 픽크루 링크">
     </div>
-    <div class="field">
-      <label for="e-bio">특징</label>
-      <textarea id="e-bio" class="input" maxlength="300"></textarea>
-    </div>
     <div class="field" data-tour="hd-vis">
-      <label for="e-vis">특징 공개 범위</label>
-      <select id="e-vis" class="input">
-        <option value="all">모든 헌터</option>
-        <option value="friends">친구만</option>
-        <option value="private">나만 보기</option>
-      </select>
+      <label for="e-bio">특징 · 모든 헌터에게 공개</label>
+      <textarea id="e-bio" class="input" maxlength="300" placeholder="누구나 볼 수 있는 소개 (300자 이내)"></textarea>
+      <label for="e-bio-f" style="margin-top:10px">특징 · 친구에게만 공개</label>
+      <textarea id="e-bio-f" class="input" maxlength="300" placeholder="친구로 맺어진 헌터만 볼 수 있습니다 (300자 이내)"></textarea>
+      <label for="e-bio-p" style="margin-top:10px">특징 · 나만 보기</label>
+      <textarea id="e-bio-p" class="input" maxlength="300" placeholder="메모처럼 나만 볼 수 있습니다 (300자 이내)"></textarea>
     </div>
     <div class="field">
       <label>계정</label>
@@ -2099,8 +2105,13 @@ const NOTIF_KINDS = [
   ["title", "타이틀"], ["friend", "친구 신청"], ["party", "파티 초대"], ["guild", "길드 초대"],
   ["notice", "공지"], ["sns", "SNS 댓글·답글"], ["market", "거래소 판매"], ["gift", "선물 도착"],
   ["regional", "지역 안정화 완료"], ["infinite", "무한 던전 복귀"], ["analysis", "전력 분석 완료"], ["raid", "레이드"], ["rescue", "구조 요청"]];
+// 알림 카테고리: 콘텐츠별로 묶어 보기
+const NOTIF_CATS = [["notice", "공지", ["notice"]], ["title", "획득", ["title"]], ["social", "교류", ["friend", "guild", "party", "sns"]],
+  ["item", "아이템", ["market", "gift"]], ["regional", "지역 안정화", ["regional"]], ["infinite", "무한 던전", ["infinite", "rescue"]],
+  ["analysis", "전력 분석", ["analysis"]], ["raid", "레이드", ["raid"]]];
+const notifCatOf = kind => (NOTIF_CATS.find(c => c[2].includes(kind)) || [null])[0];
 const NOTIF_TAG = { title: "타이틀", friend: "친구", party: "파티", guild: "길드", notice: "공지", sns: "SNS", market: "거래소", gift: "선물", regional: "안정화", infinite: "무한 던전", analysis: "분석", raid: "레이드", rescue: "구조" };
-const notif = { rows: [], unread: 0, settings: {}, seen: new Set(), ready: false, chan: null, timer: null, view: "list" };
+const notif = { rows: [], unread: 0, settings: {}, seen: new Set(), ready: false, chan: null, timer: null, view: "list", cat: "all" };
 const lsGet = k => { try { return localStorage.getItem(k); } catch { return null; } };
 const lsSet = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} };
 const desktopOn = () => "Notification" in window && Notification.permission === "granted" && lsGet("id-desktop-notif") === "1";
@@ -2198,10 +2209,22 @@ function paintNotif() {
     paintNotifBadge(); paintNotif();
   };
   const setBtn = h("button", { class: "btn ghost small", type: "button", onclick: () => { notif.view = "settings"; paintNotif(); } }, "알림 설정");
+  // 카테고리 칩: 알림이 있는 카테고리만, 읽지 않은 개수 표시
+  const cats = NOTIF_CATS.filter(c => notif.rows.some(r => c[2].includes(r.kind)));
+  if (notif.cat !== "all" && !cats.some(c => c[0] === notif.cat)) notif.cat = "all";
+  const unreadIn = kinds => notif.rows.filter(r => !r.read && (!kinds || kinds.includes(r.kind))).length;
+  const chip = (k, label, kinds) => {
+    const n = unreadIn(kinds), on = notif.cat === k;
+    return h("button", { type: "button", role: "tab", class: `cat-chip big${on ? " on" : ""}`, "aria-selected": on ? "true" : "false",
+      onclick: () => { notif.cat = k; paintNotif(); } }, label, n ? h("span", { class: "inv-n" }, String(n)) : null);
+  };
+  const curKinds = notif.cat === "all" ? null : (NOTIF_CATS.find(c => c[0] === notif.cat) || [])[2];
+  const rows = curKinds ? notif.rows.filter(r => curKinds.includes(r.kind)) : notif.rows;
   box.replaceChildren(
     h("div", { class: "notif-tools" }, h("span", { class: "hint" }, notif.unread ? `읽지 않은 알림 ${notif.unread}개` : "모두 읽었습니다."), h("div", { style: "display:flex;gap:6px" }, allRead, setBtn)),
-    notif.rows.length
-      ? h("ul", { class: "notif-list" }, ...notif.rows.map(r => {
+    cats.length > 1 ? h("div", { class: "cat-row notif-cats", role: "tablist", "aria-label": "알림 종류" }, chip("all", "전체", null), ...cats.map(c => chip(c[0], c[1], c[2]))) : null,
+    rows.length
+      ? h("ul", { class: "notif-list" }, ...rows.map(r => {
           const li = h("li", { class: r.read ? null : "unread", tabindex: "0", role: "button" },
             h("span", { class: "notif-kind" }, NOTIF_TAG[r.kind] || "알림"),
             h("div", { class: "notif-text" }, r.body, h("time", {}, fmtWhen(r.at))),
@@ -2214,7 +2237,7 @@ function paintNotif() {
     h("p", { class: "hint", style: "margin:10px 0 0;font-size:13px" }, "최근 30일 동안의 알림을 모아 둡니다. 누르면 해당 화면으로 이동합니다."));
 }
 function paintNotifSettings(box) {
-  const boxes = NOTIF_KINDS.map(([k, name]) => {
+  const boxOf = ([k, name]) => {
     const c = h("input", { type: "checkbox", checked: notif.settings[k] !== false });
     c.onchange = async () => {
       const next = { ...notif.settings }; if (c.checked) delete next[k]; else next[k] = false;
@@ -2225,6 +2248,10 @@ function paintNotifSettings(box) {
       notif.settings = data.settings || {}; notif.unread = data.unread || 0; notif.rows = data.rows || []; paintNotifBadge();
     };
     return h("label", {}, c, name);
+  };
+  const boxes = NOTIF_CATS.flatMap(([, label, kinds]) => {
+    const ks = NOTIF_KINDS.filter(x => kinds.includes(x[0]));
+    return ks.length ? [h("p", { class: "notif-set-head" }, label), ...ks.map(boxOf)] : [];
   });
   const supported = "Notification" in window;
   const dk = h("input", { type: "checkbox", checked: desktopOn(), disabled: !supported });
@@ -3317,7 +3344,10 @@ async function openPublicHunter(codename) {
     h("div", { class: "lic-foot" }, licBarcode(p.card_no || p.codename), h("div", { class: "lic-meta" },
       h("span", {}, `No. ${(p.card_no || "").replace(/(.{4})(?=.)/g, "$1-")}`), p.since ? h("span", {}, `등록 ${fmtKDate(p.since)}`) : null)));
   // 특징은 펼쳐 보기
-  const bio = h("details", { class: "lic-bio" }, h("summary", {}, "특징"), h("p", { style: "margin:6px 0 0;white-space:pre-wrap" }, p.bio || h("span", { class: "hint" }, "공개하지 않았습니다.")));
+  const bioPart = (label, t) => t ? h("div", { class: "lic-bio-part" }, label ? h("span", { class: "lic-bio-tag" }, label) : null, h("p", { style: "margin:4px 0 0;white-space:pre-wrap" }, t)) : null;
+  const tagged = p.bio_friends || p.bio_private;
+  const bioParts = [bioPart(tagged ? "모든 헌터" : null, p.bio), bioPart("친구 공개", p.bio_friends), bioPart("나만 보기", p.bio_private)].filter(Boolean);
+  const bio = h("details", { class: "lic-bio" }, h("summary", {}, "특징"), ...(bioParts.length ? bioParts : [h("p", { class: "hint", style: "margin:6px 0 0" }, "공개하지 않았습니다.")]));
   // 하위 메뉴: SNS 글 · 도감 달성률 · 지역 평판
   const subs = [released() ? ["sns", "SNS 글"] : null, p.codex ? ["codex", "도감"] : null, !p.admin && patched() ? ["rep", "지역 평판"] : null].filter(Boolean);
   const subBody = h("div", { class: "lic-sub" });
@@ -6872,8 +6902,15 @@ async function renderCodex(pane) {
     monster(out) {
       const groups = new Map();
       for (const m of cx.monsters || []) { if (!groups.has(m.group)) groups.set(m.group, []); groups.get(m.group).push(m); }
-      for (const [g, all] of groups) {
-        const ms = cxApply(all, m => !!m.seen, m => m.name, m => m.first_at, m => m.seen);
+      // 등급순: 출현 던전의 등급 먼저, 같은 던전 안에서는 보스와 일반 몬스터로 나눔
+      const gradeSort = codexSort === "grade_hi" || codexSort === "grade_lo";
+      const gdir = codexSort === "grade_hi" ? -1 : 1;
+      const dGrade = key => { const d = (cx.dungeons || []).find(x => x.key === key); return d?.grade ? "FEDCBAS".indexOf(d.grade) : -1; };
+      const entries = [...groups];
+      if (gradeSort) entries.sort((x, y) => gdir * (dGrade(x[0]) - dGrade(y[0])));
+      for (const [g, all] of entries) {
+        let ms = cxApply(all, m => !!m.seen, m => m.name, m => m.first_at, m => m.seen);
+        if (gradeSort) ms = [...ms].sort((x, y) => gdir * ((x.boss ? 1 : 0) - (y.boss ? 1 : 0)) || (y.seen ? 1 : 0) - (x.seen ? 1 : 0));
         if (!ms.length && cxFiltering()) continue;
         out.push(h("p", { class: "codex-group" }, `${dungeonName(g)} · ${all.filter(m => m.seen).length}/${all.length}`),
           h("div", { class: "codex-grid", "data-tour": "cx-mon" }, ...ms.map(m => cell(!!m.seen, m.name, m.seen ? `처치 ${m.kills}` : null, () => info(m.name || "???",
@@ -6907,7 +6944,7 @@ async function renderCodex(pane) {
       if (!(cxFiltering() || codexSort !== "default")) out.push(codexMap(rg.filter(d => d.seen && d.place), dungeonInfo, rg.filter(d => !d.seen && d.loc)));
       for (const k of (codexRegion === "all" ? regs : [codexRegion])) regSec(k, rgAll.filter(d => d.region === k));
       sec("무한 던전", ds.filter(d => d.kind === "infinite"));
-      sec("별의 무덤", ds.filter(d => d.kind === "star"));
+      sec("별의 무덤 · 별의 제단", ds.filter(d => d.kind === "star"));
     },
     recipe(out) {
       const all = cx.recipes || [];
@@ -7092,7 +7129,8 @@ function openHunter() {
   $("#e-skill").value = c.skill_name || "";
   $("#e-bio").value = p.bio || "";
   $("#e-credit").value = p.avatar_credit || "";
-  $("#e-vis").value = p.bio_visibility;
+  $("#e-bio-f").value = p.bio_friends || "";
+  $("#e-bio-p").value = p.bio_private || "";
   $("#e-email").textContent = state.user?.email || "";
   paintHunterGrade();
   paintTitlePicker();
@@ -7203,7 +7241,8 @@ $("#e-save").onclick = async () => {
       codename, avatar_url, avatar_color: edit.color,
       bio: $("#e-bio").value.trim() || null,
       avatar_credit: $("#e-credit").value.trim() || null,
-      bio_visibility: $("#e-vis").value,
+      bio_friends: $("#e-bio-f").value.trim() || null,
+      bio_private: $("#e-bio-p").value.trim() || null,
     }).eq("user_id", state.user.id);
     if (error) {
       if (/duplicate|unique/i.test(error.message)) throw new Error("이미 사용 중인 코드네임입니다.");
@@ -7419,7 +7458,7 @@ const DOCS = {
 <article class="card prose" id="g-profile">
 <h2>프로필 사진·소개</h2>
 <p>프로필 사진과 캐릭터 소개를 바꿀 수 있습니다.</p>
-<p>프로필 사진은 1:1의 이미지나 단색으로 설정이 가능하며, 소개는 공개 범위를 정하여 보여주고 싶은 사람에게만 보여줄 수 있습니다.</p>
+<p>프로필 사진은 1:1의 이미지나 단색으로 설정이 가능하며, 소개는 모든 헌터 · 친구 · 나만 보기 칸으로 나누어 적을 수 있습니다.</p>
 <p>사진을 직접 그리지 않았다면 세부 정보의 <b>프로필 사진 출처</b>에 그린 분이나 만든 곳을 적을 수 있습니다. 적지 않아도 되며, 적은 출처는 헌터 정보에서 모든 헌터에게 보입니다.</p>
 <h2>타이틀</h2>
 <p>모은 타이틀 조각으로 코드네임의 앞과 뒤를 꾸밀 수 있습니다. 가진 조각은 도감에서 확인 가능합니다.</p>
@@ -7609,7 +7648,7 @@ const DOCS = {
 <thead><tr><th>정보</th><th>공개 범위</th></tr></thead>
 <tbody>
 <tr><td>코드네임 · 등급 · 레벨 · 무한 던전 최고 기록</td><td>로그인한 헌터 전원 (주간 랭킹, 헌터 정보)</td></tr>
-<tr><td>캐릭터 소개</td><td>본인이 고른 공개 범위 (모든 헌터 / 친구만 / 나만 보기)</td></tr>
+<tr><td>캐릭터 소개</td><td>나누어 적은 칸마다 다름 (모든 헌터 / 친구만 / 나만 보기)</td></tr>
 <tr><td>지역 안정화 던전을 공략 중인 헌터의 코드네임</td><td>같은 활동 구역의 헌터</td></tr>
 <tr><td>SNS 글 · 댓글</td><td>로그인한 헌터 전원 (서로 차단한 사이에는 보이지 않음)</td></tr>
 <tr><td>1:1 메시지</td><td>대화한 두 사람. 신고된 대화는 신고 시점의 최근 메시지 100개를 운영자가 열람</td></tr>
@@ -8399,7 +8438,7 @@ const TOURS = {
   ],
   hunter: [
     { sel: "#e-titles", text: "모은 타이틀 조각으로 코드네임의 앞과 뒤를 꾸밀 수 있습니다. 가진 조각은 도감에서 확인 가능합니다." },
-    { sel: '[data-tour="hd-photo"], [data-tour="hd-vis"]', all: true, text: "프로필 사진과 캐릭터 소개를 바꿀 수 있습니다. 소개는 공개 범위를 정하여 보여주고 싶은 사람에게만 보여줄 수 있습니다." },
+    { sel: '[data-tour="hd-photo"], [data-tour="hd-vis"]', all: true, text: "프로필 사진과 캐릭터 소개를 바꿀 수 있습니다. 소개는 모든 헌터 · 친구 · 나만 보기 칸으로 나누어 적을 수 있습니다." },
     { text: "25레벨이 되면 서브 포지션을 선택이 가능합니다. 메인과 같은 포지션을 고르면 메인 효과가 1.5배가 됩니다." },
   ],
 };
@@ -8556,7 +8595,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-09-2230";
+const BUILD = "2026-11-10-0150";
 let buildNoticed = false;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
