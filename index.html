@@ -486,7 +486,8 @@ mark { background: color-mix(in srgb, #FFC53D 45%, transparent); color: inherit;
 .rd-buff.full .gauge i { background: linear-gradient(90deg, #ffb340, #ffd36b); }
 .rd-rank { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 4px; }
 .rd-rank li { display: grid; grid-template-columns: 22px 24px 1fr auto; gap: 8px; align-items: center; font-size: 14px; padding: 3px 0; }
-.rd-rank li.me b { color: var(--accent-text); }
+.rd-rank li.me b, .rd-rank li.me .hunter-link { color: var(--accent-text); }
+.rd-rank .hunter-link, .rd-mem .hunter-link { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rd-rank .rk { color: var(--text-dim); font-weight: 700; text-align: center; }
 .rd-editor { border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin: 8px 0; }
 .rd-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -5307,8 +5308,7 @@ function raidSlotBox(r, off, refresh) {
         ? `10명이 모이면 바로, ${fmtTime(sl.auto_at)}부터는 5명 이상이면 출발합니다.`
         : n >= 5 ? "곧 출발합니다." : `5명이 모이면 출발합니다. ${fmtTime(sl.closes_at)}까지 모이지 않으면 취소됩니다.`),
       h("div", { class: "rd-members" }, ...(g.members || []).map(m => {
-        const av = h("span", { class: "avatar sm" }); avatarEl(av, { url: m.avatar_url, color: m.avatar_color, name: m.codename });
-        return h("span", { class: `rd-mem${m.me ? " me" : ""}` }, av, h("b", {}, m.codename), h("small", {}, `Lv.${m.level} · ${POSITIONS[m.position]?.[m.option]?.name || ""}`));
+        return h("span", { class: `rd-mem${m.me ? " me" : ""}` }, rdAvatar(m), hunterLink(m), h("small", {}, `Lv.${m.level} · ${POSITIONS[m.position]?.[m.option]?.name || ""}`));
       })),
       h("div", { style: "display:flex;gap:8px;margin-top:10px;flex-wrap:wrap" },
         h("button", { class: "btn ghost small", type: "button", onclick: async () => {
@@ -5400,6 +5400,13 @@ function raidBuffBox(w) {
     })));
 }
 
+// 레이드 화면의 작은 프로필: 저장소 사진은 서명 주소로 받아 그린다 (없으면 글자 아바타)
+function rdAvatar(c) {
+  const av = h("span", { class: "avatar sm" });
+  avatarEl(av, { url: null, color: c.avatar_color, name: c.codename });
+  if (c.avatar_url) avatarUrlOf(c.avatar_url).then(u => { if (u) avatarEl(av, { url: u, color: c.avatar_color, name: c.codename }); });
+  return av;
+}
 function raidMeBox(r) {
   const me = r.me || {};
   return h("div", { class: "home-box rd-box", "data-tour": "rd-rank" },
@@ -5407,8 +5414,7 @@ function raidMeBox(r) {
     h("div", { class: "kv" }, h("span", {}, "내 기여도"), h("b", {}, fmtN(me.contrib))),
     h("div", { class: "kv" }, h("span", {}, "참여"), h("span", {}, `개인 도전 ${me.challenges || 0}번 · 토벌 ${me.raids || 0}번`)),
     r.ranking?.length ? h("ol", { class: "rd-rank" }, ...r.ranking.map((q, i) => {
-      const av = h("span", { class: "avatar sm" }); avatarEl(av, { url: q.avatar_url, color: q.avatar_color, name: q.codename });
-      return h("li", { class: q.codename === state.profile?.codename ? "me" : null }, h("span", { class: "rk" }, String(i + 1)), av, h("b", {}, q.codename), h("span", {}, fmtN(q.contrib)));
+      return h("li", { class: q.codename === state.profile?.codename ? "me" : null }, h("span", { class: "rk" }, String(i + 1)), rdAvatar(q), hunterLink(q), h("span", {}, fmtN(q.contrib)));
     })) : h("p", { class: "hint", style: "margin:8px 0 0" }, "아직 참여한 헌터가 없습니다."),
     h("p", { class: "hint", style: "margin:8px 0 0" }, "기여도는 포지션과 상관없이 헌터 자신의 능력으로 보스에게 준 피해로 매깁니다. 같은 능력이면 어떤 포지션이든 비슷한 기여도를 얻습니다."));
 }
@@ -8351,7 +8357,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-09-1750";
+const BUILD = "2026-11-09-1905";
 let buildNoticed = false;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
