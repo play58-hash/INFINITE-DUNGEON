@@ -1638,8 +1638,12 @@ function avatarEl(el, { url, color, name }) {
   el.replaceChildren();
   // 사진이 있으면 배경색을 깔지 않는다 (투명 PNG는 투명한 그대로)
   el.style.background = url ? "transparent" : (color || "var(--secondary)");
-  if (url) el.append(h("img", { src: url, alt: "" }));
-  else el.textContent = (name || "?").trim().slice(0, 1) || "?";
+  if (url) {
+    const img = h("img", { src: url, alt: "" });
+    // 사진을 못 불러오면(주소 만료 등) 엑박 대신 글자 아바타로
+    img.onerror = () => { for (const [k, v] of avatarCache) v.p.then(u => { if (u === url) avatarCache.delete(k); }); avatarEl(el, { url: null, color, name }); };
+    el.append(img);
+  } else el.textContent = (name || "?").trim().slice(0, 1) || "?";
 }
 function swatches(container, current, onPick) {
   container.replaceChildren(...COLORS.map(c =>
@@ -1964,9 +1968,11 @@ const social = { summary: {}, chan: null, poll: null, onDm: null, gchan: null, g
 const avatarCache = new Map();
 function avatarUrlOf(path) {
   if (!path) return Promise.resolve(null);
-  if (!avatarCache.has(path))
-    avatarCache.set(path, sb.storage.from("avatars").createSignedUrl(path, 3600).then(({ data, error }) => error ? null : data.signedUrl));
-  return avatarCache.get(path);
+  // 서명 주소는 1시간이면 만료된다: 50분이 지나면 새로 받는다 (만료된 주소를 계속 쓰면 엑박이 뜬다)
+  const hit = avatarCache.get(path);
+  if (!hit || Date.now() - hit.at > 50 * 60e3)
+    avatarCache.set(path, { at: Date.now(), p: sb.storage.from("avatars").createSignedUrl(path, 3600).then(({ data, error }) => error ? null : data.signedUrl) });
+  return avatarCache.get(path).p;
 }
 function miniAvatar(card, size = 34) {
   const el = h("div", { class: "avatar mini", style: `width:${size}px;height:${size}px;font-size:${Math.round(size * 0.42)}px;border-radius:${Math.round(size * 0.28)}px` });
@@ -8339,12 +8345,13 @@ async function loadAll() {
     state.buffs = released() ? ((await sb.rpc("my_buffs")).data || []) : [];
   }
   state.avatarUrl = await signedAvatar(state.profile?.avatar_url);
+  state.avatarAt = Date.now();
   if (state.settings) applyTheme(state.settings.theme);
 }
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-09-1710";
+const BUILD = "2026-11-09-1750";
 let buildNoticed = false;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
@@ -8359,6 +8366,12 @@ async function checkBuild() {
   } catch {}
 }
 setInterval(checkBuild, 5 * 60e3);
+// 내 프로필 사진 주소도 50분마다 새로 받는다
+setInterval(async () => {
+  if (!state.profile?.avatar_url || Date.now() - (state.avatarAt || 0) < 50 * 60e3) return;
+  state.avatarUrl = await signedAvatar(state.profile.avatar_url); state.avatarAt = Date.now();
+  if (state.character) renderHunter();
+}, 5 * 60e3);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) checkBuild(); });
 setTimeout(checkBuild, 15e3);
 async function boot() {
