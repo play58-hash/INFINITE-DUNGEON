@@ -41,9 +41,9 @@
   --surface: #181527;
   --surface-2: #221E36;
   --border: #322C4D;
-  --text: #EEEAFB;
-  --text-dim: #A49DC2;
-  --accent-text: #B9A2FF;
+  --text: #F8F6FF;
+  --text-dim: #C6BFE3;
+  --accent-text: #CDBBFF;
   --danger: #FF7A93;
   --ok: #5FD39B;
   --shadow: 0 1px 2px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.3);
@@ -56,7 +56,7 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]):not([data-theme="dark"]) {
     --bg: #0F0D18; --surface: #181527; --surface-2: #221E36; --border: #322C4D;
-    --text: #EEEAFB; --text-dim: #A49DC2; --accent-text: #B9A2FF;
+    --text: #F8F6FF; --text-dim: #C6BFE3; --accent-text: #CDBBFF;
     --danger: #FF7A93; --ok: #5FD39B;
     --shadow: 0 1px 2px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.3);
     --page-top: #0F0D18; --page-bottom: #2A1652;
@@ -282,6 +282,14 @@ code.c { font-family: ui-monospace, Menlo, monospace; background: var(--surface-
 .rep-chip b { font-size: 13px; }
 .rep-chip small { color: var(--text-dim); }
 .bar.thin { height: 4px; margin: 3px 0 1px; }
+.chron-page { padding: 14px 16px; }
+.gd-desc1 { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.gd-master { display: none; }
+@media (min-width: 1100px) { .gd-master { display: inline; } }
+.dm-gears { display: grid; gap: 4px; margin-top: 6px; }
+.dm-gear { display: flex; gap: 8px; align-items: center; font-size: 14px; cursor: pointer; }
+.dm-gear input { width: 18px; height: 18px; accent-color: var(--primary); flex: none; }
+.rep-steps { display: flex; flex-wrap: wrap; gap: 6px; }
 .chron { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 2px; }
 .chron li { display: grid; grid-template-columns: 20px 1fr auto; gap: 6px; align-items: baseline; font-size: 13px; padding: 4px 0; border-bottom: 1px dashed var(--border); }
 .chron li i { font-style: normal; color: var(--accent-text); text-align: center; }
@@ -293,6 +301,35 @@ code.c { font-family: ui-monospace, Menlo, monospace; background: var(--surface-
 .mini-cover .mini-start-btn { width: auto; min-width: 140px; }
 .mini-start-btn { margin-top: 12px; }
 .build-bar { position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%); z-index: 60; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--accent); box-shadow: var(--shadow); font-size: 14px; white-space: nowrap; }
+/* 배경 파형: 화면 아래쪽에 느리게 흐르는 선 3개 (그림 1장, 움직임은 transform만 써서 가볍게) */
+.bg-waves { position: fixed; left: 0; right: 0; bottom: 0; height: 38vh; z-index: -1; pointer-events: none; overflow: hidden; opacity: .55; }
+.bg-waves svg { position: absolute; left: 0; bottom: 0; width: 200%; height: 100%; animation: bg-wave 46s linear infinite; will-change: transform; }
+.bg-waves path { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.bg-waves .w1 { stroke: color-mix(in srgb, var(--secondary) 45%, transparent); }
+.bg-waves .w2 { stroke: color-mix(in srgb, var(--primary) 30%, transparent); }
+.bg-waves .w3 { stroke: color-mix(in srgb, var(--frame) 35%, transparent); }
+@keyframes bg-wave { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .bg-waves svg { animation: none; } }
+.help-btns { display: inline-flex; gap: 6px; flex-wrap: nowrap; }
+dialog.guide-dlg { width: min(760px, calc(100vw - 24px)); }
+.cat-row.guide-cats { margin: 0 0 10px; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; }
+.guide-cats .cat-chip { white-space: nowrap; }
+.guide-body { max-height: min(62vh, 640px); overflow-y: auto; line-height: 1.75; word-break: keep-all; }
+.guide-body .guide-sec + .guide-sec { margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--border); }
+.guide-body h2 { font-size: 18px; margin: 0 0 8px; } .guide-body h3 { font-size: 15px; margin: 16px 0 6px; }
+.lic-card { border-radius: 16px; padding: 14px 16px 12px; background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 16%, var(--surface)), color-mix(in srgb, var(--secondary) 10%, var(--surface)));
+  border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--border)); box-shadow: var(--shadow); }
+.lic-top { display: flex; justify-content: space-between; gap: 8px; font-size: 9px; letter-spacing: .06em; white-space: nowrap; overflow: hidden; color: var(--text-dim); font-weight: 700; margin-bottom: 10px; }
+.lic-main { display: flex; gap: 14px; align-items: flex-start; }
+.lic-main .avatar { width: 84px; height: 84px; flex: none; border-radius: 14px; font-size: 34px; }
+.lic-info { min-width: 0; display: grid; gap: 2px; }
+.lic-row { font-size: 14px; }
+.lic-credit { margin: 8px 0 0; font-size: 12px; color: var(--text-dim); overflow-wrap: anywhere; }
+.lic-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; margin-top: 10px; padding-top: 8px; border-top: 1px dashed color-mix(in srgb, var(--primary) 30%, var(--border)); }
+.lic-barcode { width: min(150px, 45%); height: 30px; flex: none; fill: var(--text); opacity: .85; }
+.lic-meta { display: grid; text-align: right; font-size: 11px; white-space: nowrap; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.lic-bio { margin-top: 12px; } .lic-bio summary { cursor: pointer; font-weight: 700; }
+.lic-sub:empty { display: none; }
 .ev-hint span { font-style: italic; color: var(--text-dim); }
 .ev-boss span { color: var(--danger); font-weight: 700; }
 .ev-enter.ev-boss span { color: var(--danger); }
@@ -394,6 +431,10 @@ mark { background: color-mix(in srgb, #FFC53D 45%, transparent); color: inherit;
 .upd-head h3 { margin: 0 0 4px; font-size: 16px; }
 .upd-acts { display: flex; gap: 10px; flex: none; }
 .upd-body { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; font-size: 14px; }
+.rt-title { font-size: 16px; font-weight: 800; margin: 8px 0 2px; }
+.rt-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 6px; }
+.rt-color { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--border); cursor: pointer; padding: 0; }
+.rt-preview { border: 1px dashed var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; max-height: 260px; overflow: auto; }
 .upd-edit { border: 1px dashed var(--border); border-radius: 12px; padding: 12px; margin: 0 0 12px; }
 .cx-tools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 12px 0 4px; }
 .cx-tools input[type=search] { flex: 1 1 180px; min-width: 0; }
@@ -457,6 +498,7 @@ mark { background: color-mix(in srgb, #FFC53D 45%, transparent); color: inherit;
 .rd-desc { margin: 0 0 8px; color: #e4d8ff; font-size: 14px; white-space: pre-wrap; }
 .rd-special { margin: 0 0 12px; font-size: 13px; color: #d8c8ff; }
 .rd-special b { color: #ffd36b; }
+.rd-special-desc { margin-top: 2px; line-height: 1.5; }
 .hm-raid-row { display: flex; align-items: center; gap: 12px; }
 .hm-raid-icon { width: 46px; height: 46px; flex: none; padding: 7px; box-sizing: border-box; border-radius: 12px; background: #1a0f2c; fill: #ffb3c1; }
 .hm-raid-hp { height: 10px; border-radius: 5px; background: var(--surface-2); overflow: hidden; margin-top: 10px; }
@@ -830,7 +872,9 @@ button.cat-chip { cursor: pointer; font-family: inherit; }
 .lb-state.on { color: var(--accent-text); }
 .lb-btns { display: flex; gap: 8px; flex-wrap: wrap; }
 .lb-btns .btn { flex: 1 1 120px; }
-.lb-chat .chat-log { height: 220px; }
+.lb-chat { min-height: 0; }
+.lb-chat .chat-log { height: 220px; flex: 1; }
+.lb-chat .chat-form { margin-top: auto; }
 .lb-chat .chat-head { display: block; } .lb-chat .chat-head .hint { display: block; margin: 2px 0 0 !important; font-size: 13px; }
 .notice-box { border: 1px solid var(--frame); border-radius: 12px; padding: 12px 14px; margin: 0 0 14px; background: color-mix(in srgb, var(--primary) 6%, var(--surface)); }
 .notice-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
@@ -1164,6 +1208,7 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
 </style>
 </head>
 <body>
+<div class="bg-waves" aria-hidden="true"><svg viewBox="0 0 2400 300" preserveAspectRatio="none"><path class="w1" d="M0,120.0 L20,125.4 L40,130.6 L60,135.3 L80,139.3 L100,142.5 L120,144.7 L140,145.9 L160,145.9 L180,144.7 L200,142.5 L220,139.3 L240,135.3 L260,130.6 L280,125.4 L300,120.0 L320,114.6 L340,109.4 L360,104.7 L380,100.7 L400,97.5 L420,95.3 L440,94.1 L460,94.1 L480,95.3 L500,97.5 L520,100.7 L540,104.7 L560,109.4 L580,114.6 L600,120.0 L620,125.4 L640,130.6 L660,135.3 L680,139.3 L700,142.5 L720,144.7 L740,145.9 L760,145.9 L780,144.7 L800,142.5 L820,139.3 L840,135.3 L860,130.6 L880,125.4 L900,120.0 L920,114.6 L940,109.4 L960,104.7 L980,100.7 L1000,97.5 L1020,95.3 L1040,94.1 L1060,94.1 L1080,95.3 L1100,97.5 L1120,100.7 L1140,104.7 L1160,109.4 L1180,114.6 L1200,120.0 L1220,125.4 L1240,130.6 L1260,135.3 L1280,139.3 L1300,142.5 L1320,144.7 L1340,145.9 L1360,145.9 L1380,144.7 L1400,142.5 L1420,139.3 L1440,135.3 L1460,130.6 L1480,125.4 L1500,120.0 L1520,114.6 L1540,109.4 L1560,104.7 L1580,100.7 L1600,97.5 L1620,95.3 L1640,94.1 L1660,94.1 L1680,95.3 L1700,97.5 L1720,100.7 L1740,104.7 L1760,109.4 L1780,114.6 L1800,120.0 L1820,125.4 L1840,130.6 L1860,135.3 L1880,139.3 L1900,142.5 L1920,144.7 L1940,145.9 L1960,145.9 L1980,144.7 L2000,142.5 L2020,139.3 L2040,135.3 L2060,130.6 L2080,125.4 L2100,120.0 L2120,114.6 L2140,109.4 L2160,104.7 L2180,100.7 L2200,97.5 L2220,95.3 L2240,94.1 L2260,94.1 L2280,95.3 L2300,97.5 L2320,100.7 L2340,104.7 L2360,109.4 L2380,114.6 L2400,120.0"/><path class="w2" d="M0,160.0 L20,165.6 L40,170.6 L60,174.6 L80,177.1 L100,178.0 L120,177.1 L140,174.6 L160,170.6 L180,165.6 L200,160.0 L220,154.4 L240,149.4 L260,145.4 L280,142.9 L300,142.0 L320,142.9 L340,145.4 L360,149.4 L380,154.4 L400,160.0 L420,165.6 L440,170.6 L460,174.6 L480,177.1 L500,178.0 L520,177.1 L540,174.6 L560,170.6 L580,165.6 L600,160.0 L620,154.4 L640,149.4 L660,145.4 L680,142.9 L700,142.0 L720,142.9 L740,145.4 L760,149.4 L780,154.4 L800,160.0 L820,165.6 L840,170.6 L860,174.6 L880,177.1 L900,178.0 L920,177.1 L940,174.6 L960,170.6 L980,165.6 L1000,160.0 L1020,154.4 L1040,149.4 L1060,145.4 L1080,142.9 L1100,142.0 L1120,142.9 L1140,145.4 L1160,149.4 L1180,154.4 L1200,160.0 L1220,165.6 L1240,170.6 L1260,174.6 L1280,177.1 L1300,178.0 L1320,177.1 L1340,174.6 L1360,170.6 L1380,165.6 L1400,160.0 L1420,154.4 L1440,149.4 L1460,145.4 L1480,142.9 L1500,142.0 L1520,142.9 L1540,145.4 L1560,149.4 L1580,154.4 L1600,160.0 L1620,165.6 L1640,170.6 L1660,174.6 L1680,177.1 L1700,178.0 L1720,177.1 L1740,174.6 L1760,170.6 L1780,165.6 L1800,160.0 L1820,154.4 L1840,149.4 L1860,145.4 L1880,142.9 L1900,142.0 L1920,142.9 L1940,145.4 L1960,149.4 L1980,154.4 L2000,160.0 L2020,165.6 L2040,170.6 L2060,174.6 L2080,177.1 L2100,178.0 L2120,177.1 L2140,174.6 L2160,170.6 L2180,165.6 L2200,160.0 L2220,154.4 L2240,149.4 L2260,145.4 L2280,142.9 L2300,142.0 L2320,142.9 L2340,145.4 L2360,149.4 L2380,154.4 L2400,160.0"/><path class="w3" d="M0,200.0 L20,203.6 L40,207.1 L60,210.5 L80,213.8 L100,217.0 L120,220.0 L140,222.8 L160,225.3 L180,227.5 L200,229.4 L220,231.1 L240,232.3 L260,233.3 L280,233.8 L300,234.0 L320,233.8 L340,233.3 L360,232.3 L380,231.1 L400,229.4 L420,227.5 L440,225.3 L460,222.8 L480,220.0 L500,217.0 L520,213.8 L540,210.5 L560,207.1 L580,203.6 L600,200.0 L620,196.4 L640,192.9 L660,189.5 L680,186.2 L700,183.0 L720,180.0 L740,177.2 L760,174.7 L780,172.5 L800,170.6 L820,168.9 L840,167.7 L860,166.7 L880,166.2 L900,166.0 L920,166.2 L940,166.7 L960,167.7 L980,168.9 L1000,170.6 L1020,172.5 L1040,174.7 L1060,177.2 L1080,180.0 L1100,183.0 L1120,186.2 L1140,189.5 L1160,192.9 L1180,196.4 L1200,200.0 L1220,203.6 L1240,207.1 L1260,210.5 L1280,213.8 L1300,217.0 L1320,220.0 L1340,222.8 L1360,225.3 L1380,227.5 L1400,229.4 L1420,231.1 L1440,232.3 L1460,233.3 L1480,233.8 L1500,234.0 L1520,233.8 L1540,233.3 L1560,232.3 L1580,231.1 L1600,229.4 L1620,227.5 L1640,225.3 L1660,222.8 L1680,220.0 L1700,217.0 L1720,213.8 L1740,210.5 L1760,207.1 L1780,203.6 L1800,200.0 L1820,196.4 L1840,192.9 L1860,189.5 L1880,186.2 L1900,183.0 L1920,180.0 L1940,177.2 L1960,174.7 L1980,172.5 L2000,170.6 L2020,168.9 L2040,167.7 L2060,166.7 L2080,166.2 L2100,166.0 L2120,166.2 L2140,166.7 L2160,167.7 L2180,168.9 L2200,170.6 L2220,172.5 L2240,174.7 L2260,177.2 L2280,180.0 L2300,183.0 L2320,186.2 L2340,189.5 L2360,192.9 L2380,196.4 L2400,200.0"/></svg></div>
 <div id="doc-view" class="doc-view hidden" role="region" aria-label="안내 문서"></div>
 
 <!-- ===== 1. 로그인 / 가입 ===== -->
@@ -2348,6 +2393,38 @@ async function openUpdates() {
   paintUpdates(d);
   sb.rpc("update_notes_seen").then(updatesPaint);
 }
+/* 업데이트 노트 꾸밈: "# 제목" 줄, **굵게**, [색=#RRGGBB]글자[/색] — 글자는 그대로 넣어 HTML로 해석하지 않는다 */
+const RICH_COLORS = ["#E5484D", "#F76B15", "#FFC53D", "#46A758", "#0090FF", "#8E4EC6", "#7D42DB"];
+function richInline(t) {
+  const out = []; const re = /\*\*(.+?)\*\*|\[색=(#[0-9a-fA-F]{6})\]([\s\S]+?)\[\/색\]/g; let m, last = 0;
+  while ((m = re.exec(t))) {
+    if (m.index > last) out.push(t.slice(last, m.index));
+    out.push(m[1] != null ? h("b", {}, ...richInline(m[1])) : h("span", { style: `color:${m[2]}` }, ...richInline(m[3])));
+    last = re.lastIndex;
+  }
+  if (last < t.length) out.push(t.slice(last));
+  return out;
+}
+function richText(body) {
+  return (body || "").split("\n").map(line => /^#{1,3} /.test(line)
+    ? h("div", { class: "rt-title" }, ...richInline(line.replace(/^#{1,3} /, "")))
+    : h("div", { class: "rt-line" }, ...(line ? richInline(line) : ["\u00a0"])));
+}
+function richToolbar(ta) {
+  const wrap = (pre, post, ph) => {
+    const a = ta.selectionStart, b = ta.selectionEnd, sel = ta.value.slice(a, b) || ph;
+    ta.setRangeText(pre + sel + post, a, b, "end"); ta.focus(); ta.dispatchEvent(new Event("input"));
+  };
+  const lineStart = () => {
+    const a = ta.selectionStart, ls = ta.value.lastIndexOf("\n", a - 1) + 1;
+    if (ta.value.startsWith("# ", ls)) return; ta.setRangeText("# ", ls, ls, "end"); ta.focus();
+  };
+  return h("div", { class: "rt-bar" },
+    h("button", { class: "btn ghost small", type: "button", title: "줄 맨 앞에 '# '을 붙여 제목으로", onclick: lineStart }, "제목"),
+    h("button", { class: "btn ghost small", type: "button", style: "font-weight:800", onclick: () => wrap("**", "**", "굵은 글자") }, "굵게"),
+    ...RICH_COLORS.map(c => h("button", { class: "rt-color", type: "button", style: `background:${c}`, "aria-label": `글자색 ${c}`, title: "고른 글자에 색 입히기", onclick: () => wrap(`[색=${c}]`, "[/색]", "색 글자") })),
+    h("span", { class: "hint", style: "font-size:12px" }, "글자를 고른 뒤 누르세요"));
+}
 function paintUpdates(d) {
   const editor = note => {
     const t = h("input", { class: "input", maxlength: "60", placeholder: "제목 (60자까지)", "aria-label": "제목", value: note?.title || "" });
@@ -2369,7 +2446,11 @@ function paintUpdates(d) {
     save.onclick = () => send(save, false);
     const keep = posted ? null : h("button", { class: "btn ghost small", type: "button" }, "임시 저장");
     if (keep) keep.onclick = () => send(keep, true);
-    return h("div", { class: "upd-edit" }, h("div", { class: "field" }, t), h("div", { class: "field" }, b), err,
+    const preview = h("div", { class: "upd-body rt-preview" });
+    const paintPrev = () => preview.replaceChildren(...richText(b.value));
+    b.addEventListener("input", paintPrev); paintPrev();
+    return h("div", { class: "upd-edit" }, h("div", { class: "field" }, t), richToolbar(b), h("div", { class: "field" }, b),
+      h("p", { class: "hint", style: "margin:0 0 4px;font-size:12px" }, "미리 보기"), preview, err,
       h("div", { style: "display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap" }, h("button", { class: "btn ghost small", type: "button", onclick: () => paintUpdates(d) }, "취소"), keep, save));
   };
   const edited = n => n.updated_at && Date.parse(n.updated_at) - Date.parse(n.at) > 60000;
@@ -2384,7 +2465,9 @@ function paintUpdates(d) {
           paintUpdates(data);
         } }, "지우기")) : null),
     h("p", { class: "hint", style: "margin:0 0 8px" }, n.draft ? `임시 저장 · ${fmtWhen(n.updated_at || n.at)} · 운영자에게만 보입니다` : `${fmtDay(n.at)} 작성` + (edited(n) ? ` · ${fmtWhen(n.updated_at)} 수정` : "")),
-    h("div", { class: "upd-body" }, n.body));
+    h("div", { class: "upd-body" }, ...richText(n.body)));
+  // 임시 저장 → 최근에 올린 순
+  d.notes = [...(d.notes || [])].sort((x, y) => (y.draft ? 1 : 0) - (x.draft ? 1 : 0) || Date.parse(y.at) - Date.parse(x.at));
   const list = h("div", { class: "upd-list" }, ...(d.notes.length ? d.notes.map(card) : [h("p", { class: "hint" }, "아직 올라온 업데이트 노트가 없습니다.")]));
   const writeBtn = d.admin ? h("button", { class: "btn small", type: "button", style: "margin:0 0 12px", onclick: () => { writeBtn.replaceWith(editor(null)); } }, "새 업데이트 노트 쓰기") : null;
   info("업데이트 노트", h("p", { class: "hint", style: "margin:0 0 12px" }, "게임에 새로 들어온 내용과 바뀐 점을 정리해 둡니다. 고친 노트는 고친 시각이 함께 표시됩니다."), writeBtn, list);
@@ -2702,14 +2785,32 @@ async function renderSocial(pane, tab) {
       tabBtn("sns", "SNS", s.guild_unread || 0),
       tabBtn("friends", h("span", {}, "친구", h("span", { class: "wide" }, " · 메시지")), (s.friend_requests || 0) + (s.unread || 0)),
       tabBtn("party", "파티", s.party_invites || 0),
-      tabBtn("gifts", "선물함", s.gifts || 0)),
+      tabBtn("gifts", "선물함", s.gifts || 0),
+      patched() ? tabBtn("chron", "연대기", 0) : null),
     body);
+  if (socialTab === "chron") return renderChronicle(body);
   if (socialTab === "party") return renderParty(body, pane);
   if (socialTab === "gifts") return renderGifts(body);
   if (socialTab === "sns") return renderSnsWrap(body, pane);
   return renderFriends(body, pane);
 }
 
+/* 교류 › 연대기: 내 헌터 연대기 전체 (11/16 공개, 그 전에는 운영자만) */
+async function renderChronicle(body) {
+  if (!patched()) { socialTab = "sns"; return renderSnsWrap(body); }
+  body.replaceChildren(h("p", { class: "hint" }, "불러오는 중…"));
+  const { data, error } = await sb.rpc("hunter_progress", {});
+  if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
+  const rows = data.chronicle || [];
+  const groups = [];
+  for (const e of rows) { const k = new Date(e.at).toLocaleDateString("ko-KR", { year: "numeric", month: "long", timeZone: "Asia/Seoul" });
+    (groups.at(-1)?.k === k ? groups.at(-1).items : (groups.push({ k, items: [] }), groups.at(-1).items)).push(e); }
+  body.replaceChildren(
+    h("p", { class: "hint", style: "margin:0 0 12px" }, "승급, 레벨 달성, 등급별 첫 지역 안정화, 무한 던전 역 도달, 레이드 토벌, 타이틀 획득 같은 순간이 날짜와 함께 남습니다. 다른 헌터도 헌터 정보에서 볼 수 있습니다."),
+    rows.length ? h("div", { class: "card chron-page" }, ...groups.map(g => h("div", {}, h("p", { class: "panel-title", style: "margin:4px 0 6px" }, g.k),
+      h("ol", { class: "chron" }, ...g.items.map(e => h("li", { class: `chron-${e.kind}` }, h("i", { "aria-hidden": "true" }, CHRON_ICON[e.kind] || "·"), h("span", {}, e.text), h("time", {}, fmtKDate(e.at))))))))
+      : h("p", { class: "hint" }, "아직 남긴 기록이 없습니다."));
+}
 // 새 알림 (내 댓글에 달린 답글 · 거래소 판매) — 교류 메뉴 숫자 배지에 더해진다
 function noticeBox(pane) {
   const n = social.summary?.notices || 0;
@@ -2981,7 +3082,13 @@ function renderSnsWrap(body, pane) {
   const gN = s.guild_unread || 0;
   const btn = (id, label, n) => h("button", { type: "button", class: `cat-chip big${snsView === id ? " on" : ""}`, "aria-pressed": snsView === id ? "true" : "false",
     onclick: () => { snsView = id; renderSnsWrap(body, pane); } }, label, n > 0 ? h("span", { class: "nbadge" }, String(n)) : null);
-  body.replaceChildren(h("div", { class: "cat-row", style: "margin-bottom:14px", "data-tour": "sns-view" }, btn("all", "전체 SNS", 0), btn("guild", "길드", gN)), sub);
+  body.replaceChildren(h("div", { class: "cat-row", style: "margin-bottom:14px", "data-tour": "sns-view" }, btn("all", "전체 SNS", 0), btn("guild", "길드", gN), btn("mine", "내 글", 0)), sub);
+  if (snsView === "mine") {   // 내가 쓴 글 모아 보기 (누르면 전체 SNS의 그 글로)
+    const box = hunterPostsBox(state.profile.codename);
+    sub.replaceChildren(h("div", { class: "card", style: "padding:14px" }, box));
+    box.querySelector("button")?.click();
+    return;
+  }
   return snsView === "guild" ? renderGuild(sub, () => renderSnsWrap(body, pane)) : renderSns(sub);
 }
 
@@ -3196,21 +3303,47 @@ async function openPublicHunter(codename) {
   const av = h("div", { class: "avatar lg" });
   avatarEl(av, { url: null, color: p.avatar_color, name: p.codename });
   if (p.avatar_url) avatarUrlOf(p.avatar_url).then(u => u && avatarEl(av, { url: u, color: p.avatar_color, name: p.codename }));
-  info(p.codename,
-    h("div", { class: "hunter-head" }, av, h("div", {},
+  // 헌터 자격증 카드: 처음 보이는 것 (사진 · 타이틀과 코드네임 · 등급 · 레벨 · 길드 · 구역 · 포지션 · 사진 출처 · 바코드 · 등록일)
+  const card = h("div", { class: "lic-card" },
+    h("div", { class: "lic-top" }, h("span", { class: "lic-org" }, "INTERNATIONAL HUNTER UNION"), h("span", { class: "lic-kind" }, "HUNTER LICENSE")),
+    h("div", { class: "lic-main" }, av, h("div", { class: "lic-info" },
       titleLine(p.title, p.codename),
       h("div", { class: "grade-line" }, p.admin ? "운영자" : `${p.grade}급 · Lv.${p.level}`),
-      p.admin ? (p.guild ? h("div", { class: "hint" }, `${p.guild} 길드`) : null)
-        : h("div", { class: "hint" }, p.guild ? h("span", { class: "gdot lead", style: `background:${p.guild_color}`, "aria-hidden": "true" }) : null, (p.guild ? `${p.guild} 길드 · ` : "") + `${REGIONS[p.region] || p.region} 구역 · ${p.main_option ? posLabel(p.main_position, p.main_option) : (POSITIONS[p.main_position]?.name || p.main_position)}${p.sub_position ? ` / 서브 ${p.sub_option ? posLabel(p.sub_position, p.sub_option) : (POSITIONS[p.sub_position]?.name || p.sub_position)}` : ""}`),
+      p.guild ? h("div", { class: "lic-row" }, h("span", { class: "gdot lead", style: `background:${p.guild_color}`, "aria-hidden": "true" }), `${p.guild} 길드`) : null,
+      p.admin ? null : h("div", { class: "lic-row" }, `${REGIONS[p.region] || p.region || "-"} 구역`),
+      p.admin ? null : h("div", { class: "lic-row" }, posLabel(p.main_position, p.main_option), p.sub_position ? h("span", { class: "hint" }, ` / 서브 ${posLabel(p.sub_position, p.sub_option)}`) : null),
       p.friend ? h("span", { class: "badge", style: "margin-top:4px;display:inline-block" }, "친구") : null)),
-    p.avatar_credit ? h("p", { class: "hint", style: "margin:10px 0 0;overflow-wrap:anywhere" }, `프로필 사진 출처: ${p.avatar_credit}`) : null,
-    h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "특징"),
-    h("p", { style: "margin:0;white-space:pre-wrap" }, p.bio || h("span", { class: "hint" }, "공개하지 않았습니다.")),
-    p.codex ? h("p", { class: "panel-title", style: "margin:14px 0 6px" }, `도감 달성률 ${p.codex.all ?? 0}%`) : null,
-    p.codex ? h("div", { class: "codex-sum", style: "margin:0" }, ...CODEX_CATS.map(([k, n]) => h("div", {}, h("span", {}, n), h("b", {}, `${p.codex[k] ?? 0}%`)))) : null,
-    p.admin ? null : progressBox(p.codename),
-    released() ? hunterPostsBox(p.codename) : null,
+    p.avatar_credit ? h("p", { class: "lic-credit" }, `프로필 사진 출처: ${p.avatar_credit}`) : null,
+    h("div", { class: "lic-foot" }, licBarcode(p.card_no || p.codename), h("div", { class: "lic-meta" },
+      h("span", {}, `No. ${(p.card_no || "").replace(/(.{4})(?=.)/g, "$1-")}`), p.since ? h("span", {}, `등록 ${fmtKDate(p.since)}`) : null)));
+  // 특징은 펼쳐 보기
+  const bio = h("details", { class: "lic-bio" }, h("summary", {}, "특징"), h("p", { style: "margin:6px 0 0;white-space:pre-wrap" }, p.bio || h("span", { class: "hint" }, "공개하지 않았습니다.")));
+  // 하위 메뉴: SNS 글 · 도감 달성률 · 지역 평판
+  const subs = [released() ? ["sns", "SNS 글"] : null, p.codex ? ["codex", "도감"] : null, !p.admin && patched() ? ["rep", "지역 평판"] : null].filter(Boolean);
+  const subBody = h("div", { class: "lic-sub" });
+  const subTabs = h("div", { class: "cat-row", style: "margin:14px 0 8px" });
+  const openSub = id => {
+    subTabs.replaceChildren(...subs.map(([k, n]) => h("button", { type: "button", class: `cat-chip big${k === id ? " on" : ""}`, onclick: () => openSub(k === id ? null : k) }, n)));
+    if (!id) return subBody.replaceChildren();
+    if (id === "sns") { const b = hunterPostsBox(p.codename); subBody.replaceChildren(b); b.querySelector("button")?.click(); }
+    else if (id === "codex") subBody.replaceChildren(h("p", { class: "panel-title", style: "margin:0 0 6px" }, `도감 달성률 ${p.codex.all ?? 0}%`),
+      h("div", { class: "codex-sum", style: "margin:0" }, ...CODEX_CATS.map(([k, n]) => h("div", {}, h("span", {}, n), h("b", {}, `${p.codex[k] ?? 0}%`)))));
+    else if (id === "rep") { subBody.replaceChildren(h("p", { class: "hint" }, "불러오는 중…"));
+      sb.rpc("hunter_progress", { p_codename: p.codename }).then(({ data }) => subBody.replaceChildren(data?.rep ? repChips(data.rep, data.bonus) : h("p", { class: "hint" }, "볼 수 없습니다."))); }
+  };
+  openSub(null);
+  info(p.codename, card, bio, subs.length ? subTabs : null, subBody,
     btns.length ? h("div", { style: "display:flex;gap:8px;flex-wrap:wrap;margin-top:16px" }, ...btns) : null);
+}
+// 자격증 바코드: 번호로 정해지는 막대 무늬 (장식)
+function licBarcode(code) {
+  const NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("viewBox", "0 0 160 34"); svg.setAttribute("class", "lic-barcode"); svg.setAttribute("aria-hidden", "true");
+  let x = 2, hsh = 7;
+  for (const ch of String(code)) hsh = (hsh * 31 + ch.charCodeAt(0)) >>> 0;
+  while (x < 156) { hsh = (hsh * 1103515245 + 12345) >>> 0; const w = 1 + (hsh >>> 16) % 3; const r = document.createElementNS(NS, "rect");
+    r.setAttribute("x", x); r.setAttribute("y", 0); r.setAttribute("width", w); r.setAttribute("height", 34); svg.append(r); x += w + 1 + (hsh >>> 20) % 3; }
+  return svg;
 }
 /* ===== 헌터 연대기 · 지역 평판 =====
    연대기: 승급, 레벨 이정표, 등급별 첫 지역 안정화, 무한 던전 역 이정표, 레이드 성공, 타이틀, 장비 숙련이 날짜와 함께 쌓인다.
@@ -3728,7 +3861,7 @@ async function renderDungeon(pane, tab = "battle") {
         h("button", { type: "button", class: tab === "explore" ? "on" : null, onclick: () => renderDungeon(pane, "explore") }, "탐색"),
         h("button", { type: "button", class: tab === "star" ? "on" : null, onclick: () => renderDungeon(pane, "star") }, "별의 무덤"),
         released() ? h("button", { type: "button", class: tab === "altar" ? "on" : null, onclick: () => renderDungeon(pane, "altar") }, "별의 제단") : null),
-      h("button", { type: "button", class: "btn ghost small tour-btn", "aria-label": "이 화면 도움말 보기", onclick: () => startTour("dungeon-" + tab) }, "? 도움말")),
+      helpBtn("dungeon-" + tab)),
     body);
   { const tb = pane.querySelector(".dg-tabrow .tabs"), on = tb?.querySelector(".on");   // 좁은 화면: 고른 탭이 보이게
     if (tb && on) tb.scrollLeft = on.offsetLeft - (tb.clientWidth - on.clientWidth) / 2; }
@@ -3982,12 +4115,24 @@ let nextRgTab = null;
 async function renderRegional(pane, tab) {
   stopDungeonTimers();
   tab = tab || nextRgTab || "board"; nextRgTab = null;
-  if (!raidOn()) tab = "board";
+  if (tab === "raid" && !raidOn()) tab = "board";
+  if (tab === "rep" && !patched()) tab = "board";
   bgmPage(tab === "raid" ? "regional-raid" : "regional");
   const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
-  const tabs = raidOn() ? h("div", { class: "tabs", style: "max-width:320px", "data-tour": "rg-tabs" },
+  const tabs = raidOn() || patched() ? h("div", { class: "tabs", style: `max-width:${patched() ? 420 : 320}px`, "data-tour": "rg-tabs" },
     h("button", { type: "button", class: tab === "board" ? "on" : null, onclick: () => renderRegional(pane, "board") }, "지역 안정화"),
-    h("button", { type: "button", class: tab === "raid" ? "on" : null, onclick: () => renderRegional(pane, "raid") }, "레이드")) : null;
+    raidOn() ? h("button", { type: "button", class: tab === "raid" ? "on" : null, onclick: () => renderRegional(pane, "raid") }, "레이드") : null,
+    patched() ? h("button", { type: "button", class: tab === "rep" ? "on" : null, onclick: () => renderRegional(pane, "rep") }, "평판") : null) : null;
+  if (tab === "rep") {   // 지역 평판 (11/16 공개, 그 전에는 운영자만)
+    pane.replaceChildren(paneHead("지역 안정화", "regional"),
+      h("p", { class: "hint", style: "margin:0 0 16px" }, "구역마다 지역 안정화에 성공할수록 평판이 오릅니다. 평판이 높은 구역에서는 메헨을 조금 더 받습니다."), tabs, body);
+    const { data, error } = await sb.rpc("hunter_progress", {});
+    if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
+    const LV = [["낯선 이방인", 0], ["알려진 헌터", 3], ["믿음직한 헌터", 10], ["지역의 수호자", 25], ["지역의 영웅", 50], ["살아 있는 전설", 100]];
+    return body.replaceChildren(h("div", { class: "card", style: "padding:14px 16px" }, repChips(data.rep, data.bonus)),
+      h("p", { class: "panel-title", style: "margin:16px 0 6px" }, "평판 단계"),
+      h("div", { class: "rep-steps" }, ...LV.map(([n, c]) => h("span", { class: "badge" }, `${n}${c ? ` · 안정화 ${c}번` : ""}`))));
+  }
   if (tab === "raid") {
     pane.replaceChildren(paneHead("지역 안정화", "regional-raid"),
       h("p", { class: "hint", style: "margin:0 0 16px" }, "한 주 동안 모든 헌터가 힘을 모아 레이드 보스를 토벌합니다."), tabs, body);
@@ -4219,7 +4364,7 @@ async function renderRegionalLobby(body, act) {
       miniAvatar(m, 36),
       h("div", { class: "fr-main" },
         h("div", {}, m.me ? h("b", {}, m.codename) : hunterLink(m), m.me ? h("span", { class: "hint" }, " (나)") : null),
-        h("div", { class: "hint" }, m.admin ? "운영자" : `${m.grade}급 · Lv.${m.level} · ${posLabel(m.main_position, m.main_option)}${m.sub_position ? ` / ${POSITIONS[m.sub_position]?.name || ""}` : ""}`),
+        h("div", { class: "hint" }, m.admin ? "운영자" : `${m.grade}급 · Lv.${m.level} · ${posLabel(m.main_position, m.main_option)}${m.sub_position ? ` / 서브 ${posLabel(m.sub_position, m.sub_option)}` : ""}`),
         m.busy ? h("div", { class: "error", style: "font-size:12px;min-height:0" }, `${m.busy} 중 — 출발할 때 빠집니다`) : null),
       h("span", { class: `lb-state${m.ready ? " on" : ""}` }, m.ready ? "준비 완료" : "대기 중"))),
       ...Array.from({ length: 5 - st.members.length }, () => h("div", { class: "lb-mem empty" }, h("span", { class: "hint" }, "빈 자리"))));
@@ -4510,7 +4655,9 @@ function renderExploreRun(body, s) {
   dgKeys = e => {
     if (e.target.closest?.("input, textarea, select, dialog[open]")) return;
     const map = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right", w: "up", s: "down", a: "left", d: "right" };
-    const d = map[e.key];
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    // 한글 입력 상태·Caps Lock에서도 WASD가 먹도록 자판 위치(e.code)도 본다
+    const d = map[e.key] || { KeyW: "up", KeyS: "down", KeyA: "left", KeyD: "right" }[e.code];
     if (d) { e.preventDefault(); move(d); }
   };
   addEventListener("keydown", dgKeys);
@@ -4672,7 +4819,9 @@ function renderStarRun(body, s) {
   dgKeys = e => {
     if (e.target.closest?.("input, textarea, select, dialog[open]")) return;
     const map = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right", w: "up", s: "down", a: "left", d: "right" };
-    const d = map[e.key];
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    // 한글 입력 상태·Caps Lock에서도 WASD가 먹도록 자판 위치(e.code)도 본다
+    const d = map[e.key] || { KeyW: "up", KeyS: "down", KeyA: "left", KeyD: "right" }[e.code];
     if (d) { e.preventDefault(); move(d); }
   };
   addEventListener("keydown", dgKeys);
@@ -4804,7 +4953,9 @@ function renderAltarRun(body, s) {
   dgKeys = e => {
     if (e.target.closest?.("input, textarea, select, dialog[open]")) return;
     const map = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right", w: "up", s: "down", a: "left", d: "right" };
-    const d = map[e.key];
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    // 한글 입력 상태·Caps Lock에서도 WASD가 먹도록 자판 위치(e.code)도 본다
+    const d = map[e.key] || { KeyW: "up", KeyS: "down", KeyA: "left", KeyD: "right" }[e.code];
     if (d) { e.preventDefault(); move(d); }
   };
   addEventListener("keydown", dgKeys);
@@ -5235,12 +5386,12 @@ async function renderRaid(body) {
     h("p", { class: "rd-kicker" }, `RAID · ${th.name || ""}`),
     h("h3", {}, th.boss || "레이드 보스"),
     th.description ? h("p", { class: "rd-desc" }, th.description) : null,
-    h("p", { class: "rd-special" }, h("b", {}, `특화 능력 · ${th.special_name || RAID_SPECIAL[th.special] || ""}`), " ", th.special_desc || RAID_SPECIAL_DESC[th.special] || ""),
+    h("div", { class: "rd-special" }, h("b", {}, `특화 능력 · ${th.special_name || RAID_SPECIAL[th.special] || ""}`), h("div", { class: "rd-special-desc" }, th.special_desc || RAID_SPECIAL_DESC[th.special] || "")),
     h("div", { class: "rd-hp" }, h("div", { class: "rd-hp-bar" }, h("i", { style: `width:${hpPct}%` })),
       h("div", { class: "rd-hp-txt" }, h("span", {}, w.hp > 0 ? "남은 체력" : "체력 소진 — 토벌 성공 확정"), h("b", {}, `${fmtN(Math.max(0, w.hp))} / ${fmtN(w.max_hp)}`)),
       w.overkill > 0 ? h("div", { class: "rd-hp-txt" }, h("span", {}, "추가 토벌 피해"), h("b", {}, fmtN(w.overkill))) : null),
     h("p", { class: "rd-phase" }, w.status === "settled" ? (w.result?.success ? "이번 레이드는 성공했습니다." : "이번 레이드는 실패했습니다.")
-      : w.phase === "weekday" ? "평일 — 개인 도전 기간입니다. 하루 한 번 도전해 보스 체력을 깎고 주말 토벌 버프를 쌓으세요."
+      : w.phase === "weekday" ? "평일 — 개인 도전 기간입니다. 하루 한 번 도전해 보스 체력을 깎고 토벌 버프를 쌓으세요."
       : "주말 — 토벌 기간입니다. 토·일 오후 2시와 오후 10시에 열립니다.")));
 
   if (run) kids.push(raidRunBox(run, w, off, () => renderRaid(body)));
@@ -5389,7 +5540,7 @@ function raidDoneBox(run) {
 function raidBuffBox(w) {
   const b = w.buffs || {};
   return h("div", { class: "home-box rd-box", "data-tour": "rd-buffs" },
-    h("p", { class: "panel-title", style: "margin:0 0 4px" }, "주말 토벌 버프"),
+    h("p", { class: "panel-title", style: "margin:0 0 4px" }, "토벌 버프"),
     h("p", { class: "hint", style: "margin:0 0 10px" }, "평일 개인 도전에서 포지션별로 보스에게 준 피해만큼 차오릅니다. 서브 포지션은 절반만큼 보탭니다. 토벌에 나서는 모든 헌터에게 적용됩니다."),
     h("div", { class: "rd-buffs" }, ...Object.entries(RAID_OPT).map(([k, [nm, eff, max, unit]]) => {
       const f = Math.max(0, Math.min(1, Number(b[k] || 0)));
@@ -5445,7 +5596,7 @@ function raidRules(rw) {
     h("ul", { class: "hint", style: "margin:8px 0 0;padding-left:18px;line-height:1.7" },
       h("li", {}, "한 테마로 한 주(월~일) 동안 진행합니다. 5레벨부터 참여할 수 있습니다."),
       h("li", {}, "평일에는 하루 한 번 개인 도전을 할 수 있습니다. 15~20분 동안 혼자 보스와 싸웁니다."),
-      h("li", {}, "개인 도전으로 깎은 피해만큼 내 포지션의 주말 토벌 버프가 차오릅니다."),
+      h("li", {}, "개인 도전으로 깎은 피해만큼 내 포지션의 토벌 버프가 차오릅니다."),
       h("li", {}, "토·일 오후 2시와 오후 10시, 모두 4번 토벌이 열립니다. 회차마다 한 번씩 참여할 수 있고, 한 토벌대는 최대 10명입니다."),
       h("li", {}, "10명이 모이면 바로, 회차가 열리고 10분이 지나면 5명 이상일 때 출발합니다. 1시간 안에 5명이 모이지 않으면 취소됩니다."),
       h("li", {}, "도전과 토벌 중에는 무한 던전·지역 안정화 같은 공략에 들어갈 수 없습니다."),
@@ -5933,9 +6084,19 @@ async function renderDismantle(body, inv, refresh) {
   const row = x => {
     const qty = h("input", { class: "input qty-input", type: "number", min: "1", max: String(Math.min(99, x.have)), value: "1", "aria-label": `${x.name} 분해 개수` });
     const go = h("button", { class: "btn ghost small", type: "button" }, "분해");
+    // 장비는 하나씩 골라 분해한다 (강화 · 능력치 · 숙련을 보고 고르기)
+    const pick = new Set();
+    const gearList = x.gears ? h("div", { class: "dm-gears" }, ...x.gears.map(g => {
+      const cb = h("input", { type: "checkbox", "aria-label": `${gearName(g)} 분해할 장비로 고르기` });
+      cb.onchange = () => { cb.checked ? pick.add(g.id) : pick.delete(g.id); go.disabled = !pick.size; go.textContent = pick.size ? `${pick.size}개 분해` : "분해"; };
+      return h("label", { class: "dm-gear" }, cb, h("span", {}, h("b", { class: `tier${g.tier}` }, gearName(g)),
+        h("small", { class: "hint" }, ` ${fmtStats(g.stats)}${g.mastery ? ` · 숙련 ${g.mastery}번` : ""}`)));
+    })) : null;
+    if (x.gears) { go.disabled = true; }
     go.onclick = async () => {
-      const n = Math.max(1, Math.min(x.have, 99, Math.floor(Number(qty.value) || 1)));
-      const use = x.gears ? x.gears.slice(0, n) : null;
+      const n = x.gears ? pick.size : Math.max(1, Math.min(x.have, 99, Math.floor(Number(qty.value) || 1)));
+      if (!n) return;
+      const use = x.gears ? x.gears.filter(g => pick.has(g.id)) : null;
       const enh = use ? use.filter(g => g.enhance > 0) : [];
       if (!confirm(`${josa(`${x.name} ${n}개`, "을", "를")} 분해할까요? 하나마다 재료 중 1개를 무작위로 돌려받습니다.` + (enh.length ? `\n강화된 장비(${enh.map(gearName).join(", ")})의 강화 단계는 사라지고, 강화에 쓴 별가루 중 일부(1개~전부)를 돌려받습니다.` : ""))) return;
       busy(go, true, "…");
@@ -5949,8 +6110,8 @@ async function renderDismantle(body, inv, refresh) {
     return h("div", { class: "item-row" },
       h("div", { class: "item-main" }, h("strong", { class: x.tier ? `tier${x.tier}` : null }, `${x.name} × ${x.have}`),
         h("div", { class: "hint" }, `돌려받는 재료 (하나만 무작위): ${[...new Set(x.r.ingredients.map(i => i.name))].join(" · ")}`),
-        x.gears && x.gears.some(g => g.enhance > 0) ? h("div", { class: "hint", style: "font-size:12px" }, "강화 단계가 낮은 장비부터 분해합니다.") : null),
-      h("div", { class: "item-actions", style: "align-items:center" }, qty, go));
+        x.gears ? h("div", { class: "hint", style: "font-size:12px" }, "분해할 장비를 골라 주세요. (장착 중인 장비는 목록에 없습니다)") : null, gearList),
+      h("div", { class: "item-actions", style: "align-items:center" }, x.gears ? null : qty, go));
   };
   const paint = () => {
     const w = q.value.trim().toLowerCase();
@@ -6399,8 +6560,10 @@ function guildSearchBox(d, reload) {
   const row = x => h("div", { class: "fr-row guild-row" },
     h("span", { class: "gdot big", style: `background:${x.color}`, "aria-hidden": "true" }),
     h("div", { class: "fr-main" },
-      h("button", { type: "button", class: "hunter-link", onclick: () => openGuildDetail(x.id, d, reload) }, x.name),
-      h("span", { class: "hint", style: "margin-left:8px;font-size:13px" }, `${x.size}/20명`)),
+      h("div", {}, h("button", { type: "button", class: "hunter-link", onclick: () => openGuildDetail(x.id, d, reload) }, x.name),
+        h("span", { class: "hint", style: "margin-left:8px;font-size:13px" }, `${x.size}/20명`),
+        x.master ? h("span", { class: "hint gd-master", style: "margin-left:8px;font-size:13px" }, `길드장 ${x.master}`) : null),
+      x.desc1 || x.intro ? h("div", { class: "hint gd-desc1" }, x.desc1 || x.intro) : null),
     guildAction(x, d, reload));
   async function load(from, fresh) {
     more.disabled = true;
@@ -6666,7 +6829,7 @@ const CODEX_CATS = [["monster", "몬스터"], ["dungeon", "던전"], ["recipe", 
 const fmtDay = iso => { const d = new Date(iso); return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`; };
 // 도감 검색·정렬 (발견하지 못한 것은 이름으로 찾아지지 않는다)
 let codexQ = "", codexSort = "default", codexOnlyKnown = false, codexRegion = "all";
-const CX_SORTS = [["default", "기본 순"], ["name", "이름 순"], ["known", "발견한 것 먼저"], ["recent", "최근 발견 순"], ["count", "만난·클리어 횟수 순"]];
+const CX_SORTS = [["default", "기본 순"], ["name", "이름 순"], ["known", "발견한 것 먼저"], ["recent", "최근 발견 순"], ["count", "만난·클리어 횟수 순"], ["grade_hi", "등급 높은 순"], ["grade_lo", "등급 낮은 순"]];
 function cxApply(arr, known, name, first, count) {
   const w = codexQ.trim().toLowerCase();
   const a = arr.filter(x => (!codexOnlyKnown || known(x)) && (!w || (known(x) && (name(x) || "").toLowerCase().includes(w))));
@@ -6675,6 +6838,12 @@ function cxApply(arr, known, name, first, count) {
   else if (codexSort === "known") a.sort((x, y) => K(y) - K(x));
   else if (codexSort === "recent") a.sort((x, y) => (Date.parse(first(y) || "") || 0) - (Date.parse(first(x) || "") || 0));
   else if (codexSort === "count") a.sort((x, y) => (count(y) || 0) - (count(x) || 0));
+  else if (codexSort === "grade_hi" || codexSort === "grade_lo") {
+    // 등급: 던전·몬스터는 E~S급, 아이템은 티어(1~5), 보스는 같은 등급 안에서 위로
+    const G = x => (x.grade ? "FEDCBAS".indexOf(x.grade) * 10 : 0) + (x.tier || 0) * 10 + (x.boss ? 5 : 0);
+    const dir = codexSort === "grade_hi" ? -1 : 1;
+    a.sort((x, y) => K(y) - K(x) || dir * (G(x) - G(y)));
+  }
   return a;
 }
 const cxFiltering = () => !!codexQ.trim() || codexOnlyKnown;
@@ -6942,8 +7111,7 @@ function openHunter() {
     !c.sub_position && c.level >= 25
       ? h("button", { class: "btn ghost block small", style: "margin-top:8px", type: "button", onclick: () => { $("#dlg-hunter").close(); openSubPosition(); } }, "서브 포지션 정하기")
       : null,
-    resetStatsBtn(() => { $("#dlg-hunter").close(); }),
-    progressBox(null));
+    resetStatsBtn(() => { $("#dlg-hunter").close(); }));
   swatches($("#e-swatches"), edit.color, col => { edit.color = col; renderEditAvatar(); });
   renderEditAvatar();
   $("#dlg-hunter").showModal();
@@ -7096,6 +7264,34 @@ function info(title, ...body) {
   $("#info-title").textContent = title;
   $("#info-body").replaceChildren(...body);
   $("#dlg-info").showModal();
+}
+/* ===== 게임 안 가이드 창: 메뉴별 분류, 각 화면 [가이드] 버튼으로 해당 분류부터 연다 ===== */
+const GUIDE_CATS = [["hunter", "헌터", ["g-grade", "g-stat", "g-pos", "g-profile"]], ["inf", "무한 던전", ["g-inf"]], ["rg", "지역 안정화", ["g-rg"]],
+  ["union", "국제헌터연합", ["g-union"]], ["inv", "인벤토리", ["g-inv"]], ["social", "교류", ["g-social"]]];
+const guideCatOf = key => !key ? "hunter" : /^dungeon/.test(key) ? "inf" : /^regional/.test(key) ? "rg" : /^union/.test(key) ? "union"
+  : /^inv/.test(key) ? "inv" : /^soc/.test(key) ? "social" : "hunter";
+function openGuide(cat = "hunter") {
+  const src = h("div");
+  src.innerHTML = DOCS.guide.html;   // 위에 적어 둔 고정 문구만 넣는다 (사용자 입력 없음)
+  if (!patched()) src.querySelectorAll("[data-patch]").forEach(e => e.remove());
+  if (!hintsOn()) src.querySelectorAll("[data-hints]").forEach(e => e.remove());
+  const intro = src.querySelector("article:not([id])");
+  const chips = h("div", { class: "cat-row guide-cats", role: "tablist", "aria-label": "가이드 분류" });
+  const body = h("div", { class: "guide-body prose" });
+  const paint = () => {
+    chips.replaceChildren(...GUIDE_CATS.map(([id, label]) => h("button", { type: "button", role: "tab", class: `cat-chip${id === cat ? " on" : ""}`, "aria-selected": id === cat ? "true" : "false",
+      onclick: () => { cat = id; paint(); body.scrollTop = 0; } }, label)));
+    const ids = GUIDE_CATS.find(c => c[0] === cat)[2];
+    body.replaceChildren(...ids.map(id => { const a = src.querySelector("#" + id); if (!a) return null;
+      const c = a.cloneNode(true); c.removeAttribute("id"); c.className = "guide-sec"; return c; }));
+    body.querySelectorAll('a[href^="#/"]').forEach(x => x.onclick = e => { e.preventDefault(); $("#dlg-info").close(); location.hash = x.getAttribute("href"); });
+  };
+  paint();
+  const ask = intro?.querySelectorAll("p")[1]?.cloneNode(true);   // 문의 창구 안내
+  if (ask) { ask.className = "hint"; ask.style.cssText = "margin:12px 0 0;font-size:13px"; }
+  info("가이드", chips, body, ask || null);
+  $("#dlg-info").classList.add("guide-dlg");
+  $("#dlg-info").addEventListener("close", () => $("#dlg-info").classList.remove("guide-dlg"), { once: true });
 }
 /* ===== 소개 · 개인정보 (로그인 없이 볼 수 있는 페이지) ===== */
 // 문구를 바꾸려면 아래 HTML을 직접 고치세요.
@@ -7253,19 +7449,6 @@ const DOCS = {
 <h3>구조 요청</h3>
 <p>전투로 진입해 있는 동안 <b>3시간마다, 그리고 복귀 30분 전에 한 번 더 다른 파티의 [구조 요청]</b>이 들어오고 알림으로 알려 드립니다. 무한 던전 화면에서 [구조하러 가기]를 누르면 20초 동안 3×3 칸에 마물과 헌터가 번갈아 나타나며, <b>마물만 눌러 처치</b>해야 합니다.</p>
 <p>마물을 60% 이상 처치하고 헌터를 1번까지만 잘못 누르면 감사의 선물로 소비 아이템 1개를 받습니다. 구조에 실패하거나 요청을 놓쳐도 무한 던전 공략에는 아무 영향이 없습니다. 다만 <b>요청은 들어온 뒤 10분 동안만</b> 받을 수 있고, 그 뒤에는 지나갑니다.</p>
-<h3>레이드</h3>
-<p>매주 한 명의 레이드 보스가 나타납니다. 한 주(월~일) 동안 모든 헌터가 힘을 모아 보스의 체력을 깎으며, <b>5레벨 이상</b>이면 참여할 수 있습니다. 지역 안정화 화면의 [레이드]에서 확인할 수 있습니다.</p>
-<p><b>평일(월~금)</b>에는 하루 한 번 <b>개인 도전</b>을 할 수 있습니다. 15~20분 동안 혼자 보스와 싸우며, 혼자일 때는 지원할 아군이 없어 지원 능력이 보스 피해로 바뀝니다. 개인 도전으로 준 피해만큼 보스 체력이 줄고, 헌터님 포지션의 <b>주말 토벌 버프</b>가 차오릅니다(서브 포지션은 절반만큼 보탭니다).</p>
-<ul>
-<li>갤런트리 — 치명타 확률 증가 · 스카우트 — 주는 피해 증가</li>
-<li>뱅가드 — 회피 확률 증가 · 시타델 — 받는 피해 감소</li>
-<li>카탈리스트 — 선호 스테이터스 보정 · 아티피스 — 레이드 보스의 특화 능력 약화</li>
-<li>리커버리 — HP 상한 증가 · 서플라이 — MP 상한 증가 (주말 토벌에 나설 때 더해지며, 회복할 수 있는 한도는 그대로입니다)</li>
-</ul>
-<p><b>주말(토·일)</b>에는 오후 2시와 오후 10시, 모두 4번 <b>토벌</b>이 열립니다. 회차가 열리면 1시간 동안 참여할 수 있고, 회차마다 한 번씩 참여할 수 있습니다. 한 토벌대는 최대 10명이며, 10명이 모이면 바로, 회차가 열리고 10분이 지나면 5명 이상일 때 출발합니다. 1시간 안에 5명이 모이지 않으면 그 토벌대는 취소됩니다.</p>
-<p>도전과 토벌은 공략으로 치기 때문에, 그동안에는 무한 던전·지역 안정화·탐색·별의 무덤·별의 제단에 들어갈 수 없습니다. 토벌을 기다리는 동안도 마찬가지이며, 대기를 그만두면 바로 들어갈 수 있습니다.</p>
-<p>기여도는 포지션과 상관없이 <b>헌터님 자신의 능력으로 보스에게 준 피해</b>로 매깁니다. 아군을 돕는 효과는 함께 싸우는 헌터의 기여도를 깎지 않고 토벌 전체를 돕습니다. 같은 능력이라면 어떤 포지션이든 비슷한 기여도를 얻습니다.</p>
-<p><b>보스 체력을 0까지 깎으면 그 주 레이드는 성공</b>으로 확정되고, 알림으로 알려 드립니다. 남은 기간에도 개인 도전과 주말 토벌을 계속할 수 있지만(추가 토벌), 체력이 다한 뒤에 준 피해는 기여도에 일부만 반영됩니다. 성공하면 참여 보상과 함께 기여도에 따른 성공 보상을, 실패하면 참여 보상만 받습니다. 보스의 위력은 지난 레이드의 결과에 맞춰 매주 달라집니다.</p>
 <h3>별의 제단</h3>
 <p>별의 무덤 깊은 곳에서 발견된 제단입니다. <b>20레벨 이상, 그날 별의 무덤을 한 번 다녀온 헌터만 하루 1번</b> 들어갈 수 있으며, 8+(레벨÷5)칸을 이동합니다.</p>
 <p>지도에는 처음부터 <b>제단 4개</b>가 보입니다. 제단에 닿으면 별가루 3~5개와 별조각 사탕·은하수 이슬·마석 중 하나를 받고, <b>4개를 모두 봉헌하면 맥동하는 마석</b>을 더 받습니다.</p>
@@ -7296,6 +7479,19 @@ const DOCS = {
 <h3>게이트 봉합</h3>
 <p>지역 안정화 결과를 받을 때마다 작은 균열이 하나씩 남습니다(최대 5개까지 쌓입니다). 지역 안정화 화면의 [게이트 봉합]을 누르면 균열이 나타나며, <b>빛나는 끝점 한 곳을 누른 채 손을 떼지 않고 반대쪽 끝까지 따라 그어</b> 꿰매어 닫습니다.</p>
 <p>처음 누른 순간부터 제한 시간이 흐르고, 손을 떼면 그 자리에서 끝납니다. 균열을 덮은 정도와 균열에서 벗어나지 않은 정도에 따라 극소량의 가능성을 받고, 균열을 거의 다 덮고 많이 벗어나지 않으면 봉합에 성공해 달콤열매·새콤열매·청정수 중 1개를 받습니다.</p>
+<h3>레이드</h3>
+<p>매주 한 명의 레이드 보스가 나타납니다. 한 주(월~일) 동안 모든 헌터가 힘을 모아 보스의 체력을 깎으며, <b>5레벨 이상</b>이면 참여할 수 있습니다. 지역 안정화 화면의 [레이드]에서 확인할 수 있습니다.</p>
+<p><b>평일(월~금)</b>에는 하루 한 번 <b>개인 도전</b>을 할 수 있습니다. 15~20분 동안 혼자 보스와 싸우며, 혼자일 때는 지원할 아군이 없어 지원 능력이 보스 피해로 바뀝니다. 개인 도전으로 준 피해만큼 보스 체력이 줄고, 헌터님 포지션의 <b>토벌 버프</b>가 차오릅니다(서브 포지션은 절반만큼 보탭니다).</p>
+<ul>
+<li>갤런트리 — 치명타 확률 증가 · 스카우트 — 주는 피해 증가</li>
+<li>뱅가드 — 회피 확률 증가 · 시타델 — 받는 피해 감소</li>
+<li>카탈리스트 — 선호 스테이터스 보정 · 아티피스 — 레이드 보스의 특화 능력 약화</li>
+<li>리커버리 — HP 상한 증가 · 서플라이 — MP 상한 증가 (주말 토벌에 나설 때 더해지며, 회복할 수 있는 한도는 그대로입니다)</li>
+</ul>
+<p><b>주말(토·일)</b>에는 오후 2시와 오후 10시, 모두 4번 <b>토벌</b>이 열립니다. 회차가 열리면 1시간 동안 참여할 수 있고, 회차마다 한 번씩 참여할 수 있습니다. 한 토벌대는 최대 10명이며, 10명이 모이면 바로, 회차가 열리고 10분이 지나면 5명 이상일 때 출발합니다. 1시간 안에 5명이 모이지 않으면 그 토벌대는 취소됩니다.</p>
+<p>도전과 토벌은 공략으로 치기 때문에, 그동안에는 무한 던전·지역 안정화·탐색·별의 무덤·별의 제단에 들어갈 수 없습니다. 토벌을 기다리는 동안도 마찬가지이며, 대기를 그만두면 바로 들어갈 수 있습니다.</p>
+<p>기여도는 포지션과 상관없이 <b>헌터님 자신의 능력으로 보스에게 준 피해</b>로 매깁니다. 아군을 돕는 효과는 함께 싸우는 헌터의 기여도를 깎지 않고 토벌 전체를 돕습니다. 같은 능력이라면 어떤 포지션이든 비슷한 기여도를 얻습니다.</p>
+<p><b>보스 체력을 0까지 깎으면 그 주 레이드는 성공</b>으로 확정되고, 알림으로 알려 드립니다. 남은 기간에도 개인 도전과 주말 토벌을 계속할 수 있지만(추가 토벌), 체력이 다한 뒤에 준 피해는 기여도에 일부만 반영됩니다. 성공하면 참여 보상과 함께 기여도에 따른 성공 보상을, 실패하면 참여 보상만 받습니다. 보스의 위력은 지난 레이드의 결과에 맞춰 매주 달라집니다.</p>
 </article>
 
 <article class="card prose" id="g-union">
@@ -7620,7 +7816,8 @@ $("#btn-legal").onclick = () => openDoc("privacy");
 $("#btn-credits").onclick = () => openDoc("credits");
 addEventListener("keydown", e => { if (e.key === "Escape" && docRoute() && !document.querySelector("dialog[open]")) closeDoc(); });
 
-$("#btn-guide").onclick = () => openDoc("guide");
+$("#btn-guide").onclick = () => openGuide();
+$("#btn-guide").hidden = true;   // 가이드는 각 화면의 [가이드] 버튼으로 연다
 
 document.querySelectorAll(".js-logout").forEach(b => b.onclick = async () => {
   stopSocial(); bgmStop(); sfxS.ready = false;
@@ -8073,7 +8270,7 @@ const TOURS = {
     { sel: '[data-tour="hm-todo"]', text: "헌터님만 확인할 수 있는 메모장이에요. 할 일을 적어 두고 끝나면 체크하실 수 있습니다." },
     { sel: "#bgm", text: "배경음악과 효과음을 켜고 끄거나 크기를 바꿀 수 있어요. 듣고 싶은 음악이 있다면 유튜브 링크로 재생할 수 있습니다." },
     { sel: "#side-party, #side-sns", all: true, pc: true, text: "다른 헌터와 파티를 맺은 경우, 파티 현황이 이곳에 나타납니다.\n이곳에서 헌터 전용 SNS 새 글을 확인할 수 있습니다. 카테고리 별로 다른 탭을 사용하고, 원하시면 게시글을 올릴 수 있습니다." },
-    { text: "이용에 어려움이 생기시면 화면 아래 [가이드]나 각 화면의 [도움말]을 이용해주십시오.\n헌터님의 무한한 가능성을 기대하겠습니다." },
+    { text: "이용에 어려움이 생기시면 각 화면의 [도움말]과 그 옆의 [가이드]를 이용해주십시오.\n헌터님의 무한한 가능성을 기대하겠습니다." },
   ],
   "dungeon-battle": [
     { text: "무한 던전 이용 방법을 간단히 안내해 드리겠습니다.\n안내를 원치 않으시다면 [건너뛰기]를 선택해주시기 바랍니다." },
@@ -8096,7 +8293,7 @@ const TOURS = {
   "regional-raid": [
     { text: "매주 한 명의 레이드 보스가 나타납니다.\n헌터님들이 한 주 동안 힘을 모아 보스의 체력을 모두 깎아 내면 레이드 성공입니다. 5레벨부터 참여할 수 있습니다." },
     { sel: '[data-tour="rd-boss"]', text: "이번 주 보스와 특화 능력, 남은 체력입니다.\n특화 능력은 아티피스 버프가 차오를수록 약해집니다." },
-    { sel: '[data-tour="rd-buffs"]', text: "평일에는 하루 한 번 개인 도전을 할 수 있습니다.\n개인 도전으로 보스에게 준 피해만큼, 헌터님 포지션의 주말 토벌 버프가 차오릅니다." },
+    { sel: '[data-tour="rd-buffs"]', text: "평일에는 하루 한 번 개인 도전을 할 수 있습니다.\n개인 도전으로 보스에게 준 피해만큼, 헌터님 포지션의 토벌 버프가 차오릅니다." },
     { text: "토·일 오후 2시와 오후 10시에 토벌이 열립니다. 최대 10명이 함께 싸우며, 회차마다 한 번씩 참여할 수 있습니다.\n도전과 토벌은 공략으로 치기 때문에 그동안 무한 던전·지역 안정화에는 들어갈 수 없습니다." },
     { sel: '[data-tour="rd-rank"]', text: "기여도는 포지션과 상관없이 헌터님의 능력으로 보스에게 준 피해로 매겨집니다.\n레이드에 성공하면 기여도에 따라 보상을, 실패하면 참여 보상을 받습니다." },
   ],
@@ -8209,7 +8406,9 @@ const TOURS = {
 const TOUR_IN_DIALOG = new Set(["hunter"]);
 const isMobileView = () => matchMedia("(max-width: 720px)").matches;
 // 각 화면의 '도움말' 버튼
-const helpBtn = key => key ? h("button", { type: "button", class: "btn ghost small tour-btn", "aria-label": "이 화면 도움말 보기", onclick: () => startTour(key) }, "? 도움말") : null;
+const helpBtn = key => key ? h("span", { class: "help-btns" },
+  h("button", { type: "button", class: "btn ghost small tour-btn", "aria-label": "이 화면 도움말 보기", onclick: () => startTour(key) }, "? 도움말"),
+  h("button", { type: "button", class: "btn ghost small guide-btn", "aria-label": "이 화면 가이드 보기", onclick: () => openGuide(guideCatOf(key)) }, "가이드")) : null;
 const paneHead = (title, key) => h("div", { class: "pane-head" }, h("h2", {}, title), helpBtn(key));
 let tourNow = null;
 // 처음 여는 화면이면 소개를 자동으로 띄운다. 본 기록은 서버(profiles.tours_seen)에 남겨 기기를 바꿔도 다시 뜨지 않는다.
@@ -8357,7 +8556,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-09-1950";
+const BUILD = "2026-11-09-2230";
 let buildNoticed = false;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
