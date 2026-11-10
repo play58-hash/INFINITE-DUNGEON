@@ -218,9 +218,8 @@ textarea.input { min-height: 88px; resize: vertical; }
 .top-actions .btn { white-space: nowrap; }
 .lbl-s { display: none; }
 .fx-off .bg-waves { display: none; }
-.set-sec { padding: 4px 0 14px; border-bottom: 1px dashed var(--border); margin-bottom: 12px; }
-.set-sec:last-child { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
-.set-sec h3 { margin: 0 0 10px; font-size: 15px; color: var(--accent-text); }
+.set-sec { padding: 4px 0 0; min-height: 96px; }
+.set-tabs { margin: 0 0 16px; }
 .set-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 0 0 10px; }
 .set-row .cat-row { margin: 0; }
 .set-check { cursor: pointer; } .set-check input { width: 20px; height: 20px; }
@@ -7282,27 +7281,42 @@ async function setTheme(next) {
   if (state.settings) state.settings.theme = next;
   await sb.from("settings").update({ theme: next, updated_at: new Date().toISOString() }).eq("user_id", state.user.id);
 }
+let settingsTab = "screen";
 function openSettings() {
-  const sec = (title, ...kids) => h("section", { class: "set-sec" }, h("h3", {}, title), ...kids);
+  const sec = (...kids) => h("section", { class: "set-sec" }, ...kids);
   const themeRow = h("div", { class: "cat-row", role: "radiogroup", "aria-label": "테마" });
   const paintTheme = () => themeRow.replaceChildren(...[["system", "기기 설정"], ["light", "밝게"], ["dark", "어둡게"]].map(([k, label]) => {
     const on = (state.settings?.theme || "system") === k;
     return h("button", { type: "button", role: "radio", "aria-checked": on ? "true" : "false", class: `cat-chip big${on ? " on" : ""}`,
       onclick: async () => { await setTheme(k); paintTheme(); } }, label);
   }));
-  paintTheme();
-  const fx = h("input", { type: "checkbox", checked: fxOn() });
-  fx.onchange = () => { try { localStorage.setItem("id-fx", fx.checked ? "1" : "0"); } catch {} applyFx(fx.checked); };
-  const pw = h("button", { class: "btn ghost small", type: "button", onclick: () => { $("#dlg-info").close(); openPassword(); } }, "비밀번호 변경");
-  const out = h("button", { class: "btn ghost small", type: "button", onclick: () => { $("#dlg-info").close(); logout(); } }, "로그아웃");
-  info("설정",
-    sec("화면",
-      h("div", { class: "set-row" }, h("span", {}, "테마"), themeRow),
-      h("label", { class: "set-row set-check" }, h("span", {}, "배경 효과 (심전도 그래프)"), fx)),
-    sec("소리", h("div", { class: "set-sfx" }, sfxRow()),
+  const pages = {
+    screen: () => {
+      paintTheme();
+      const fx = h("input", { type: "checkbox", checked: fxOn() });
+      fx.onchange = () => { try { localStorage.setItem("id-fx", fx.checked ? "1" : "0"); } catch {} applyFx(fx.checked); };
+      return sec(h("div", { class: "set-row" }, h("span", {}, "테마"), themeRow),
+        h("label", { class: "set-row set-check" }, h("span", {}, "배경 효과 (심전도 그래프)"), fx));
+    },
+    sound: () => sec(h("div", { class: "set-sfx" }, sfxRow()),
       h("p", { class: "hint", style: "margin:4px 0 0;font-size:13px" }, "배경음악은 홈 화면의 배경음악 칸에서 고를 수 있습니다.")),
-    sec("계정",
-      h("div", { class: "set-row" }, h("span", { class: "hint" }, state.user?.email || ""), h("div", { style: "display:flex;gap:8px;flex-wrap:wrap" }, pw, out))));
+    account: () => {
+      const pw = h("button", { class: "btn ghost small", type: "button", onclick: () => { $("#dlg-info").close(); openPassword(); } }, "비밀번호 변경");
+      const out = h("button", { class: "btn ghost small", type: "button", onclick: () => { $("#dlg-info").close(); logout(); } }, "로그아웃");
+      return sec(h("div", { class: "set-row" }, h("span", {}, "이메일"), h("span", { class: "hint" }, state.user?.email || "")),
+        h("div", { style: "display:flex;gap:8px;flex-wrap:wrap" }, pw, out));
+    },
+  };
+  const tabs = h("div", { class: "tabs set-tabs", role: "tablist", "aria-label": "설정 분류" });
+  const body = h("div", { role: "tabpanel" });
+  const paint = () => {
+    tabs.replaceChildren(...[["screen", "화면"], ["sound", "소리"], ["account", "계정"]].map(([k, label]) =>
+      h("button", { type: "button", role: "tab", "aria-selected": settingsTab === k ? "true" : "false", class: settingsTab === k ? "on" : null,
+        onclick: () => { settingsTab = k; paint(); } }, label)));
+    body.replaceChildren(pages[settingsTab]());
+  };
+  paint();
+  info("설정", tabs, body);
 }
 $("#btn-settings").onclick = openSettings;
 
@@ -8634,7 +8648,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-10-0930";
+const BUILD = "2026-11-10-0945";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
