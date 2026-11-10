@@ -299,7 +299,23 @@ code.c { font-family: ui-monospace, Menlo, monospace; background: var(--surface-
 .dm-gears { display: grid; gap: 4px; margin-top: 6px; }
 .dm-gear { display: flex; gap: 8px; align-items: center; font-size: 14px; cursor: pointer; }
 .dm-gear input { width: 18px; height: 18px; accent-color: var(--primary); flex: none; }
-.rep-steps { display: flex; flex-wrap: wrap; gap: 6px; }
+.rep-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(200px, 46%), 1fr)); gap: 10px; }
+@media (max-width: 520px) { .rep-card { padding: 10px 11px; } .rep-card-head .badge { font-size: 11px; padding: 1px 6px; } }
+.rep-card { border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: grid; gap: 4px; background: var(--surface); }
+.rep-card.cur { border-color: var(--accent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent); }
+.rep-card.union { background: color-mix(in srgb, var(--primary) 6%, var(--surface)); }
+.rep-card-head { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.rep-title { margin: 0; font-weight: 700; color: var(--accent-text); }
+.rep-card small { color: var(--text-dim); font-size: 12.5px; }
+.rep-fx { color: var(--text) !important; }
+.rep-quests { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.rep-quests li { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed var(--border); }
+.rep-quests li:last-child { border-bottom: 0; }
+.rep-quests li.done { opacity: .6; }
+.rep-quests li > :last-child { flex: none; white-space: nowrap; }
+.rq-main { display: grid; gap: 3px; min-width: 0; }
+.rq-parts { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+.rq-parts .badge.ok { background: color-mix(in srgb, #46A758 20%, transparent); }
 .chron { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 2px; }
 .chron li { display: grid; grid-template-columns: 20px 1fr auto; gap: 6px; align-items: baseline; font-size: 13px; padding: 4px 0; border-bottom: 1px dashed var(--border); }
 .chron li i { font-style: normal; color: var(--accent-text); text-align: center; }
@@ -1128,6 +1144,10 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
 .story-p.date { color: #B9A7E6; font-weight: 700; letter-spacing: .06em; }
 .story-p.glitch { color: #E3D4FF; text-shadow: 0 0 8px rgba(255,80,160,.35); overflow-wrap: anywhere; animation: storyGlitch 2.4s steps(2) infinite; }
 .story-p.last { font-weight: 700; color: #fff; }
+.story-p.alert { color: #FF5C6C; font-weight: 800; text-shadow: 0 0 10px rgba(255,60,80,.4); }
+.story-p.whisper { color: #C59BFF; font-style: italic; letter-spacing: .02em; }
+.story-p.sp { margin-top: 1.6em; }
+.story-glitch { color: #E3D4FF; text-shadow: 0 0 8px rgba(255,80,160,.35); overflow-wrap: anywhere; display: inline-block; animation: storyGlitch 2.4s steps(2) infinite; }
 @keyframes storyGlitch { 0%, 92%, 100% { transform: none; } 94% { transform: translate(-1px, 1px); } 96% { transform: translate(2px, -1px); } }
 .story-skip { position: fixed; top: 14px; right: 16px; border: 1px solid rgba(196,173,255,.4); background: transparent; color: #CBB9F5; border-radius: 999px; padding: 6px 14px; font: inherit; font-size: 14px; cursor: pointer; }
 .story-hint { position: fixed; bottom: 18px; left: 0; right: 0; text-align: center; margin: 0; font-size: 13px; color: #9C8AC8; }
@@ -1135,7 +1155,7 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
 .story-on body { overflow: hidden; }
 .story-card { display: grid; gap: 4px; text-align: left; padding: 14px 16px; border-radius: 12px; border: 1px solid #3A2466; background: linear-gradient(135deg, #2B1650, #170B2E); color: #EDE4FF; cursor: pointer; font: inherit; }
 .story-card small { color: #B9A7E6; }
-@media (prefers-reduced-motion: reduce) { .story-p { transition: none; } .story-p.glitch { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .story-p { transition: none; } .story-p.glitch, .story-glitch { animation: none; } }
 .pane-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 6px; }
 .main-pane .pane-head h2 { margin: 0; }
 .tour { position: fixed; inset: 0; z-index: 200; }
@@ -1918,6 +1938,7 @@ function paintTitlePicker() {
 }
 function renderHunter() {
   const p = state.profile, c = state.character;
+  if (c && c.level >= 5) maybeRiftStory();   // 5레벨이 되면 스토리 1. 균열
   const need = needFor(c.level);
   const pct = Math.min(100, (Number(c.potential_level) / need) * 100);
   const pos = POSITIONS[c.main_position];
@@ -3374,7 +3395,7 @@ async function openPublicHunter(codename) {
     else if (id === "codex") subBody.replaceChildren(h("p", { class: "panel-title", style: "margin:0 0 6px" }, `도감 달성률 ${p.codex.all ?? 0}%`),
       h("div", { class: "codex-sum", style: "margin:0" }, ...CODEX_CATS.map(([k, n]) => h("div", {}, h("span", {}, n), h("b", {}, `${p.codex[k] ?? 0}%`)))));
     else if (id === "rep") { subBody.replaceChildren(h("p", { class: "hint" }, "불러오는 중…"));
-      sb.rpc("hunter_progress", { p_codename: p.codename }).then(({ data }) => subBody.replaceChildren(data?.rep ? repChips(data.rep, data.bonus) : h("p", { class: "hint" }, "볼 수 없습니다."))); }
+      sb.rpc("hunter_progress", { p_codename: p.codename }).then(({ data }) => subBody.replaceChildren(data?.rep ? repChips(data.rep) : h("p", { class: "hint" }, "볼 수 없습니다."))); }
   };
   openSub(null);
   info(p.codename, card, bio, subs.length ? subTabs : null, subBody,
@@ -3394,11 +3415,99 @@ function licBarcode(code) {
    연대기: 승급, 레벨 이정표, 등급별 첫 지역 안정화, 무한 던전 역 이정표, 레이드 성공, 타이틀, 장비 숙련이 날짜와 함께 쌓인다.
    지역 평판: 구역마다 지역 안정화에 성공한 횟수로 단계가 오른다. */
 const CHRON_ICON = { start: "✦", level: "▲", grade: "★", regional: "◆", infinite: "∞", raid: "⚔", title: "❖", rep: "⚑", mastery: "✧" };
-function repChips(rep, bonus) {
-  return h("div", { class: "rep-grid" }, ...(rep || []).map(r => h("div", { class: "rep-chip" + (r.level ? " on" : ""), title: r.next ? `다음 단계까지 ${r.next - r.clears}번` : "최고 단계" },
-    h("span", {}, r.name), h("b", {}, r.level_name),
-    h("div", { class: "bar thin" }, h("i", { style: `width:${r.next ? Math.min(100, r.clears / r.next * 100) : 100}%` })),
-    h("small", {}, r.next ? `안정화 ${r.clears} / ${r.next}` : `안정화 ${r.clears}`))));
+function repChips(rep) {
+  return h("div", { class: "rep-grid" }, ...(rep || []).map(r => h("div", { class: "rep-chip" + (r.tier ? " on" : "") },
+    h("span", {}, r.name), h("b", {}, r.title),
+    h("div", { class: "bar thin" }, h("i", { style: `width:${Math.min(100, r.score || 0)}%` })),
+    h("small", {}, `평판 ${r.score || 0} / 100`))));
+}
+/* 지역 안정화 › 평판: 구역 · 국제헌터연합 평판, 구역 퀘스트, 복원 사업 기부 */
+const repFxText = fx => {
+  const a = [];
+  if (fx?.cur) a.push(`메헨 +${Math.round(fx.cur * 100)}%`);
+  if (fx?.drop) a.push(`아이템 획득 확률 +${Math.round(fx.drop * 100)}%`);
+  if (fx?.boss) a.push(`보스 아이템 획득 확률 +${Math.round(fx.boss * 100)}%`);
+  return a.length ? a.join(" · ") : "효과 없음";
+};
+async function renderRep(body, st) {
+  if (!st) {
+    body.replaceChildren(h("p", { class: "hint" }, "불러오는 중…"));
+    const { data, error } = await sb.rpc("rep_state");
+    if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
+    st = data;
+  }
+  if (!st.open) return body.replaceChildren(h("div", { class: "soon" }, "아직 열리지 않았습니다."));
+  const again = d => renderRep(body, d);
+  if (!st.home) {   // 처음: 시작 구역 고르기
+    const err = h("div", { class: "error", role: "alert" });
+    return body.replaceChildren(h("div", { class: "card", style: "padding:16px" },
+      h("p", { class: "panel-title", style: "margin:0 0 6px" }, "시작 구역 고르기"),
+      h("p", { class: "hint", style: "margin:0 0 12px" }, "평판을 쌓기 시작할 구역을 골라 주세요. 시작 구역의 평판은 10점부터 시작합니다. 한 번 고르면 바꿀 수 없습니다."),
+      h("div", { class: "cat-row" }, ...Object.entries(REGIONS).map(([k, name]) => {
+        const b = h("button", { type: "button", class: `cat-chip big${st.region === k ? " on" : ""}` }, name);
+        b.onclick = async () => {
+          if (!confirm(`${name} 구역을 시작 구역으로 정할까요? 나중에 바꿀 수 없습니다.`)) return;
+          busy(b, true, "…");
+          const { data, error } = await sb.rpc("rep_set_home", { p_region: k });
+          if (error) { busy(b, false); return (err.textContent = koError(error)); }
+          again(data);
+        };
+        return b;
+      })), err));
+  }
+  const me = (st.scores || []).find(r => r.region === st.region);
+  const card = r => h("div", { class: `rep-card${r.region === st.region ? " cur" : ""}${r.region === "union" ? " union" : ""}` },
+    h("div", { class: "rep-card-head" }, h("b", {}, r.name), r.region === st.home ? h("span", { class: "badge" }, "시작 구역") : null,
+      r.region === st.region ? h("span", { class: "badge" }, "활동 구역") : null),
+    h("p", { class: "rep-title" }, r.title),
+    h("div", { class: "bar thin" }, h("i", { style: `width:${Math.min(100, r.score)}%` })),
+    h("small", {}, `평판 ${r.score} / 100${r.next ? ` · 다음 단계까지 ${r.next - r.score}` : " · 최고 단계"}`),
+    h("small", { class: "rep-fx" }, repFxText(r.fx) + (r.region === "union" ? " (무한 던전)" : "")));
+  // 구역 퀘스트
+  const qList = h("ul", { class: "rep-quests" }, ...(st.quests || []).map(q => {
+    let right;
+    if (q.claimed) right = h("span", { class: "badge" }, "완료");
+    else if (q.done) {
+      right = h("button", { class: "btn small", type: "button" }, "받기");
+      right.onclick = async () => {
+        busy(right, true, "…");
+        const { data, error } = await sb.rpc("rep_quest_claim", { p_quest: q.key });
+        if (error) { busy(right, false); return toast(koError(error)); }
+        sfx("notice"); toast(`'${data.name}' 완료 — 가능성 +${fmtN(data.pot)}`);
+        await loadAll(); renderHunter(); again(data.state);
+      };
+    } else right = h("span", { class: "hint", style: "font-size:13px" }, `가능성 +${fmtN(q.pot)}`);
+    return h("li", { class: q.claimed ? "done" : null },
+      h("div", { class: "rq-main" }, h("b", {}, q.name), h("small", { class: "hint" }, q.desc),
+        h("div", { class: "rq-parts" }, ...q.parts.map(x => h("span", { class: `badge${x.have >= x.need ? " ok" : ""}` }, `${x.label} ${x.have}/${x.need}`)))),
+      right);
+  }));
+  // 복원 사업 기부 (지금 활동 구역)
+  const units = h("input", { type: "number", class: "input", min: "1", max: "20", value: "1", style: "width:80px", "aria-label": "기부 횟수 (5,000 Mh씩)" });
+  const cost = h("span", { class: "hint" });
+  const paintCost = () => { cost.textContent = `${fmtN(Math.max(1, Math.min(20, Number(units.value) || 1)) * 5000)} Mh`; };
+  units.oninput = paintCost; paintCost();
+  const give = h("button", { class: "btn small", type: "button", disabled: !me || me.score >= 100 }, "기부하기");
+  give.onclick = async () => {
+    const n = Math.max(1, Math.min(20, Number(units.value) || 1));
+    if (!confirm(`${me.name} 복원 사업에 ${fmtN(n * 5000)} Mh를 기부할까요?`)) return;
+    busy(give, true, "…");
+    const { data, error } = await sb.rpc("rep_donate", { p_region: st.region, p_units: n });
+    if (error) { busy(give, false); return toast(koError(error)); }
+    sfx("notice"); toast("기부했습니다. 평판이 올랐습니다.");
+    await loadAll(); renderHunter(); again(data);
+  };
+  body.replaceChildren(
+    h("div", { class: "rep-cards" }, ...(st.scores || []).map(card)),
+    h("p", { class: "hint", style: "margin:8px 0 0;font-size:13px" }, `평판 · 구역 퀘스트 · 기부는 매주 월요일 0시(한국 시간)에 새로 시작합니다. 평판은 지난주 점수의 40%에서 다시 시작합니다. 다음 갱신: ${new Date(st.next_reset).toLocaleString("ko-KR", { month: "numeric", day: "numeric", weekday: "short", hour: "numeric", timeZone: "Asia/Seoul" })}`),
+    h("div", { class: "card", style: "padding:14px 16px;margin-top:16px" },
+      h("p", { class: "panel-title", style: "margin:0 0 4px" }, `${me?.name || ""} 구역 퀘스트`),
+      h("p", { class: "hint", style: "margin:0 0 10px;font-size:13px" }, "지금 활동 구역의 퀘스트입니다. 마치면 구역 평판 +5, 국제헌터연합 평판 +3을 함께 받습니다."),
+      qList),
+    h("div", { class: "card", style: "padding:14px 16px;margin-top:14px" },
+      h("p", { class: "panel-title", style: "margin:0 0 4px" }, `${me?.name || ""} 복원 사업 기부`),
+      h("p", { class: "hint", style: "margin:0 0 10px;font-size:13px" }, `5,000 Mh마다 ${me?.name || "구역"} 평판 +5, 한 주 기부가 10,000 Mh 쌓일 때마다 국제헌터연합 평판 +5. 이번 주 기부 ${fmtN(st.donated_total || 0)} Mh · 가진 메헨 ${fmtN(st.currency || 0)} Mh`),
+      h("div", { style: "display:flex;gap:8px;align-items:center;flex-wrap:wrap" }, units, h("span", { class: "hint" }, "× 5,000 Mh ="), cost, give)));
 }
 function progressBox(codename) {
   if (!patched()) return null;
@@ -3418,8 +3527,7 @@ function progressBox(codename) {
     paint();
     box.replaceChildren(
       h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "지역 평판"),
-      repChips(data.rep, data.bonus),
-      !codename ? h("p", { class: "hint", style: "margin:6px 0 0;font-size:12px" }, "구역마다 지역 안정화에 성공할수록 평판이 오릅니다." + (data.bonus ? " 평판이 높은 구역에서는 메헨을 조금 더 받습니다." : "")) : null,
+      repChips(data.rep),
       h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "헌터 연대기"),
       rows.length ? list : h("p", { class: "hint", style: "margin:0" }, "아직 남긴 기록이 없습니다."), more);
   });
@@ -4168,15 +4276,10 @@ async function renderRegional(pane, tab) {
     h("button", { type: "button", class: tab === "board" ? "on" : null, onclick: () => renderRegional(pane, "board") }, "지역 안정화"),
     raidOn() ? h("button", { type: "button", class: tab === "raid" ? "on" : null, onclick: () => renderRegional(pane, "raid") }, "레이드") : null,
     patched() ? h("button", { type: "button", class: tab === "rep" ? "on" : null, onclick: () => renderRegional(pane, "rep") }, "평판") : null) : null;
-  if (tab === "rep") {   // 지역 평판 (11/16 공개, 그 전에는 운영자만)
+  if (tab === "rep") {   // 평판 (11/16 공개, 그 전에는 운영자만)
     pane.replaceChildren(paneHead("지역 안정화", "regional"),
-      h("p", { class: "hint", style: "margin:0 0 16px" }, "구역마다 지역 안정화에 성공할수록 평판이 오릅니다. 평판이 높은 구역에서는 메헨을 조금 더 받습니다."), tabs, body);
-    const { data, error } = await sb.rpc("hunter_progress", {});
-    if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
-    const LV = [["낯선 이방인", 0], ["알려진 헌터", 3], ["믿음직한 헌터", 10], ["지역의 수호자", 25], ["지역의 영웅", 50], ["살아 있는 전설", 100]];
-    return body.replaceChildren(h("div", { class: "card", style: "padding:14px 16px" }, repChips(data.rep, data.bonus)),
-      h("p", { class: "panel-title", style: "margin:16px 0 6px" }, "평판 단계"),
-      h("div", { class: "rep-steps" }, ...LV.map(([n, c]) => h("span", { class: "badge" }, `${n}${c ? ` · 안정화 ${c}번` : ""}`))));
+      h("p", { class: "hint", style: "margin:0 0 16px" }, "구역과 국제헌터연합의 평판을 쌓으면 그곳에서 메헨과 아이템을 더 얻을 수 있습니다."), tabs, body);
+    return renderRep(body);
   }
   if (tab === "raid") {
     pane.replaceChildren(paneHead("지역 안정화", "regional-raid"),
@@ -6986,8 +7089,9 @@ async function renderCodex(pane) {
       }
     },
     story(out) {
-      out.push(h("p", { class: "codex-group" }, `스토리 · ${STORIES.length}/${STORIES.length}`),
-        h("div", { class: "codex-grid", style: "grid-template-columns:repeat(auto-fill,minmax(200px,1fr))" }, ...STORIES.map(st =>
+      const open = STORIES.filter(storyOpen);
+      out.push(h("p", { class: "codex-group" }, `스토리 · ${open.length}/${open.length}`),
+        h("div", { class: "codex-grid", style: "grid-template-columns:repeat(auto-fill,minmax(200px,1fr))" }, ...open.map(st =>
           h("button", { type: "button", class: "story-card", onclick: () => playStory(st.key) }, h("b", {}, st.title), h("small", {}, `${st.when} · 다시 보기`)))));
     },
     item(out) {
@@ -7581,6 +7685,25 @@ const DOCS = {
 <p>도전과 토벌은 공략으로 치기 때문에, 그동안에는 무한 던전·지역 안정화·탐색·별의 무덤·별의 제단에 들어갈 수 없습니다. 토벌을 기다리는 동안도 마찬가지이며, 대기를 그만두면 바로 들어갈 수 있습니다.</p>
 <p>기여도는 포지션과 상관없이 <b>헌터님 자신의 능력으로 보스에게 준 피해</b>로 매깁니다. 아군을 돕는 효과는 함께 싸우는 헌터의 기여도를 깎지 않고 토벌 전체를 돕습니다. 같은 능력이라면 어떤 포지션이든 비슷한 기여도를 얻습니다.</p>
 <p><b>보스 체력을 0까지 깎으면 그 주 레이드는 성공</b>으로 확정되고, 알림으로 알려 드립니다. 남은 기간에도 개인 도전과 주말 토벌을 계속할 수 있지만(추가 토벌), 체력이 다한 뒤에 준 피해는 기여도에 일부만 반영됩니다. 성공하면 참여 보상과 함께 기여도에 따른 성공 보상을, 실패하면 참여 보상만 받습니다. 보스의 위력은 지난 레이드의 결과에 맞춰 매주 달라집니다.</p>
+<h3 data-patch>평판</h3>
+<p data-patch>게임 활동으로 아시아, 유럽, 아프리카, 아메리카, 오세아니아 구역과 <b>국제헌터연합</b>의 평판을 쌓을 수 있습니다. 지역 안정화 › 평판에서 확인합니다.</p>
+<p data-patch>처음 평판 메뉴에 들어가면 <b>시작 구역</b>을 고릅니다. 시작 구역의 평판은 10점부터 시작하고, 그 아래로 내려가지 않습니다.</p>
+<div class="table-scroll" data-patch><table><thead><tr><th>점수</th><th>단계</th><th>효과 (그 구역에서만, 국제헌터연합은 무한 던전)</th></tr></thead><tbody>
+<tr><td>0~9</td><td>낯선 이방인</td><td>없음</td></tr>
+<tr><td>10~40</td><td>익숙한 헌터</td><td>메헨 +2%</td></tr>
+<tr><td>41~60</td><td>믿음직한 헌터</td><td>메헨 +5%</td></tr>
+<tr><td>61~75</td><td>○○의 수호자</td><td>메헨 +5%, 아이템 획득 확률 +2%</td></tr>
+<tr><td>76~90</td><td>○○의 영웅</td><td>메헨 +5%, 아이템 획득 확률 +5%</td></tr>
+<tr><td>91~100</td><td>살아있는 전설</td><td>메헨 +10%, 아이템 획득 확률 +10%, 보스 아이템 획득 확률 +5%</td></tr>
+</tbody></table></div>
+<div class="table-scroll" data-patch><table><thead><tr><th>활동</th><th>구역 평판</th><th>국제헌터연합 평판</th></tr></thead><tbody>
+<tr><td>지역 안정화 성공</td><td>+2</td><td>+1</td></tr>
+<tr><td>무한 던전 공략</td><td>-</td><td>+5</td></tr>
+<tr><td>구역 퀘스트</td><td>+5</td><td>+3</td></tr>
+<tr><td>복원 사업 기부</td><td>5,000 Mh마다 +5</td><td>한 주 기부 10,000 Mh마다 +5</td></tr>
+</tbody></table></div>
+<p data-patch>평판, 구역 퀘스트, 기부는 매주 월요일 0시(한국 시간)에 새로 시작합니다. 평판은 지난주 점수의 40%에서 다시 시작합니다.</p>
+<p data-patch>구역 퀘스트는 지금 활동 구역에서 받습니다. <b>불안정한 게이트</b>(지난주 그 구역에서 공략이 가장 적었던 던전 10번 성공), <b>날뛰는 몬스터들</b>(몬스터 3종을 각각 10번 처치), <b>구역 평정</b>(보스 몬스터 1종 10번 처치) 세 가지이며, 마치면 레벨에 맞는 가능성을 받습니다.</p>
 </article>
 
 <article class="card prose" id="g-union">
@@ -7589,9 +7712,8 @@ const DOCS = {
 <h3>랭킹</h3>
 <p>무한 던전 랭킹은 형평성을 위해 개인 공략과 파티 공략으로 나누어 발표하며, 같은 수의 역을 공략한 경우, 먼저 도달한 헌터님이 높은 순위가 됩니다.</p>
 <p>한국 기준 매주 월요일 0시에 새로 시작되며, 그 이전 주 랭킹은 확정된 순위로 참고하여 주세요.</p>
-<h3 data-patch>헌터 연대기 · 지역 평판</h3>
-<p data-patch>승급, 레벨 달성, 등급별 첫 지역 안정화, 무한 던전 역 도달, 레이드 토벌, 타이틀 획득 같은 순간이 날짜와 함께 <b>헌터 연대기</b>에 남습니다. 세부 정보 창에서 볼 수 있고, 다른 헌터도 헌터 정보 창에서 볼 수 있습니다.</p>
-<p data-patch>아시아, 유럽, 아프리카, 아메리카, 오세아니아 구역마다 지역 안정화에 성공한 만큼 <b>지역 평판</b>이 오릅니다. 낯선 이방인에서 시작해 알려진 헌터, 믿음직한 헌터, 지역의 수호자, 지역의 영웅, 살아 있는 전설까지 오를 수 있습니다.</p>
+<h3 data-patch>헌터 연대기</h3>
+<p data-patch>승급, 레벨 달성, 등급별 첫 지역 안정화, 무한 던전 역 도달, 레이드 토벌, 타이틀 획득, 평판 단계 같은 순간이 날짜와 함께 <b>헌터 연대기</b>에 남습니다. 교류 › 연대기에서 볼 수 있습니다.</p>
 <h3>도감</h3>
 <p>던전, 몬스터, 조합식, 아이템, 타이틀, 스토리를 확인할 때마다 자동으로 기록하고 있습니다.</p>
 <p>몬스터의 경우 10번 쓰러뜨리면 강한 정도와 드롭 정보를 제공합니다(보스는 1번).</p>
@@ -8273,11 +8395,43 @@ const STORIES = [
     { t: "당신에게 찾아온 별̷̪͈̻͍̤͖̠͊̈̀̍͌̑̈́̇͜͠ͅ의̶̴̨͉͓̫̻̦̳̭̂̿̔͐̐̽̃́͛ 무한한 가능성을 펼치기 위해 등록 절차를 시작하겠습니다." },
     { t: "잘 부탁드립니다, 헌터님!", cls: "last" },
   ] },
+  { key: "rift", title: "1. 균열", when: "차원 균열이 일어난 날", music: "nemesis", need: () => patched() && ((state.character?.level || 0) >= 5 || tourSeen("story-rift")), paras: [
+    { t: "정식 헌터 라이센스가 발급되며 나름의 묘한 사명감이 당신에게 자리 잡았을지도 모릅니다." },
+    { t: "아니면 돈, 명예, 혹은 카타르시스…." },
+    { t: "어느 것이든 이 직업이 당신에게 제법 도움이 되고 있기를 바랍니다." },
+    { t: "왜냐하면 이제부터…." },
+    { t: "아, 국제헌터연합으로부터의 연락입니다!" },
+    { t: "[비상] 전세계 차원 균열 발생. 헌터들은 자신의 활동 구역에서 대응 해주십시오.", cls: "alert" },
+    { t: "그리고 TV에서,", cls: "sp" },
+    { t: "휴대폰에서," },
+    { t: "컴퓨터에서," },
+    { t: "또는 누군가의 입에서.", breakAfter: true },
+    { t: "ㄷㅗㄹ ㅇㅏ ㅇㅘㅆ ㄷㅏ .", cls: "whisper" },
+    { t: "… ㅇㅕ ㄱㅣ ㄱㅏ   ㄱㅡㄱ ㅇㅑ   ㅇㅣ ㅎㅜ   ㄸㅏㅇ .", cls: "whisper" },
+    { t: "ㅁㅜㄴ ㅈㅣ ㄱㅣ ㄴㅡㄴ   ㅈㅜㄱ ㅇㅓㅆ ㄷㅏ .   ㅎㅏㄴ   ㅈㅗ ㄱㅏㄱ   ㅇㅢ ㅈㅣ ㅁㅏㄴ ㅇㅣ   ㅁㅜ ㄷㅓㅁ ㅇㅡㄹ   ㅈㅣ ㅋㅣ ㄱㅗ   ㅇㅣㅆ ㄷㅏ .", cls: "whisper" },
+    { t: "ㄱㅡ ㄹㅓㅎ ㄷㅏ ㅁㅕㄴ   ㄷㅏ ㅅㅣ   ㄱㅏ ㄴㅡㅇ ㅅㅓㅇ ㅇㅡㄹ   ㅁㅗ ㅇㅏ ,", cls: "whisper" },
+    { t: "ㅊㅓㅅ   ㅂㅕㄹ ㅇㅣ   ㄷㅚ ㄹㅣ ㄹㅏ .", cls: "whisper", breakAfter: true },
+    { t: "사람들의 비명 소리, 물건이 깨지는 소리…." },
+    { t: "마치 던전 게이트 같은 균열이 온 곳에 생기고," },
+    { t: "형용할 수 없는 무언가들이 흘러나옵니다." },
+    { t: "\"여기는 레기온 구조대, 플레임 헌터입니다.\"", cls: "sp" },
+    { t: "\"무한 던전 지하철 내에서 간혹 발견되던 균열이 지상에 수없이 생겨나고 있습니다.\"" },
+    { t: "\"대응이 가능한 헌터 분들은 균열로 진입하여 보스 몬스터를 공략해주십시오.\"" },
+    { t: "\"시민 구조 및 일반 몬스터 처치는 구조대가 대응하겠습니다. 서둘러주십시오!\"", breakAfter: true },
+    { t: "다급한 연락도 이어집니다." },
+    { t: "균열을 들여다 보면, 별가루를 뒤집어 쓴 암흑이 당신을 기다리고 있습니다." },
+    { t: "그것에게서 탐욕스러운 거대한 가능성이 느껴집니다." },
+    { t: "도대체 왜, 무엇 때문에 이렇게 된 것인가 하면….", cls: "sp" },
+    { t: ["역시 당신이 ", { glitch: "당̡̭͚̲̦̃̄̀͆̌͋͟ͅͅ신̶̶̻̭͚͙͓̞̹͎͓͋́̎̄̋̅͒̈́͌̕이̷̨͉͇͔͕̟̱́̇̂̒̇̚ 품̪͉͉͈̯͉̻̦͉̅͂͆́̍̈́͋̆̋͢͝͝은̴̡̬̞͇̟̠̳̜̻́̃̊̔́̃́́͝ 무̷̤͓̥͍͍̱̺̽̍̈́̑̈̀̎͢궁̶̛̙̬̬̖͔͈̜͇̬̒̇̄͆͊̿̂́̐͢무̧̩̯̱̩͕͈̮̥̃̇̀̿̆̀͆̈́̚̕͠ͅ진̵͖͉̠̗̥̠̫͑̐̿̀̀̾͆̑̿͛͘͝ͅ한̡̱͇͓̠̘̰͆̄̐̌͒̎͡ 가̴̛̖̥̹̦̙̮̭̱̪̽̈̽͒̏͊̐̂̚͞능̘͎̱̜̼͇̦̬̋́̓͆́̃̎̇̕͢͢성̴̫̩̮̹̟͚́̀̎̏͑͐̿͘ͅ 때͚͖͕̳̠̍̆̀̂̃̀͛͜͠" }, "이 아니겠나요?"] },
+    { t: "오, 이런.", cls: "sp" },
+    { t: "무운을 빕니다!", cls: "last" },
+  ] },
 ];
 let storyNow = null;
+const storyOpen = st => !st.need || st.need();
 function playStory(key, onDone) {
   const st = STORIES.find(x => x.key === key);
-  if (!st || storyNow) return onDone?.();
+  if (!st || !storyOpen(st) || storyNow) return onDone?.();
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   let i = 0;
   const lines = h("div", { class: "story-lines", "aria-live": "polite" });
@@ -8298,7 +8452,8 @@ function playStory(key, onDone) {
       return setTimeout(() => { lines.replaceChildren(); lines.classList.remove("out"); root.scrollTop = 0; turning = false; add(); }, reduce ? 0 : 900);
     }
     const p = st.paras[i++];
-    const el = h("p", { class: `story-p${p.cls ? " " + p.cls : ""}` }, p.t);
+    const el = h("p", { class: `story-p${p.cls ? " " + p.cls : ""}` },
+      ...(Array.isArray(p.t) ? p.t.map(x => typeof x === "string" ? x : h("span", { class: "story-glitch" }, x.glitch)) : [p.t]));
     lines.append(el);
     if (!reduce) requestAnimationFrame(() => el.classList.add("in")); else el.classList.add("in");
     el.scrollIntoView({ block: "end", behavior: reduce ? "auto" : "smooth" });
@@ -8648,7 +8803,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-10-0945";
+const BUILD = "2026-11-11-0020";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
@@ -8703,6 +8858,19 @@ async function boot() {
   renderMain();
   show("screen-app");
   if (docRoute()) syncDoc();   // 로그인 확인 뒤 '게임으로 돌아가기' 버튼으로 다시 그림
+  maybeRiftStory();
+}
+// 스토리 1. 균열: 레이드가 열리는 5레벨부터 한 번 (이미 5레벨이 넘은 헌터는 11/16 패치 뒤 처음 접속할 때, 새 헌터는 5레벨이 되었을 때)
+let riftWait = false;
+function maybeRiftStory() {
+  if (riftWait || !state.character || !patched() || (state.character.level || 0) < 5 || tourSeen("story-rift") || docRoute()) return;
+  riftWait = true;
+  setTimeout(() => {
+    riftWait = false;
+    if (!$("#screen-app") || $("#screen-app").classList.contains("hidden")) return;
+    if (storyNow || tourNow || document.querySelector("dialog[open]")) return setTimeout(maybeRiftStory, 4000);   // 소개 · 결과 창이 닫힌 뒤에
+    playStory("rift");
+  }, 900);
 }
 boot();
 </script>
