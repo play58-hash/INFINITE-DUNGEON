@@ -15,6 +15,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Staatliches&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=all_inclusive&display=block">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bamum&text=%F0%96%A4%82&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
 <style>
 /* ===== 테마 색 (주색 #3300FF · 보조색 #7D42DB · 바탕 #FFFFFF) ===== */
@@ -344,6 +345,11 @@ code.c { font-family: ui-monospace, Menlo, monospace; background: var(--surface-
 @media (prefers-reduced-motion: reduce) { .bg-waves .ecg { animation: none; stroke-dasharray: none; opacity: .3; } .bg-waves .head { display: none; } }
 .help-btns { display: inline-flex; gap: 6px; flex-wrap: nowrap; }
 dialog.guide-dlg { width: min(760px, calc(100vw - 24px)); }
+.guide-dlg input[type="search"] { margin: 0 0 10px; }
+.guide-hit { padding: 8px 0; border-bottom: 1px dashed var(--border); }
+.guide-hit > :last-child { margin-bottom: 0; }
+.guide-hit mark { background: color-mix(in srgb, #FFD400 55%, transparent); color: inherit; border-radius: 3px; padding: 0 1px; }
+.guide-hit-cat { display: block; margin: 14px 0 2px; padding: 0; border: 0; background: none; font: inherit; font-weight: 800; color: var(--accent-text); cursor: pointer; }
 .cat-row.guide-cats { margin: 0 0 10px; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; }
 .guide-cats .cat-chip { white-space: nowrap; }
 .guide-body { max-height: min(62vh, 640px); overflow-y: auto; line-height: 1.75; word-break: keep-all; }
@@ -828,6 +834,8 @@ html.doc-open, html.doc-open body { overflow: hidden; }
 .notif-sleep { padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--primary) 7%, transparent); margin: 0 0 12px; }
 .notif-set label { display: flex; gap: 8px; align-items: center; font-size: 14.5px; cursor: pointer; }
 @media (max-width: 720px) { .notif-btn .wide { display: none; } }
+.help-btns .sym { display: none; font-family: "Noto Sans Bamum", sans-serif; font-weight: 400; font-size: 16px; line-height: 1; }
+@media (max-width: 720px) { .help-btns .wide { display: none; } .help-btns .sym { display: inline; } .help-btns .btn { min-width: 36px; padding-inline: 10px; font-weight: 800; } }
 @media (max-width: 1520px) { #btn-updates .upd-word { display: none; } }
 @media (max-width: 1440px) {
   #btn-notif .wide { display: none; }
@@ -1077,7 +1085,11 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
   position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%);
   background: var(--text); color: var(--bg); padding: 10px 18px; border-radius: 10px;
   font-weight: 700; z-index: 100; box-shadow: var(--shadow);
+  max-width: min(560px, calc(100vw - 32px)); width: max-content; text-align: center; line-height: 1.5; cursor: pointer;
+  transition: bottom .2s, opacity .25s; animation: toast-in .2s ease-out;
 }
+.toast.out { opacity: 0; }
+@keyframes toast-in { from { opacity: 0; transform: translate(-50%, 8px); } }
 
 /* ===== 배경음악 ===== */
 .bgm { padding: 14px 16px; }
@@ -1642,10 +1654,21 @@ function h(tag, attrs = {}, ...kids) {
   for (const kid of kids.flat()) if (kid != null) el.append(kid);
   return el;
 }
+// 잠깐 띄우는 안내: 글이 길수록 오래(4~10초) 보여 주고, 누르면 바로 닫힌다. 여러 개면 위로 쌓인다.
 function toast(msg) {
-  const t = h("div", { class: "toast", role: "status" }, msg);
+  const t = h("div", { class: "toast", role: "status", title: "눌러서 닫기" }, msg);
+  const len = String(msg || "").length;
+  const close = () => { if (!t.isConnected) return; t.classList.add("out"); setTimeout(() => { t.remove(); stackToasts(); }, 250); };
+  t.onclick = close;
   document.body.append(t);
-  setTimeout(() => t.remove(), 2400);
+  stackToasts();
+  let left = Math.min(10000, Math.max(4000, 2500 + len * 90)), t0 = Date.now(), timer = setTimeout(close, left);
+  t.onmouseenter = () => { clearTimeout(timer); left -= Date.now() - t0; };
+  t.onmouseleave = () => { t0 = Date.now(); timer = setTimeout(close, Math.max(1500, left)); };
+}
+function stackToasts() {
+  let y = 84;
+  [...document.querySelectorAll(".toast")].reverse().forEach(el => { el.style.bottom = y + "px"; y += el.offsetHeight + 8; });
 }
 function show(id) {
   for (const s of ["screen-auth", "screen-invite", "screen-create", "screen-reveal", "screen-banned", "screen-app"])
@@ -4046,7 +4069,18 @@ async function renderDungeonIdle(body) {
   if (pt && !pt.leader_is_me) return body.replaceChildren(partyWaitNotice(pt, "무한 던전"));
   const val = h("strong", {}, "6시간");
   const range = h("input", { type: "range", min: "6", max: "12", step: "1", value: "6", class: "range", "aria-label": "진입 시간" });
-  range.oninput = () => { hours = Number(range.value); val.textContent = `${hours}시간`; };
+  // 지금 들어가면 언제 돌아오는지
+  const eta = h("p", { class: "hint dg-eta", style: "margin:4px 0 0" });
+  const paintEta = () => {
+    if (!eta.isConnected && eta.dataset.on) return clearInterval(etaT);
+    eta.dataset.on = "1";
+    const t = new Date(Date.now() + hours * 3600e3 / Math.max(1, speed || 1));
+    const day = t.toDateString() === new Date().toDateString() ? "오늘" : t.toLocaleDateString("ko-KR", { month: "numeric", day: "numeric", weekday: "short", timeZone: "Asia/Seoul" });
+    eta.textContent = `지금 들어가면 ${day} ${t.toLocaleTimeString("ko-KR", { hour: "numeric", minute: "2-digit", timeZone: "Asia/Seoul" })}에 완료됩니다.`;
+  };
+  const etaT = setInterval(paintEta, 30e3);
+  paintEta();
+  range.oninput = () => { hours = Number(range.value); val.textContent = `${hours}시간`; paintEta(); };
   const err = h("div", { class: "error", role: "alert" });
   const btn = h("button", { class: "btn block", type: "button", "data-tour": "dg-start", disabled: pt && !pt.gap_ok }, pt ? `파티 ${pt.size}명으로 무한 던전 진입` : "무한 던전 진입");
   btn.onclick = async () => {
@@ -4064,7 +4098,7 @@ async function renderDungeonIdle(body) {
     h("div", { "data-tour": "dg-hours" },
       h("div", { class: "kv", style: "border:0" }, h("span", {}, "진입 시간"), val),
       range,
-      h("div", { class: "range-scale" }, h("span", {}, "6시간"), h("span", {}, "12시간"))),
+      h("div", { class: "range-scale" }, h("span", {}, "6시간"), h("span", {}, "12시간")), eta),
     h("p", { class: "hint", style: "margin:0 0 16px" },
       "진입 시간이 늘어날수록 휴식과 전투 시간이 늘어나 더 깊이 진입할 수 있습니다."),
   ];
@@ -4162,6 +4196,18 @@ function renderDungeonRun(body, first) {
     if (cur.can_push) kids.push(
       h("button", { class: "btn ghost", type: "button", onclick: () => claim(true) }, "조금 더 진입 (성공 50%)"),
       h("p", { class: "hint", style: "margin:0" }, "성공하면 기력을 되찾아 몇 역을 더 공략하고 추가분 보상 1.5배, 실패하면 레기온에 구조되어 이번 보상의 20%를 잃습니다."));
+    // 돌아오는 길에 들어온 구조 요청 (공략마다 한 번)
+    if (cur.can_rescue) {
+      const rb = h("button", { class: "btn ghost", type: "button" }, "구조 요청 돕기 (1회)");
+      rb.onclick = async () => {
+        busy(rb, true, "…");
+        const { error } = await sb.rpc("rescue_after_run");
+        busy(rb, false);
+        if (error) return toast(koError(error));
+        playRescue(() => poll());
+      };
+      kids.push(rb, h("p", { class: "hint", style: "margin:0" }, "돌아오는 길에 다른 파티의 구조 요청이 들어왔습니다. 결과를 받기 전에 한 번 도울 수 있습니다."));
+    }
     kids.push(h("button", { class: "btn", type: "button", onclick: () => claim(false) }, "결과 받기"));
     actions.replaceChildren(...kids);
   }
@@ -4300,6 +4346,7 @@ async function renderRegional(pane, tab) {
   renderRegionalBoard(body, act);
 }
 
+let rgNotice = null;
 async function renderRegionalBoard(body, act) {
   const { data: rg, error } = await sb.rpc("get_regional");
   if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
@@ -4322,6 +4369,7 @@ async function renderRegionalBoard(body, act) {
   const note = h("p", { class: "hint", style: "margin:10px 0 0;white-space:pre-line" });
   const err = h("div", { class: "error", role: "alert" });
   const btn = h("button", { class: "btn block", type: "button", disabled: true, "data-tour": "rg-start" }, "공략할 던전을 고르세요");
+  if (rgNotice) { err.textContent = rgNotice; toast(rgNotice); rgNotice = null; }
   const tabs = h("div", { class: "tabs rg-tabs", "data-tour": "rg-tabs" });
 
   function paintTabs() {
@@ -4372,7 +4420,7 @@ async function renderRegionalBoard(body, act) {
     const { error } = await sb.rpc(pt ? "start_party_regional" : "lobby_join", { p_dungeon_id: selected, p_speed: speed });
     busy(btn, false);
     if (error) {
-      err.textContent = koError(error);
+      rgNotice = koError(error);   // 판을 새로 그린 뒤에도 안내가 남도록
       return renderRegionalBoard(body, act);   // 다른 헌터가 먼저 들어갔을 수 있으니 판을 새로 고침
     }
     renderRegional($("#main-pane"));
@@ -5929,8 +5977,8 @@ async function renderInventory(pane, tab = "items") {
 }
 
 let invCat = "all", invSort = "default", invQ = "";
-const INV_CATS_ALL = [["all", "전체"], ["gear", "장비"], ["cons", "소비"], ["buff", "버프"], ["mats", "재료"]];
-const invCats = () => INV_CATS_ALL.filter(([id]) => id !== "buff" || released());
+const INV_CATS_ALL = [["all", "전체"], ["gear", "장비"], ["cons", "소비"], ["mats", "재료"]];   // 회복 아이템과 버프 아이템은 소비로 함께
+const invCats = () => INV_CATS_ALL;
 const INV_SORTS = [["default", "기본 순"], ["high", "등급 높은 순"], ["low", "등급 낮은 순"], ["name", "이름 순"], ["qty", "많이 가진 순"]];
 const GRADE_RANK = { E: 1, D: 2, C: 3, B: 4, A: 5, S: 6 }, RARITY_RANK = { common: 1, normal: 2, rare: 3 };
 // 등급(희귀도): 장비는 티어 → 강화 단계, 소비 아이템·재료는 희귀도 → 보스 재료 등급.
@@ -6008,11 +6056,10 @@ function renderOwned(body, inv, act, refresh) {
   if (released()) sb.rpc("my_buffs").then(({ data }) => { myBuffs = data || []; buffNow.replaceChildren(...buffChips(myBuffs)); buffNow.hidden = !myBuffs.length; });
 
   // 분류(전체·장비·소비·재료)별로 넘겨 보기 · 이름 검색 · 정렬
-  const lists = { gear: inv.gear, cons: inv.stacks.filter(x => x.kind === "consumable"), buff: inv.stacks.filter(x => x.kind === "buff"), mats: inv.stacks.filter(x => x.kind === "material") };
+  const lists = { gear: inv.gear, cons: inv.stacks.filter(x => x.kind === "consumable" || (x.kind === "buff" && released())), mats: inv.stacks.filter(x => x.kind === "material") };
   const META = {
     gear: ["장비", gearRow, "장비가 없습니다. 상점에서 사거나 보스에게서 얻을 수 있습니다.", "inv-gear"],
-    cons: ["소비 아이템", stackRow, "소비 아이템이 없습니다.", "inv-cons"],
-    buff: ["버프 아이템", buffRow, "버프 아이템은 조합으로 만들 수 있습니다.", "inv-buff"],
+    cons: ["소비 아이템", x => x.kind === "buff" ? buffRow(x) : stackRow(x), "소비 아이템이 없습니다.", "inv-cons"],
     mats: ["재료", stackRow, "재료는 던전·탐색에서 얻고, 청정수는 상점에서 살 수 있습니다.", "inv-mats"],
   };
   const chips = h("div", { class: "cat-row inv-cats", role: "tablist", "aria-label": "아이템 분류" });
@@ -6028,7 +6075,8 @@ function renderOwned(body, inv, act, refresh) {
       type: "button", role: "tab", class: `cat-chip big${invCat === id ? " on" : ""}`, "aria-selected": invCat === id ? "true" : "false",
       onclick: () => { invCat = id; paint(); } }, label, h("span", { class: "inv-n" }, String(id === "all" ? inv.gear.length + inv.stacks.length : lists[id].length)))));
     if (!invCats().some(([id]) => id === invCat)) invCat = "all";
-    const cats = invCat === "all" ? ["gear", "cons", ...(released() ? ["buff"] : []), "mats"] : [invCat];
+    if (invCat === "buff") invCat = "cons";
+    const cats = invCat === "all" ? ["gear", "cons", "mats"] : [invCat];
     const groups = cats.map(k => {
       const [title, rowFn, empty, tour] = META[k];
       const rows = invSorted(lists[k], word);
@@ -6201,7 +6249,7 @@ async function renderTrade(body, inv, refresh) {
     `기한이 지나 돌아온 물건: ${m.closed.map(x => `${nameOf(x)}${x.qty > 1 ? ` ${x.qty}개` : ""}`).join(", ")}`) : null;
 
   body.replaceChildren(
-    h("p", { class: "hint", style: "margin:16px 0 0" }, `판매자가 정한 가격에 누구나 바로 사는 고정가 거래소입니다. 거래가 성사되면 판매 금액의 5%가 수수료로 사라집니다. 상점에서 팔지 않는 장비·재료와 강화된 장비만 올릴 수 있고, 한 번에 ${m.max_listings}개까지, 올린 물건은 ${m.days}일 뒤 팔리지 않으면 돌아옵니다.`),
+    h("p", { class: "hint", style: "margin:16px 0 0" }, `판매자가 정한 가격에 누구나 바로 사는 고정가 거래소입니다. 거래가 성사되면 판매 금액의 5%가 수수료로 사라집니다. 상점에서 팔지 않는 장비·재료, 강화한 장비, 소비 아이템을 올릴 수 있고, 한 번에 ${m.max_listings}개까지, 올린 물건은 ${m.days}일 뒤 팔리지 않으면 돌아옵니다.`),
     h("div", { class: "mk-filter" }, chips, search),
     h("div", { class: "item-group", style: "margin-top:0", "data-tour": "mk-list" }, h("p", { class: "panel-title" }, `올라온 물건 (${m.listings.length})`), listBox),
     h("div", { class: "item-group", "data-tour": "mk-sell" }, h("p", { class: "panel-title" }, `판매 등록 (올린 물건 ${m.mine_open} / ${m.max_listings})`),
@@ -7102,8 +7150,8 @@ async function renderCodex(pane) {
         const arr = cxApply(allI, i => !!i.got, i => i.name, i => i.first_at, () => 0);
         if (!arr.length && cxFiltering()) continue;
         out.push(h("p", { class: "codex-group" }, `${KIND[k] || k} · ${allI.filter(i => i.got).length}/${allI.length}`),
-          h("div", { class: "codex-grid" }, ...arr.map(i => cell(i.got, i.name, i.got && i.tier ? `${i.tier}티어` : null, () => info(i.name || "???",
-            desc(i.desc), i.got ? h("div", { class: "report" }, kv("분류", KIND[i.kind] || i.kind), kv("처음 얻은 날", i.first_at ? fmtDay(i.first_at) : null)) : null)))));
+          h("div", { class: "codex-grid" }, ...arr.map(i => cell(i.got, i.name, i.got && i.tier ? `${"DCBAS"[i.tier - 1] || ""}급` : null, () => info(i.name || "???",
+            desc(i.desc), i.got ? h("div", { class: "report" }, kv("분류", KIND[i.kind] || i.kind), i.tier ? kv("등급", `${"DCBAS"[i.tier - 1] || ""}급`) : null, kv("처음 얻은 날", i.first_at ? fmtDay(i.first_at) : null)) : null)))));
       }
     },
   };
@@ -7471,7 +7519,41 @@ function openGuide(cat = "hunter") {
   const intro = src.querySelector("article:not([id])");
   const chips = h("div", { class: "cat-row guide-cats", role: "tablist", "aria-label": "가이드 분류" });
   const body = h("div", { class: "guide-body prose" });
+  // 단어 검색: 모든 분류에서 그 단어가 들어간 문단을 모아 보여 준다
+  const q = h("input", { class: "input", type: "search", maxlength: "30", placeholder: "가이드에서 찾기 (예: 평판, 강화)", "aria-label": "가이드 검색" });
+  const mark = (el, w) => {
+    const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    const nodes = []; while (walk.nextNode()) nodes.push(walk.currentNode);
+    for (const n of nodes) {
+      const t = n.nodeValue, low = t.toLowerCase(); let i = low.indexOf(w); if (i < 0) continue;
+      const frag = document.createDocumentFragment(); let k = 0;
+      while (i >= 0) { frag.append(t.slice(k, i), h("mark", {}, t.slice(i, i + w.length))); k = i + w.length; i = low.indexOf(w, k); }
+      frag.append(t.slice(k)); n.replaceWith(frag);
+    }
+    return el;
+  };
+  const search = w => {
+    const out = [];
+    for (const [id, label, arts] of GUIDE_CATS) {
+      const hits = [];
+      for (const aid of arts) {
+        const a = src.querySelector("#" + aid); if (!a) continue;
+        let head = null;
+        for (const el of a.children) {
+          if (/^H[1-4]$/.test(el.tagName)) { head = el.textContent; continue; }
+          if (!el.textContent.toLowerCase().includes(w)) continue;
+          hits.push(h("div", { class: "guide-hit" }, head ? h("small", { class: "hint" }, head) : null, mark(el.cloneNode(true), w)));
+        }
+      }
+      if (hits.length) out.push(h("button", { type: "button", class: "guide-hit-cat", onclick: () => { q.value = ""; cat = id; paint(); body.scrollTop = 0; } }, `${label} · ${hits.length}곳 →`), ...hits);
+    }
+    return out.length ? out : [h("p", { class: "hint" }, `'${w}'이(가) 들어간 내용이 없습니다.`)];
+  };
+  q.oninput = () => paint();
   const paint = () => {
+    const w = q.value.trim().toLowerCase();
+    chips.hidden = !!w;
+    if (w) { body.replaceChildren(...search(w)); return; }
     chips.replaceChildren(...GUIDE_CATS.map(([id, label]) => h("button", { type: "button", role: "tab", class: `cat-chip${id === cat ? " on" : ""}`, "aria-selected": id === cat ? "true" : "false",
       onclick: () => { cat = id; paint(); body.scrollTop = 0; } }, label)));
     const ids = GUIDE_CATS.find(c => c[0] === cat)[2];
@@ -7482,7 +7564,7 @@ function openGuide(cat = "hunter") {
   paint();
   const ask = intro?.querySelectorAll("p")[1]?.cloneNode(true);   // 문의 창구 안내
   if (ask) { ask.className = "hint"; ask.style.cssText = "margin:12px 0 0;font-size:13px"; }
-  info("가이드", chips, body, ask || null);
+  info("가이드", q, chips, body, ask || null);
   $("#dlg-info").classList.add("guide-dlg");
   $("#dlg-info").addEventListener("close", () => $("#dlg-info").classList.remove("guide-dlg"), { once: true });
 }
@@ -7640,7 +7722,7 @@ const DOCS = {
 <p><b>하루 최대 3번, 탐색과 별도로 기회를 가지며 방식은 탐색과 동일</b>합니다. 다만, 별의 무덤에서는 별가루·별조각 사탕·은하수 이슬·가능성이 발견되는 것으로 보고되었습니다.</p>
 <p>탐색과 달리 별의 무덤에서는 헌터님이 <b>2칸 움직일 때마다 1칸 움직이는 [별지기]라는 무덤의 수호 몬스터가 존재</b>합니다. 별지기와 조우할 경우 즉시 마치게 되니 별지기의 위치를 확인하며 움직이시길 바랍니다.</p>
 <h3>구조 요청</h3>
-<p>전투로 진입해 있는 동안 <b>3시간마다, 그리고 복귀 30분 전에 한 번 더 다른 파티의 [구조 요청]</b>이 들어오고 알림으로 알려 드립니다. 무한 던전 화면에서 [구조하러 가기]를 누르면 20초 동안 3×3 칸에 마물과 헌터가 번갈아 나타나며, <b>마물만 눌러 처치</b>해야 합니다.</p>
+<p>전투로 진입해 있는 동안 <b>3시간마다, 그리고 복귀 30분 전에 한 번 더 다른 파티의 [구조 요청]</b>이 들어오고 알림으로 알려 드립니다. 무한 던전 화면에서 [구조하러 가기]를 누르면 20초 동안 3×3 칸에 마물과 헌터가 번갈아 나타나며, <b>마물만 눌러 처치</b>해야 합니다. 던전에서 돌아온 뒤 결과를 받기 전에도 <b>한 번</b> 구조 요청을 도울 수 있습니다.</p>
 <p>마물을 60% 이상 처치하고 헌터를 1번까지만 잘못 누르면 감사의 선물로 소비 아이템 1개를 받습니다. 구조에 실패하거나 요청을 놓쳐도 무한 던전 공략에는 아무 영향이 없습니다. 다만 <b>요청은 들어온 뒤 10분 동안만</b> 받을 수 있고, 그 뒤에는 지나갑니다.</p>
 <h3>별의 제단</h3>
 <p>별의 무덤 깊은 곳에서 발견된 제단입니다. <b>20레벨 이상, 그날 별의 무덤을 한 번 다녀온 헌터만 하루 1번</b> 들어갈 수 있으며, 8+(레벨÷5)칸을 이동합니다.</p>
@@ -7759,7 +7841,7 @@ const DOCS = {
 <h3 data-patch>장비 숙련도</h3>
 <p data-patch>장비를 장착한 채로 지역 안정화나 무한 던전 결과를 받을 때마다 그 장비의 숙련이 쌓입니다. 오래 함께한 장비에는 이름 옆에 <b>★</b>이 붙고, 별은 최대 5개까지 늘어납니다. 장비가 다른 헌터에게 넘어가면 숙련은 처음부터 다시 쌓입니다.</p>
 <h3>거래소</h3>
-<p>헌터들끼리 아이템을 사고 팔 수 있습니다. 상점에 팔지 않는 아이템을 등록할 수 있으며, 한 번에 10건, 7일 동안 팔리지 않으면 인벤토리에 회수됩니다.</p>
+<p>헌터들끼리 아이템을 사고 팔 수 있습니다. 상점에 팔지 않는 장비 · 재료, 강화한 장비, 소비 아이템을 등록할 수 있으며, 한 번에 10건, 7일 동안 팔리지 않으면 인벤토리에 회수됩니다.</p>
 <p>거래소 운영을 위해 판매가의 5%를 수수료로 국제헌터연합이 가져가고 있으니 양해 부탁드립니다.</p>
 <p>거래 기록을 통해 최근 30일간의 거래 기록을 확인할 수 있습니다.</p>
 </article>
@@ -8578,7 +8660,7 @@ const TOURS = {
     { text: "거래소는 헌터끼리 물건을 사고파는 곳입니다. 판매자가 정한 가격에 누구나 바로 구매할 수 있습니다." },
     { sel: ".mk-filter", text: "장비와 재료를 나눠 보거나 이름으로 찾을 수 있습니다." },
     { sel: '[data-tour="mk-list"]', text: "재료는 원하는 수량만큼, 장비는 강화 단계 그대로 구매할 수 있습니다. 판매자 이름을 누르면 헌터 정보를 확인할 수 있습니다." },
-    { sel: '[data-tour="mk-sell"]', text: "상점에서 팔지 않는 장비·재료와 강화한 장비를 올릴 수 있습니다. 물건을 고르고 개당 가격을 정하면 됩니다. 한 번에 10건까지, 7일 안에 팔리지 않으면 인벤토리로 돌아옵니다." },
+    { sel: '[data-tour="mk-sell"]', text: "상점에서 팔지 않는 장비·재료, 강화한 장비, 소비 아이템을 올릴 수 있습니다. 물건을 고르고 개당 가격을 정하면 됩니다. 한 번에 10건까지, 7일 안에 팔리지 않으면 인벤토리로 돌아옵니다." },
     { text: "거래가 성사되면 판매 금액의 5%는 수수료로 차감되고, 나머지는 바로 판매자에게 지급됩니다. 팔리면 교류 메뉴에 알림이 뜹니다." },
     { sel: '[data-tour="mk-hist"]', text: "최근 30일간 사고판 기록과 기한이 지나 돌아온 물건을 이곳에서 확인할 수 있습니다." },
   ],
@@ -8652,8 +8734,9 @@ const TOUR_IN_DIALOG = new Set(["hunter"]);
 const isMobileView = () => matchMedia("(max-width: 720px)").matches;
 // 각 화면의 '도움말' 버튼
 const helpBtn = key => key ? h("span", { class: "help-btns" },
-  h("button", { type: "button", class: "btn ghost small tour-btn", "aria-label": "이 화면 도움말 보기", onclick: () => startTour(key) }, "? 도움말"),
-  h("button", { type: "button", class: "btn ghost small guide-btn", "aria-label": "이 화면 가이드 보기", onclick: () => openGuide(guideCatOf(key)) }, "가이드")) : null;
+  h("button", { type: "button", class: "btn ghost small tour-btn", "aria-label": "이 화면 도움말 보기", onclick: () => startTour(key), title: "도움말" }, "?", h("span", { class: "wide" }, " 도움말")),
+  h("button", { type: "button", class: "btn ghost small guide-btn", "aria-label": "이 화면 가이드 보기", onclick: () => openGuide(guideCatOf(key)), title: "가이드" },
+    h("span", { class: "sym", "aria-hidden": "true" }, "𖤂"), h("span", { class: "wide" }, "가이드"))) : null;
 const paneHead = (title, key) => h("div", { class: "pane-head" }, h("h2", {}, title), helpBtn(key));
 let tourNow = null;
 // 처음 여는 화면이면 소개를 자동으로 띄운다. 본 기록은 서버(profiles.tours_seen)에 남겨 기기를 바꿔도 다시 뜨지 않는다.
@@ -8803,7 +8886,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-11-0020";
+const BUILD = "2026-11-11-0240";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
