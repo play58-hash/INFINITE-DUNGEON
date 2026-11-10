@@ -8,11 +8,14 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#3300FF">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 -960 960 960'%3E%3Cstyle%3Epath{fill:%233300FF}%40media (prefers-color-scheme:dark){path{fill:%23B9A2FF}}%3C/style%3E%3Cpath d='M211.89-255.93q-91.56 0-153.76-66.7-62.2-66.7-62.2-159.37 0-91.67 62.7-156.87t153.26-65.2q36.72 0 70.96 12.24 34.24 12.23 60.78 37.72l90.85 87.61-48.22 47.5-85.81-83.87q-17.51-17.52-40.46-25.29t-47.98-7.77q-62.45 0-105.19 45.27-42.75 45.27-42.75 108.75 0 64.48 42.24 111.16 42.25 46.68 105.69 46.68 24.28 0 47.12-7.76 22.83-7.77 41.25-24.28l316-298q26.54-25.49 60.78-37.72 34.24-12.24 69.96-12.24 91.56 0 154.26 65.2 62.7 65.2 62.7 156.87 0 92.67-62.7 159.37t-154.26 66.7q-35.72 0-70.46-11.74-34.74-11.73-60.28-37.22l-88.61-87.61 47.98-47.5 83.88 83.89q16.53 16.52 39.81 24.28 23.29 7.76 47.57 7.76 63.44 0 106.19-46.72 42.74-46.72 42.74-111.13 0-63.41-43.24-108.71-43.25-45.3-105.69-45.3-24.28 0-47.12 8.76-22.83 8.77-40.25 25.28l-316 298q-26.54 24.49-61.28 36.22-34.74 11.74-70.46 11.74Z'/%3E%3C/svg%3E">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://ianurabcskdqkyotgbin.supabase.co" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Staatliches&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=all_inclusive&display=block">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
 <style>
 /* ===== 테마 색 (주색 #3300FF · 보조색 #7D42DB · 바탕 #FFFFFF) ===== */
 :root {
@@ -214,6 +217,14 @@ textarea.input { min-height: 88px; resize: vertical; }
 .top-actions { display: flex; gap: 6px; }
 .top-actions .btn { white-space: nowrap; }
 .lbl-s { display: none; }
+.fx-off .bg-waves { display: none; }
+.set-sec { padding: 4px 0 14px; border-bottom: 1px dashed var(--border); margin-bottom: 12px; }
+.set-sec:last-child { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
+.set-sec h3 { margin: 0 0 10px; font-size: 15px; color: var(--accent-text); }
+.set-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 0 0 10px; }
+.set-row .cat-row { margin: 0; }
+.set-check { cursor: pointer; } .set-check input { width: 20px; height: 20px; }
+.set-sfx .sfx-row { margin: 0; }
 @media (max-width: 720px) { .lbl-s { display: inline; } }
 a.btn { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
 
@@ -799,6 +810,7 @@ html.doc-open, html.doc-open body { overflow: hidden; }
 .notif-set { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 14px; margin: 4px 0 12px; }
 .notif-set-head { grid-column: 1 / -1; margin: 6px 0 0; font-size: 13px; font-weight: 700; color: var(--accent-text); }
 .notif-cats { margin: 0 0 8px; }
+.notif-sleep { padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--primary) 7%, transparent); margin: 0 0 12px; }
 .notif-set label { display: flex; gap: 8px; align-items: center; font-size: 14.5px; cursor: pointer; }
 @media (max-width: 720px) { .notif-btn .wide { display: none; } }
 @media (max-width: 1520px) { #btn-updates .upd-word { display: none; } }
@@ -1360,8 +1372,7 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
       <button class="btn ghost small notif-btn" id="btn-timer" type="button" aria-label="타이머 작은 창 열기" title="타이머 (작은 창으로 남은 시간 보기)" hidden><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M9 1h6v2H9V1Zm10.03 6.39 1.42-1.42-1.42-1.41-1.41 1.41-.01.01A8.96 8.96 0 0 0 12 4a9 9 0 1 0 9 9c0-2.12-.74-4.07-1.97-5.61ZM12 20a7 7 0 1 1 0-14 7 7 0 0 1 0 14Zm1-11h-2v5l4 2.5.9-1.5-2.9-1.75V9Z"/></svg></button>
       <button class="btn ghost small notif-btn" id="btn-updates" type="button" aria-label="업데이트 노트" title="업데이트 노트" hidden><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm8 1.5V8h4.5L14 3.5ZM8 12v2h8v-2H8Zm0 4v2h6v-2H8Z"/></svg><span class="wide upd-word">업데이트</span></button>
       <button class="btn ghost small notif-btn" id="btn-notif" type="button" aria-label="알림" title="알림"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6V11a7 7 0 0 0-5.5-6.84V3.5a1.5 1.5 0 0 0-3 0v.66A7 7 0 0 0 5 11v5l-1.7 1.7A1 1 0 0 0 4 19.4h16a1 1 0 0 0 .7-1.7Z"/></svg><span class="wide">알림</span></button>
-      <button class="btn ghost small" id="btn-theme" type="button" title="테마 바꾸기">테마</button>
-      <button class="btn ghost small js-logout" type="button">로그아웃</button>
+      <button class="btn ghost small notif-btn" id="btn-settings" type="button" aria-label="설정" title="설정 (화면 · 소리 · 계정)"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M19.14 12.94a7.5 7.5 0 0 0 .05-.94 7.5 7.5 0 0 0-.05-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.3 7.3 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 13.9 2h-3.8a.5.5 0 0 0-.49.42l-.36 2.54a7.3 7.3 0 0 0-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.71 8.48a.5.5 0 0 0 .12.64l2.03 1.58a7.5 7.5 0 0 0-.05.94c0 .32.02.63.05.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.13.22.39.3.6.22l2.39-.96c.5.38 1.05.7 1.63.94l.36 2.54c.04.24.25.42.49.42h3.8c.24 0 .45-.18.49-.42l.36-2.54a7.3 7.3 0 0 0 1.63-.94l2.39.96c.22.08.47 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z"/></svg><span class="wide">설정</span></button>
     </div>
   </header>
 
@@ -1435,13 +1446,6 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
       <textarea id="e-bio-f" class="input" maxlength="300" placeholder="친구로 맺어진 헌터만 볼 수 있습니다 (300자 이내)"></textarea>
       <label for="e-bio-p" style="margin-top:10px">특징 · 나만 보기</label>
       <textarea id="e-bio-p" class="input" maxlength="300" placeholder="메모처럼 나만 볼 수 있습니다 (300자 이내)"></textarea>
-    </div>
-    <div class="field">
-      <label>계정</label>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <span class="hint" id="e-email"></span>
-        <button id="e-password" type="button" class="btn ghost small">비밀번호 변경</button>
-      </div>
     </div>
     <div id="edit-error" class="error" role="alert"></div>
   </div>
@@ -1654,14 +1658,12 @@ function applyTheme(theme) {
   if (theme === "light" || theme === "dark") root.dataset.theme = theme;
   else delete root.dataset.theme;
   try { localStorage.setItem("id-theme", theme); } catch {}
-  const btn = $("#btn-theme");
-  if (btn) {   // 좁은 화면에서는 짧은 이름
-    const [l, sh] = { light: ["밝은 테마", "밝게"], dark: ["어두운 테마", "어둡게"], system: ["기기 설정", "자동"] }[theme] || ["테마", "테마"];
-    btn.replaceChildren(h("span", { class: "lbl-l" }, l), h("span", { class: "lbl-s" }, sh));
-    btn.setAttribute("aria-label", `테마: ${l}`);
-  }
 }
 try { applyTheme(localStorage.getItem("id-theme") || "system"); } catch { applyTheme("system"); }
+/* 화면 효과(배경 심전도) 켜고 끄기: 이 기기에만 저장 */
+const fxOn = () => { try { return localStorage.getItem("id-fx") !== "0"; } catch { return true; } };
+const applyFx = on => document.documentElement.classList.toggle("fx-off", !on);
+applyFx(fxOn());
 
 /* ===== 사진: 가운데를 1:1로 잘라 256px WebP로 변환 ===== */
 async function squareImage(file) {
@@ -2253,6 +2255,19 @@ function paintNotifSettings(box) {
     const ks = NOTIF_KINDS.filter(x => kinds.includes(x[0]));
     return ks.length ? [h("p", { class: "notif-set-head" }, label), ...ks.map(boxOf)] : [];
   });
+  // 수면 모드: 오후 11시 ~ 오전 8시 알림을 모아 두었다가 오전 8시에 보낸다
+  const sleep = h("input", { type: "checkbox", checked: notif.settings.sleep === true });
+  sleep.onchange = async () => {
+    const next = { ...notif.settings }; if (sleep.checked) next.sleep = true; else delete next.sleep;
+    sleep.disabled = true;
+    const { data, error } = await sb.rpc("notif_settings", { p: next });
+    sleep.disabled = false;
+    if (error) { sleep.checked = !sleep.checked; return toast(koError(error)); }
+    notif.settings = data.settings || {}; notif.unread = data.unread || 0; notif.rows = data.rows || []; paintNotifBadge();
+  };
+  const sleepBox = h("div", { class: "notif-sleep" },
+    h("label", { style: "display:flex;gap:8px;align-items:center;font-weight:600;cursor:pointer" }, sleep, "수면 모드 (오후 11시 ~ 오전 8시)"),
+    h("p", { class: "hint", style: "margin:4px 0 0;font-size:13px" }, "켜 두면 오후 11시부터 오전 8시까지 생긴 알림을 오전 8시에 한꺼번에 알려 드립니다. 휴대폰 · 컴퓨터 알림도 이때 갑니다."));
   const supported = "Notification" in window;
   const dk = h("input", { type: "checkbox", checked: desktopOn(), disabled: !supported });
   const dkHint = h("p", { class: "hint", style: "margin:4px 0 0;font-size:13px" });
@@ -2270,6 +2285,7 @@ function paintNotifSettings(box) {
   paintDk();
   box.replaceChildren(
     h("div", { class: "notif-tools" }, h("b", {}, "받을 알림"), h("button", { class: "btn ghost small", type: "button", onclick: () => { notif.view = "list"; paintNotif(); } }, "← 알림 목록")),
+    sleepBox,
     h("div", { class: "notif-set" }, ...boxes),
     h("p", { class: "hint", style: "margin:0 0 14px;font-size:13px" }, "끈 알림은 목록과 숫자에 나타나지 않고 소리도 나지 않습니다. 다시 켜면 그동안의 알림도 다시 보입니다. 알림 소리는 효과음 설정을 따릅니다."),
     h("div", { style: "border-top:1px dashed var(--border);padding-top:12px" },
@@ -4336,7 +4352,8 @@ async function renderRegionalBoard(body, act) {
   body.replaceChildren(...parts);
   paintAll();
   dgTimer = setInterval(paintBoard, 1000);                         // 남은 시간 표시
-  dgPoll = setTimeout(() => renderRegionalBoard(body, act), 30000); // 다른 헌터 상황 반영
+  const repoll = () => { dgPoll = setTimeout(() => document.hidden ? repoll() : renderRegionalBoard(body, act), 30000); };
+  repoll();                                                         // 다른 헌터 상황 반영 (창을 내려 두면 쉰다)
   maybeTour("regional");
 }
 
@@ -7083,7 +7100,7 @@ async function renderAdmin(pane) {
       h("p", { style: "margin:0 0 6px;font-weight:700" }, `${data.codename || "(캐릭터 없음)"} · ${data.email}`),
       h("p", { style: "margin:0 0 8px" }, "임시 비밀번호: ", h("code", { class: "c", style: "font-size:17px" }, data.password), " ",
         h("button", { class: "btn ghost small", type: "button", onclick: () => navigator.clipboard?.writeText(data.password).then(() => toast("복사했습니다.")) }, "복사")),
-      h("p", { class: "hint", style: "margin:0" }, "이 화면을 벗어나면 다시 볼 수 없습니다. 헌터에게 전해 주고, 로그인한 뒤 헌터 정보 → 비밀번호 변경에서 바꾸도록 안내해 주세요.")));
+      h("p", { class: "hint", style: "margin:0" }, "이 화면을 벗어나면 다시 볼 수 없습니다. 헌터에게 전해 주고, 로그인한 뒤 설정 → 비밀번호 변경에서 바꾸도록 안내해 주세요.")));
   };
 
   pane.replaceChildren(
@@ -7131,7 +7148,6 @@ function openHunter() {
   $("#e-credit").value = p.avatar_credit || "";
   $("#e-bio-f").value = p.bio_friends || "";
   $("#e-bio-p").value = p.bio_private || "";
-  $("#e-email").textContent = state.user?.email || "";
   paintHunterGrade();
   paintTitlePicker();
   const pos = POSITIONS[c.main_position];
@@ -7189,7 +7205,6 @@ $("#e-photo").onchange = async e => {
 };
 $("#e-photo-clear").onclick = () => { edit.photo = null; edit.clearPhoto = true; renderEditAvatar(); };
 $("#e-cancel").onclick = () => $("#dlg-hunter").close();
-$("#e-password").onclick = () => { $("#dlg-hunter").close(); openPassword(); };
 function openPassword() {
   const field = (id, label, ac) => {
     const input = h("input", { id, class: "input", type: "password", autocomplete: ac, minlength: "8" });
@@ -7261,14 +7276,35 @@ $("#e-save").onclick = async () => {
   busy(btn, false);
 };
 
-/* ===== 테마 버튼 (기기 설정 → 밝게 → 어둡게) ===== */
-$("#btn-theme").onclick = async () => {
-  const order = ["system", "light", "dark"];
-  const next = order[(order.indexOf(state.settings?.theme || "system") + 1) % 3];
+/* ===== 설정: 화면 · 소리 · 계정 ===== */
+async function setTheme(next) {
   applyTheme(next);
   if (state.settings) state.settings.theme = next;
   await sb.from("settings").update({ theme: next, updated_at: new Date().toISOString() }).eq("user_id", state.user.id);
-};
+}
+function openSettings() {
+  const sec = (title, ...kids) => h("section", { class: "set-sec" }, h("h3", {}, title), ...kids);
+  const themeRow = h("div", { class: "cat-row", role: "radiogroup", "aria-label": "테마" });
+  const paintTheme = () => themeRow.replaceChildren(...[["system", "기기 설정"], ["light", "밝게"], ["dark", "어둡게"]].map(([k, label]) => {
+    const on = (state.settings?.theme || "system") === k;
+    return h("button", { type: "button", role: "radio", "aria-checked": on ? "true" : "false", class: `cat-chip big${on ? " on" : ""}`,
+      onclick: async () => { await setTheme(k); paintTheme(); } }, label);
+  }));
+  paintTheme();
+  const fx = h("input", { type: "checkbox", checked: fxOn() });
+  fx.onchange = () => { try { localStorage.setItem("id-fx", fx.checked ? "1" : "0"); } catch {} applyFx(fx.checked); };
+  const pw = h("button", { class: "btn ghost small", type: "button", onclick: () => { $("#dlg-info").close(); openPassword(); } }, "비밀번호 변경");
+  const out = h("button", { class: "btn ghost small", type: "button", onclick: () => { $("#dlg-info").close(); logout(); } }, "로그아웃");
+  info("설정",
+    sec("화면",
+      h("div", { class: "set-row" }, h("span", {}, "테마"), themeRow),
+      h("label", { class: "set-row set-check" }, h("span", {}, "배경 효과 (심전도 그래프)"), fx)),
+    sec("소리", h("div", { class: "set-sfx" }, sfxRow()),
+      h("p", { class: "hint", style: "margin:4px 0 0;font-size:13px" }, "배경음악은 홈 화면의 배경음악 칸에서 고를 수 있습니다.")),
+    sec("계정",
+      h("div", { class: "set-row" }, h("span", { class: "hint" }, state.user?.email || ""), h("div", { style: "display:flex;gap:8px;flex-wrap:wrap" }, pw, out))));
+}
+$("#btn-settings").onclick = openSettings;
 
 /* ===== 안내 ===== */
 function openSubPosition() {
@@ -7639,7 +7675,7 @@ const DOCS = {
 <tr><td>활동 기록</td><td>레벨 · 스탯 · 메헨(재화) · 아이템 · 장비, 무한 던전 · 지역 안정화 · 탐색 · 별의 무덤 기록과 로그, 조합 · 강화 기록, 주간 랭킹 기록, 홈 화면의 할 일 목록, 화면 설정(테마)</td><td>게임을 이용할 때 자동 저장</td><td>게임 진행, 보상 지급, 랭킹, 부정 이용 방지</td></tr>
 <tr><td>교류</td><td>친구 · 차단 목록, 1:1 메시지, 선물 기록(보낸 것 · 메시지 포함), 파티 구성 · 초대 기록과 파티 랭킹 기록, 길드 정보(이름 · 소개 · 가입 방식 · 색 · 길드원) · 초대 · 가입 신청 기록 · 길드 채팅(30일 보관, 신고된 메시지는 확인이 끝날 때까지), SNS 글 · 댓글, 신고 내용과 처리 기록</td><td>교류 기능을 이용할 때 직접 작성 · 자동 저장</td><td>친구 · 메신저 · 선물 · 파티 · 길드 · SNS 제공, 신고 처리</td></tr>
 <tr><td>접속 기록</td><td>로그인 시각, 접속 IP 주소, 브라우저 정보</td><td>로그인 서비스(Supabase)가 자동 기록</td><td>보안, 부정 접속 확인</td></tr>
-<tr><td>브라우저 저장소</td><td>로그인 상태 유지용 정보(세션 토큰), 테마 설정, 배경음악 · 효과음 설정과 직접 넣은 유튜브 주소, 한 번 받은 배경음악 · 효과음 파일</td><td>이용자 브라우저에 저장</td><td>다시 로그인하지 않아도 되도록, 화면 · 소리 설정 유지, 음원을 매번 다시 받지 않도록</td></tr>
+<tr><td>브라우저 저장소</td><td>로그인 상태 유지용 정보(세션 토큰), 테마 · 화면 효과 설정, 배경음악 · 효과음 설정과 직접 넣은 유튜브 주소, 한 번 받은 배경음악 · 효과음 파일</td><td>이용자 브라우저에 저장</td><td>다시 로그인하지 않아도 되도록, 화면 · 소리 설정 유지, 음원을 매번 다시 받지 않도록</td></tr>
 </tbody>
 </table></div>
 
@@ -7858,13 +7894,14 @@ addEventListener("keydown", e => { if (e.key === "Escape" && docRoute() && !docu
 $("#btn-guide").onclick = () => openGuide();
 $("#btn-guide").hidden = true;   // 가이드는 각 화면의 [가이드] 버튼으로 연다
 
-document.querySelectorAll(".js-logout").forEach(b => b.onclick = async () => {
+async function logout() {
   stopSocial(); bgmStop(); sfxS.ready = false;
   await sb.auth.signOut();
   Object.assign(state, { user: null, profile: null, character: null, settings: null, avatarUrl: null });
   setAuthMode("login");
   show("screen-auth");
-});
+}
+document.querySelectorAll(".js-logout").forEach(b => b.onclick = logout);
 
 /* ===== 배경음악 =====
    게임 곡: Supabase Storage의 비공개 bgm 버킷 (예: variant.mp3). 로그인한 헌터만 받을 수 있고,
@@ -8098,7 +8135,7 @@ function initBgm() {
     h("p", { class: "panel-title", style: "margin:0 0 10px" }, "배경음악"),
     h("div", { class: "bgm-row" }, play, now),
     h("div", { class: "bgm-vol" }, h("span", { "aria-hidden": "true" }, "🔈"), vol, volVal),
-    sel, ytForm, sfxRow(),
+    sel, ytForm,
     h("div", { class: "bgm-ytbox off", id: "bgm-ytbox" },
       h("div", { class: "bgm-ytbar" }, h("span", {}, "내 유튜브 링크"), ytClose),
       h("div", { id: "bgm-yt-host" })),
@@ -8307,7 +8344,7 @@ const TOURS = {
     { sel: '[data-tour="hm-an"]', text: "스테이터스 하나를 골라 분석하면 단계마다 그 스테이터스가 상승합니다. 던전 공략이나 탐색 등 다른 활동과 동시에 할 수 있으니 주기적으로 확인하여 분석하시기를 권장드립니다." },
     { sel: '[data-tour="hm-story"]', text: "스토리 퀘스트에서는 순차적으로 현 상황에서 중요한 이야기를 확인하실 수 있습니다. 현재는 튜토리얼이 마련되어 있으므로 기본 활동을 익히면서 장비와 아이템도 받을 수 있습니다." },
     { sel: '[data-tour="hm-todo"]', text: "헌터님만 확인할 수 있는 메모장이에요. 할 일을 적어 두고 끝나면 체크하실 수 있습니다." },
-    { sel: "#bgm", text: "배경음악과 효과음을 켜고 끄거나 크기를 바꿀 수 있어요. 듣고 싶은 음악이 있다면 유튜브 링크로 재생할 수 있습니다." },
+    { sel: "#bgm", text: "배경음악을 켜고 끄거나 크기를 바꿀 수 있어요. 듣고 싶은 음악이 있다면 유튜브 링크로 재생할 수 있습니다. 효과음은 위쪽 설정에서 바꿀 수 있습니다." },
     { sel: "#side-party, #side-sns", all: true, pc: true, text: "다른 헌터와 파티를 맺은 경우, 파티 현황이 이곳에 나타납니다.\n이곳에서 헌터 전용 SNS 새 글을 확인할 수 있습니다. 카테고리 별로 다른 탭을 사용하고, 원하시면 게시글을 올릴 수 있습니다." },
     { text: "이용에 어려움이 생기시면 각 화면의 [도움말]과 그 옆의 [가이드]를 이용해주십시오.\n헌터님의 무한한 가능성을 기대하겠습니다." },
   ],
@@ -8583,25 +8620,35 @@ async function loadAll() {
   ]);
   if (p.error) throw p.error;
   state.profile = p.data; state.character = c.data; state.settings = s.data; state.stats = st.data || null;
-  if (state.character && state.profile?.invited) {
-    const { data: tt } = await sb.rpc("my_titles");
-    state.titles = tt || null;
-    state.buffs = released() ? ((await sb.rpc("my_buffs")).data || []) : [];
-  }
-  state.avatarUrl = await signedAvatar(state.profile?.avatar_url);
+  // 타이틀 · 버프 · 프로필 사진 주소는 한꺼번에 받는다
+  const full = state.character && state.profile?.invited;
+  const [tt, bf, av] = await Promise.all([
+    full ? sb.rpc("my_titles") : null,
+    full && released() ? sb.rpc("my_buffs") : null,
+    signedAvatar(state.profile?.avatar_url)]);
+  if (full) { state.titles = tt?.data || null; state.buffs = bf?.data || []; }
+  state.avatarUrl = av;
   state.avatarAt = Date.now();
   if (state.settings) applyTheme(state.settings.theme);
 }
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-10-0200";
-let buildNoticed = false;
+const BUILD = "2026-11-10-0930";
+let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
   try {
+    // 파일 전체를 매번 받지 않고, 바뀐 표시(ETag · 날짜)만 먼저 본다
+    if (buildTag) {
+      const hd = await fetch(location.pathname, { method: "HEAD", cache: "no-store" });
+      const tag = hd.headers.get("etag") || hd.headers.get("last-modified");
+      if (tag && tag === buildTag) return;
+    }
     const r = await fetch(`${location.pathname}?v=${Date.now()}`, { cache: "no-store" });
+    const tag = r.headers.get("etag") || r.headers.get("last-modified");
     const m = (await r.text()).match(/const BUILD = "([^"]+)"/);
+    if (m && m[1] === BUILD && tag) buildTag = tag;
     if (!m || m[1] === BUILD) return;
     buildNoticed = true;
     const bar = h("div", { class: "build-bar", role: "status" }, "게임이 업데이트되었습니다. ",
