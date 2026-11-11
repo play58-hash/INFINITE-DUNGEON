@@ -1049,6 +1049,17 @@ button.cat-chip { cursor: pointer; font-family: inherit; }
 .slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 4px 0 20px; }
 .slot { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; min-height: 108px; }
 .slot strong { line-height: 1.3; }
+.slot-on { position: relative; cursor: pointer; }
+.slot-on:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.slot-btns { display: flex; gap: 6px; margin-top: auto; flex-wrap: wrap; }
+.slot-tip { display: none; position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 20; min-width: 220px;
+  background: var(--text); color: var(--bg); border-radius: 10px; padding: 10px 12px; font-size: 13px; line-height: 1.55; box-shadow: var(--shadow); cursor: default; }
+.slot-tip b { color: inherit; display: block; margin-bottom: 2px; }
+.slot-tip-desc { margin-top: 6px; opacity: .85; }
+@media (hover: hover) { .slot-on:hover .slot-tip { display: block; } }
+.slot-on.open .slot-tip { display: block; }
+.craft-sort { display: flex; gap: 8px; align-items: center; justify-content: flex-end; margin: 12px 0 0; }
+.craft-sort .input { width: auto; }
 .item-group { margin: 0 0 18px; }
 .item-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px dashed var(--border); }
 .item-main { min-width: 0; }
@@ -1580,7 +1591,7 @@ const MENUS = [
 ];
 const needFor = lv => Math.round(100 * Math.pow(lv, 1.5));
 const SLOT_NAME = { weapon: "무기", armor: "방어구", accessory: "장신구" };
-const TIER_NAME = { 1: "D티어", 2: "C티어", 3: "B티어", 4: "A티어", 5: "S티어" };
+const TIER_NAME = { 1: "D급", 2: "C급", 3: "B급", 4: "A급", 5: "S급" };
 const RARITY = { common: "흔함", normal: "보통", rare: "희귀" };
 const matInfo = x => x.grade ? `${RARITY[x.rarity] || ""} · ${x.grade}급 보스 재료` : `${RARITY[x.rarity] || ""}${x.rarity === "common" ? " · 강화·조합 재료" : " · 조합 재료"}`;
 const STAT_ORDER = ["hp", "mp", "atk", "def", "luk"];
@@ -5985,6 +5996,14 @@ const GRADE_RANK = { E: 1, D: 2, C: 3, B: 4, A: 5, S: 6 }, RARITY_RANK = { commo
 const itemRank = x => x.slot ? x.tier * 100 + (x.enhance || 0)
   : (RARITY_RANK[x.rarity] || 0) * 100 + (GRADE_RANK[x.grade] || 0) * 10;
 const itemLabel = x => x.slot ? gearName(x) : x.name;
+// 장착 칸 세부 정보: 다른 곳을 누르면 닫힌다
+document.addEventListener("click", e => { if (!e.target.closest(".slot-on")) document.querySelectorAll(".slot.open").forEach(x => x.classList.remove("open")); });
+// 보유 · 조합 · 분해에서 같은 정렬을 쓴다 (고른 정렬은 세 화면이 함께 기억)
+const invSortSelect = onChange => {
+  const sel = h("select", { class: "input inv-sort", "aria-label": "정렬" }, ...INV_SORTS.map(([v, n]) => h("option", { value: v, selected: v === invSort }, n)));
+  sel.onchange = () => { invSort = sel.value; onChange(); };
+  return sel;
+};
 function invSorted(arr, word) {
   const w = (word || "").toLowerCase();
   const a = arr.filter(x => !w || itemLabel(x).toLowerCase().includes(w));
@@ -5996,16 +6015,32 @@ function invSorted(arr, word) {
 }
 function renderOwned(body, inv, act, refresh) {
   const equipped = Object.fromEntries(inv.gear.filter(g => g.equipped).map(g => [g.slot, g]));
+  // 장착 칸: 마우스를 올리거나 누르면 세부 정보, 강화 · 해제 버튼
+  const gearInfo = g => `${SLOT_NAME[g.slot]} · ${TIER_NAME[g.tier]} · Lv.${g.req_level}부터 · ${fmtStats(g.stats)}`;
   const slotCard = slot => {
     const g = equipped[slot];
-    return h("div", { class: "slot" },
+    if (!g) return h("div", { class: "slot" }, h("small", { class: "hint" }, SLOT_NAME[slot]), h("span", { class: "hint" }, "비어 있음"));
+    const tip = h("div", { class: "slot-tip", role: "tooltip" },
+      h("b", { class: `tier${g.tier}` }, gearName(g)), h("div", {}, gearInfo(g)),
+      g.mastery ? h("div", { style: "font-size:12px;opacity:.85" }, masteryText(g)) : null,
+      h("div", { class: "slot-tip-desc" }, g.description));
+    const card = h("div", { class: "slot slot-on", tabindex: "0", "aria-label": `${SLOT_NAME[slot]} ${gearName(g)} 세부 정보` },
       h("small", { class: "hint" }, SLOT_NAME[slot]),
-      ...(g ? [
-        h("strong", { class: `tier${g.tier}` }, gearName(g)),
-        h("span", { class: "hint" }, fmtStats(g.stats)),
-        h("button", { class: "btn ghost small", type: "button", style: "margin-top:auto",
-          onclick: () => act(() => sb.rpc("unequip_gear", { p_slot: slot }), "해제했습니다.") }, "해제"),
-      ] : [h("span", { class: "hint" }, "비어 있음")]));
+      h("strong", { class: `tier${g.tier}` }, gearName(g)),
+      h("span", { class: "hint" }, fmtStats(g.stats)),
+      h("div", { class: "slot-btns" },
+        g.enhance < 10 ? h("button", { class: "btn ghost small", type: "button", onclick: () => openEnhance(g.id, refresh) }, "강화") : null,
+        h("button", { class: "btn ghost small", type: "button",
+          onclick: () => act(() => sb.rpc("unequip_gear", { p_slot: slot }), "해제했습니다.") }, "해제")),
+      tip);
+    card.onclick = e => {
+      if (e.target.closest("button")) return;
+      const open = !card.classList.contains("open");
+      document.querySelectorAll(".slot.open").forEach(x => x.classList.remove("open"));
+      card.classList.toggle("open", open);
+    };
+    card.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); card.click(); } if (e.key === "Escape") card.classList.remove("open"); };
+    return card;
   };
   const gearRow = g => h("div", { class: "item-row" },
     h("div", { class: "item-main" },
@@ -6056,7 +6091,7 @@ function renderOwned(body, inv, act, refresh) {
   if (released()) sb.rpc("my_buffs").then(({ data }) => { myBuffs = data || []; buffNow.replaceChildren(...buffChips(myBuffs)); buffNow.hidden = !myBuffs.length; });
 
   // 분류(전체·장비·소비·재료)별로 넘겨 보기 · 이름 검색 · 정렬
-  const lists = { gear: inv.gear, cons: inv.stacks.filter(x => x.kind === "consumable" || (x.kind === "buff" && released())), mats: inv.stacks.filter(x => x.kind === "material") };
+  const lists = { gear: inv.gear.filter(g => !g.equipped), cons: inv.stacks.filter(x => x.kind === "consumable" || (x.kind === "buff" && released())), mats: inv.stacks.filter(x => x.kind === "material") };
   const META = {
     gear: ["장비", gearRow, "장비가 없습니다. 상점에서 사거나 보스에게서 얻을 수 있습니다.", "inv-gear"],
     cons: ["소비 아이템", x => x.kind === "buff" ? buffRow(x) : stackRow(x), "소비 아이템이 없습니다.", "inv-cons"],
@@ -6064,16 +6099,14 @@ function renderOwned(body, inv, act, refresh) {
   };
   const chips = h("div", { class: "cat-row inv-cats", role: "tablist", "aria-label": "아이템 분류" });
   const q = h("input", { class: "input", type: "search", maxlength: "20", placeholder: "아이템 이름 검색", "aria-label": "아이템 이름 검색", value: invQ });
-  const sortSel = h("select", { class: "input", "aria-label": "정렬" },
-    ...INV_SORTS.map(([v, n]) => h("option", { value: v, selected: v === invSort }, n)));
+  const sortSel = invSortSelect(() => paint());
   const listBox = h("div", { class: "inv-list" });
   q.oninput = () => { invQ = q.value; paint(); };
-  sortSel.onchange = () => { invSort = sortSel.value; paint(); };
   function paint() {
     const word = invQ.trim();
     chips.replaceChildren(...invCats().map(([id, label]) => h("button", {
       type: "button", role: "tab", class: `cat-chip big${invCat === id ? " on" : ""}`, "aria-selected": invCat === id ? "true" : "false",
-      onclick: () => { invCat = id; paint(); } }, label, h("span", { class: "inv-n" }, String(id === "all" ? inv.gear.length + inv.stacks.length : lists[id].length)))));
+      onclick: () => { invCat = id; paint(); } }, label, h("span", { class: "inv-n" }, String(id === "all" ? lists.gear.length + lists.cons.length + lists.mats.length : lists[id].length)))));
     if (!invCats().some(([id]) => id === invCat)) invCat = "all";
     if (invCat === "buff") invCat = "cons";
     const cats = invCat === "all" ? ["gear", "cons", "mats"] : [invCat];
@@ -6272,10 +6305,11 @@ async function renderDismantle(body, inv, refresh) {
   const byResult = {};
   for (const r of known || []) if (!byResult[r.result]) byResult[r.result] = r;
   const rows = [];
-  for (const x of inv.stacks) if (byResult[x.code]) rows.push({ code: x.code, name: x.name, kind: x.kind, have: x.qty, r: byResult[x.code] });
   const gearBy = {};
   for (const g of inv.gear) if (!g.equipped && byResult[g.code]) (gearBy[g.code] ||= []).push(g);
-  for (const [code, gs] of Object.entries(gearBy)) rows.push({ code, name: gs[0].name, kind: "equip", tier: gs[0].tier, have: gs.length, gears: gs.sort((a, b) => a.enhance - b.enhance || a.id - b.id), r: byResult[code] });
+  for (const [code, gs] of Object.entries(gearBy)) rows.push({ code, name: gs[0].name, kind: "equip", slot: gs[0].slot, tier: gs[0].tier, have: gs.length, qty: gs.length, gears: gs.sort((a, b) => a.enhance - b.enhance || a.id - b.id), r: byResult[code] });
+  for (const x of inv.stacks) if (byResult[x.code]) rows.push({ code: x.code, name: x.name, kind: x.kind, rarity: x.rarity, grade: x.grade, have: x.qty, qty: x.qty, r: byResult[x.code] });
+  const DM_GROUP = { equip: 0, consumable: 1, buff: 1, material: 2 };
   const q = h("input", { class: "input", type: "search", maxlength: "20", placeholder: "아이템 이름 검색", "aria-label": "분해할 아이템 검색" });
   const list = h("div", {});
   const row = x => {
@@ -6312,7 +6346,8 @@ async function renderDismantle(body, inv, refresh) {
   };
   const paint = () => {
     const w = q.value.trim().toLowerCase();
-    const rs = rows.filter(x => !w || x.name.toLowerCase().includes(w));
+    // 장비 → 소비 → 재료로 묶고, 묶음 안에서는 보유 탭과 같은 정렬
+    const rs = [0, 1, 2].flatMap(gi => invSorted(rows.filter(x => DM_GROUP[x.kind] === gi && (!w || x.name.toLowerCase().includes(w)))));
     list.replaceChildren(...(rs.length ? rs.map(row) : [h("p", { class: "hint", style: "margin:0" }, rows.length ? "검색 결과가 없습니다." : "분해할 수 있는 아이템이 없습니다. 조합식을 알고 있는 아이템을 가지고 있어야 합니다.")]));
   };
   q.oninput = paint;
@@ -6320,7 +6355,7 @@ async function renderDismantle(body, inv, refresh) {
   dismantleMsg = null;
   body.replaceChildren(
     h("p", { class: "hint", style: "margin:16px 0 10px" }, "조합식을 알고 있는 아이템을 분해할 수 있습니다. 하나를 분해할 때마다 그 조합식에 들어간 재료 중 1개를 무작위로 돌려받습니다. 강화한 장비는 강화에 쓴 별가루도 1개부터 전부까지 무작위로 돌려받습니다. 장착 중인 장비는 분해할 수 없습니다."),
-    msg, h("div", { style: "margin:0 0 10px" }, q), list);
+    msg, h("div", { class: "inv-find", style: "margin:0 0 10px" }, q, invSortSelect(() => paint())), list);
   paint();
 }
 
@@ -6362,10 +6397,10 @@ async function renderCraft(body, inv, refresh) {
       type: "button", disabled: picks.length >= 3 || used(x.code) >= x.qty,
       onclick: () => { batch = null; picks.push({ kind: "stack", code: x.code, name: x.name }); sfx("mix" + picks.length); paint(); },
     }, `${x.name} ${x.qty - used(x.code)}`);
-    const cons = inv.stacks.filter(x => x.kind === "consumable"), mats = inv.stacks.filter(x => x.kind !== "consumable");
+    const cons = invSorted(inv.stacks.filter(x => x.kind === "consumable" || (x.kind === "buff" && released()))), mats = invSorted(inv.stacks.filter(x => x.kind === "material"));
     consBox.replaceChildren(...(cons.length ? cons.map(pickBtn) : [h("span", { class: "hint" }, "소비 아이템이 없습니다.")]));
     matBox.replaceChildren(...(mats.length ? mats.map(pickBtn) : [h("span", { class: "hint" }, "재료가 없습니다.")]));
-    const gears = freeGear();
+    const gears = invSorted(freeGear());
     gearBox.replaceChildren(...(gears.length ? gears.map(g => h("button", {
       type: "button", class: `tier${g.tier}`, disabled: picks.length >= 3 || picks.some(p => p.id === g.id),
       onclick: () => { batch = null; picks.push({ kind: "gear", id: g.id, name: gearName(g), tier: g.tier, code: g.code, enhance: g.enhance }); sfx("mix" + picks.length); paint(); },
@@ -6441,6 +6476,20 @@ async function renderCraft(body, inv, refresh) {
         h("button", { class: "btn ghost small", type: "button", "data-sfx": "own", disabled: max < 1,
           onclick: () => fill(r, Math.max(1, Math.floor(Number(qty.value) || 1))) }, "칸 채우기")));
   }
+  // 조합식도 같은 정렬: 기본은 결과 아이템 순(장비 → 소비), 등급 · 이름 · 많이 만들 수 있는 순
+  const KIND_ORDER = { equip: 0, consumable: 1, buff: 2, material: 3 };
+  // 기본 순: 장비는 무기 → 방어구 → 장신구, 같은 칸은 높은 등급부터 (보유 탭과 같음) / 그 밖은 아이템 정리 순
+  const defKey = r => r.kind === "equip" ? Math.floor((r.sort || 0) / 100) * 1000 - (r.tier || 0) : (r.sort || 0);
+  function recipeSorted(a) {
+    a = [...a];
+    const rank = r => r.kind === "equip" ? (r.tier || 0) * 100 : (RARITY_RANK[r.rarity] || 0) * 100;
+    if (invSort === "high") a.sort((x, y) => rank(y) - rank(x));
+    else if (invSort === "low") a.sort((x, y) => rank(x) - rank(y));
+    else if (invSort === "name") a.sort((x, y) => x.name.localeCompare(y.name, "ko"));
+    else if (invSort === "qty") a.sort((x, y) => maxTimes(y) - maxTimes(x));
+    else a.sort((x, y) => (KIND_ORDER[x.kind] ?? 9) - (KIND_ORDER[y.kind] ?? 9) || defKey(x) - defKey(y));
+    return a;
+  }
   function paintRecipes() {
     const all = known || [];
     const w = craftQ.trim().toLowerCase();
@@ -6449,7 +6498,7 @@ async function renderCraft(body, inv, refresh) {
     rcChips.replaceChildren(...RC_CATS.map(([id, label]) => h("button", {
       type: "button", role: "tab", class: `cat-chip big${craftCat === id ? " on" : ""}`, "aria-selected": craftCat === id ? "true" : "false",
       onclick: () => { craftCat = id; paintRecipes(); } }, label, h("span", { class: "inv-n" }, String(count(id))))));
-    const rows = all.filter(r => (craftCat === "all" || r.kind === craftCat) && hit(r));
+    const rows = recipeSorted(all.filter(r => (craftCat === "all" || r.kind === craftCat) && hit(r)));
     rcList.replaceChildren(...(rows.length ? rows.map(recipeRow)
       : [h("p", { class: "hint", style: "margin:0" }, !all.length ? "아직 없습니다. 여러 재료를 넣어 보며 찾아보세요." : w ? `'${craftQ.trim()}'이(가) 들어간 조합식이 없습니다.` : "이 분류의 조합식은 아직 없습니다.")]));
   }
@@ -6468,9 +6517,10 @@ async function renderCraft(body, inv, refresh) {
   body.replaceChildren(
     h("p", { class: "hint", style: "margin:16px 0 10px" }, "재료를 2~3개 넣고 조합해 보세요. 맞는 조합식이면 아이템이 나오고, 처음 성공한 조합식은 아래에 기록됩니다. 맞지 않으면 재료는 그대로 돌아옵니다. 다만 어떤 조합이든 1% 확률로 재료가 부서지고, 성공하면 5% 확률로 2개가 나옵니다."),
     msg, slots,
+    h("div", { class: "craft-sort" }, h("span", { class: "hint" }, "정렬"), invSortSelect(() => { paint(); paintRecipes(); })),
+    h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "장비 (장착하지 않은 것)"), gearBox,
     h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "소비 아이템"), consBox,
     h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "재료"), matBox,
-    h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "장비 (장착하지 않은 것)"), gearBox,
     h("div", { class: "item-group", "data-tour": "craft-known" }, h("p", { class: "panel-title" }, `알게 된 조합식 (${(known || []).length})`),
       rcChips, h("div", { style: "margin:0 0 10px" }, rcQ), rcList));
   paint();
@@ -7823,7 +7873,7 @@ const DOCS = {
 <p>인벤토리 메뉴에서는 현재 가지고 있는 아이템, 상점, 조합, 분해, 거래소를 이용할 수 있습니다.</p>
 <h3>보유</h3>
 <p>현재 가지고 있는 장비, 소비, 재료 아이템을 확인 및 판매할 수 있습니다. 전체 · 장비 · 소비 · 재료로 나누어 넘겨 볼 수 있고(휴대폰에서는 목록을 옆으로 밀어도 넘어갑니다), 아이템 이름으로 검색할 수 있습니다.</p>
-<p>등급 순으로 정렬하면 장비는 티어와 강화 단계, 소비 아이템은 희귀도(흔함 · 보통 · 희귀), 재료는 희귀도와 보스 재료 등급 순으로 늘어섭니다.</p>
+<p>등급 순으로 정렬하면 장비는 등급(D~S급)과 강화 단계, 소비 아이템은 희귀도(흔함 · 보통 · 희귀), 재료는 희귀도와 보스 재료 등급 순으로 늘어섭니다.</p>
 <p>소비 아이템의 희귀도는 안정 앰플 · 각성 앰플이 흔함, 별조각 사탕이 보통, 은하수 이슬 · 맥동하는 마석이 희귀입니다.</p>
 <p>장비의 경우 D급 1개부터 차례로 장비 등급이 오를 때마다 1개씩 더해지는 별가루와 재화를 소모하여 강화가 가능합니다. 6강부터는 동일한 장비를 추가 재료로 요구합니다.</p>
 <h3>조합</h3>
@@ -8886,7 +8936,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-11-0240";
+const BUILD = "2026-11-11-1930";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
