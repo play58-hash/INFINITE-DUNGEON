@@ -1049,6 +1049,17 @@ button.cat-chip { cursor: pointer; font-family: inherit; }
 .slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 4px 0 20px; }
 .slot { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; min-height: 108px; }
 .slot strong { line-height: 1.3; }
+.wall-box { margin: 16px 0 0; padding: 12px 14px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); background: color-mix(in srgb, var(--primary) 6%, transparent); }
+.wall-needs { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; }
+.wall-need { display: grid; gap: 1px; padding: 8px 10px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); }
+.wall-need b { font-size: 12px; color: var(--text-dim); } .wall-need span { font-size: 18px; font-weight: 800; } .wall-need small { color: var(--text-dim); font-size: 12px; }
+.wall-need.best { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); } .wall-need.best b { color: var(--accent-text); }
+.inv-req { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border); }
+.ir-row { border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; margin: 0 0 8px; }
+.ir-row.pending { border-color: var(--accent); }
+.ir-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 0 0 6px; }
+.ir-act { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+.ir-act .input { flex: 1 1 200px; min-width: 0; }
 .slot-on { position: relative; cursor: pointer; }
 .slot-on:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .slot-btns { display: flex; gap: 6px; margin-top: auto; flex-wrap: wrap; }
@@ -1147,6 +1158,11 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
 #bgm-mobile-slot .bgm .bgm-vol { margin: 0; grid-column: 1 / -1; }
 #bgm-mobile-slot .bgm .sfx-row { margin-top: -2px; }
 #bgm-mobile-slot .bgm .bgm-yt, #bgm-mobile-slot .bgm .bgm-note { grid-column: 1 / -1; margin: 0; }
+/* 모바일: 배경음악 조정은 설정 › 소리로 옮긴다 (유튜브 작은 창만 화면에 남는다) */
+#bgm-mobile-slot .bgm { padding: 0; border: 0; background: none; display: block; }
+#bgm-mobile-slot .bgm > :not(.bgm-ytbox) { display: none !important; }
+.set-bgm { padding: 0; border: 0; background: none; box-shadow: none; margin: 0 0 14px; }
+.set-bgm > .panel-title { font-size: 14px; }
 #bgm-mobile-slot .bgm .bgm-note { font-size: 12px; }
 
 /* ===== 화면 소개 (튜토리얼) ===== */
@@ -2235,6 +2251,7 @@ function paintNotifBadge() {
 function notifGo(link) {
   const [where, tab] = (link || "").split(":");
   if (where === "hunter") return openHunter();
+  if (where === "admin") { $("#dlg-notif").open && $("#dlg-notif").close(); return (location.hash = "#/admin"); }
   const extra = (link || "").split(":")[2];
   if (where === "social" && tab === "sns" && extra) { $("#dlg-notif").open && $("#dlg-notif").close(); return openSnsPost(extra, null); }
   if (where === "social") { nextSocialTab = tab || "sns"; if (tab === "sns") { snsView = "all"; snsCat = null; } return route() === "friends" ? renderSocial($("#main-pane"), nextSocialTab) : (location.hash = "#/friends"); }
@@ -3734,7 +3751,7 @@ async function renderHome(pane) {
     paneHead("홈", "home"),
     h("p", { class: "hint", style: "margin:0 0 16px" }, "안녕하세요, 헌터님. 오늘 활동을 확인해보세요."),
     body);
-  const { data: d, error } = await sb.rpc("get_home");
+  const [{ data: d, error }, raidRes] = await Promise.all([sb.rpc("get_home"), raidOn() ? sb.rpc("raid_state") : Promise.resolve({})]);
   if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
   const offset = Date.parse(d.now) - Date.now();
   const nowS = () => Date.now() + offset;
@@ -3771,6 +3788,39 @@ async function renderHome(pane) {
       h("div", { class: "row" }, h("strong", {}, title), h("span", { class: "hint" }, `${fmtTime(new Date(end).toISOString())} 복귀`)),
       h("div", { class: "row", style: "margin-top:4px" }, h("span", { class: "hint" }, "남은 시간"), left),
       h("div", { class: "bar", style: "margin-top:8px" }, bar), btnWrap));
+  }
+  /* 레이드 — 개인 도전 · 토벌 진행, 토벌대 대기 */
+  const rs = raidRes?.data, rw = rs?.week;
+  const goRaidH = () => { nextRgTab = "raid"; location.hash === "#/regional" ? renderMain() : (location.hash = "#/regional"); };
+  if (rw?.theme && rs.run?.status === "running") {
+    any = true;
+    const run = rs.run, isRaid = run.kind === "raid";
+    const start = Date.parse(run.started_at), end = Date.parse(run.ends_at);
+    const left = h("span", { class: "home-big" });
+    const bar = h("i", { style: "width:0%" });
+    const btnWrap = h("div", { style: "margin-top:10px" }, h("button", { class: "btn small ghost", type: "button", onclick: goRaidH }, "레이드 보기"));
+    let doneShown = false;
+    ticks.push(() => {
+      const ms = end - nowS();
+      bar.style.width = (ms <= 0 ? 100 : Math.max(0, Math.min(100, (nowS() - start) / (end - start) * 100))) + "%";
+      if (ms > 0) left.textContent = fmtDur(ms);
+      else if (!doneShown) {
+        doneShown = true;
+        left.textContent = "전투 종료";
+        left.className = "home-big ok-text";
+        btnWrap.replaceChildren(h("button", { class: "btn small", type: "button", onclick: goRaidH }, "결과 보러 가기"));
+      }
+    });
+    actBox.append(h("div", { class: "home-act" },
+      h("div", { class: "row" }, h("strong", {}, `레이드 · ${rw.theme.boss} · ${isRaid ? "토벌" : "개인 도전"}`), h("span", { class: "hint" }, `${fmtTime(run.ends_at)} 종료`)),
+      h("div", { class: "row", style: "margin-top:4px" }, h("span", { class: "hint" }, "남은 시간"), left),
+      h("div", { class: "bar", style: "margin-top:8px" }, bar), btnWrap));
+  } else if (rw?.theme && rs.slot?.group?.status === "waiting") {
+    any = true;
+    const n = rs.slot.group.members?.length || 0;
+    actBox.append(h("div", { class: "home-act" },
+      h("div", { class: "row" }, h("strong", {}, `레이드 · ${rw.theme.boss} · 토벌대 대기`), h("span", {}, `${n} / 10명 모임`)),
+      h("div", { style: "margin-top:10px" }, h("button", { class: "btn small ghost", type: "button", onclick: goRaidH }, "토벌대 보기"))));
   }
   if (d.explore.running) {
     any = true;
@@ -4262,6 +4312,25 @@ function renderDungeonRun(body, first) {
   if (!cur.returned) dgPoll = setTimeout(poll, pollDelay());
 }
 
+// 벽에 막혀 돌아왔을 때: 정한 시간 안에 닿을 수 있었던 역까지 보스가 나와도 버티려면 어떤 스탯이 얼마나 필요한지
+const STAT_KO = { hp: "HP", mp: "MP", atk: "ATK", def: "DEF", luk: "LUK" };
+function wallAdviceBox(w) {
+  const needs = (w.needs || []).filter(x => x.points > 0);
+  const best = needs[0];
+  const goal = w.target > w.wall ? `${w.target}역` : `${w.wall}역`;
+  return h("div", { class: "wall-box" },
+    h("p", { class: "panel-title", style: "margin:0 0 4px" }, "벽 너머로 가려면"),
+    h("p", { class: "hint", style: "margin:0 0 10px" }, w.target > w.wall
+      ? `${w.wall}역에서 막혔습니다. 정한 시간 안이라면 ${goal}까지 갈 수 있었습니다. ${goal}에서 보스를 만나도 버티려면 아래 스탯 중 하나를 올려 주세요.`
+      : `${w.wall}역에서 막혔습니다. 이 역에서 보스를 만나도 버티려면 아래 스탯 중 하나를 올려 주세요.`),
+    needs.length ? h("div", { class: "wall-needs" }, ...needs.map(x => h("div", { class: `wall-need${x === best ? " best" : ""}` },
+      h("b", {}, STAT_KO[x.stat] || x.stat), h("span", {}, `+${x.amount}`), h("small", {}, `${x.points}포인트${x === best ? " · 추천" : ""}`))))
+      : h("p", { class: "hint", style: "margin:0" }, "스탯 포인트만으로는 넘기 어렵습니다. 장비를 바꾸거나 강화해 보세요."),
+    best ? h("p", { class: "hint", style: "margin:8px 0 0;font-size:13px" },
+      w.points_left >= best.points ? `지금 남은 스탯 포인트(${w.points_left})로 바로 올릴 수 있습니다.`
+        : `남은 스탯 포인트 ${w.points_left || 0} · 장비 강화나 더 좋은 장비로도 채울 수 있습니다.`) : null,
+    best && w.points_left >= best.points ? h("button", { class: "btn small", type: "button", style: "margin-top:8px", onclick: openStats }, "스탯 포인트 분배하기") : null);
+}
 function showReport(body, r) {
   const lvUp = r.level_after > r.level_before, grUp = r.grade_after !== r.grade_before;
   const rows = [
@@ -4281,6 +4350,7 @@ function showReport(body, r) {
     h("p", { class: "panel-title", style: "margin:18px 0 8px" }, r.push.success ? "조금 더 진입 — 성공" : "조금 더 진입 — 실패"),
     h("ol", { class: "dg-log short" }, ...r.push.log.filter(e => e.type !== "enter")
       .map(e => h("li", { class: `ev ev-${e.type}${e.boss ? " ev-boss" : ""}` }, h("span", {}, e.text)))));
+  if (r.wall_advice) kids.push(wallAdviceBox(r.wall_advice));
   if (r.drops?.length) kids.push(
     h("p", { class: "panel-title", style: "margin:18px 0 8px" }, "획득한 아이템"),
     h("div", { class: "report" }, ...r.drops.map(d => h("div", { class: "kv" },
@@ -6004,10 +6074,20 @@ const invSortSelect = onChange => {
   sel.onchange = () => { invSort = sel.value; onChange(); };
   return sel;
 };
+// 기본 순: 장비 → 소비 → 재료, 그 안에서 등급 높은 순, 같은 등급이면 장비는 무기 → 방어구 → 장신구, 소비는 회복 → 버프
+const KIND_GROUP = { equip: 0, consumable: 1, buff: 1, material: 2 };
+const SLOT_ORDER = { weapon: 0, armor: 1, accessory: 2 };
+const kindOf = x => x.kind || (x.slot ? "equip" : "material");
+const gradeOf = x => kindOf(x) === "equip" ? (x.tier || 0) * 100 + (x.enhance || 0) : (RARITY_RANK[x.rarity] || 0) * 10 + (GRADE_RANK[x.grade] || 0);
+const subOf = x => kindOf(x) === "equip" ? (SLOT_ORDER[x.slot] ?? 9) : kindOf(x) === "buff" ? 1 : 0;
+const defaultCmp = (x, y) => (KIND_GROUP[kindOf(x)] ?? 9) - (KIND_GROUP[kindOf(y)] ?? 9)
+  || (kindOf(x) === "equip" ? (y.tier || 0) - (x.tier || 0) : gradeOf(y) - gradeOf(x))
+  || subOf(x) - subOf(y) || (y.enhance || 0) - (x.enhance || 0) || (x.sort || 0) - (y.sort || 0);
 function invSorted(arr, word) {
   const w = (word || "").toLowerCase();
   const a = arr.filter(x => !w || itemLabel(x).toLowerCase().includes(w));
-  if (invSort === "high") a.sort((x, y) => itemRank(y) - itemRank(x));
+  if (invSort === "default") a.sort(defaultCmp);
+  else if (invSort === "high") a.sort((x, y) => itemRank(y) - itemRank(x));
   else if (invSort === "low") a.sort((x, y) => itemRank(x) - itemRank(y));
   else if (invSort === "name") a.sort((x, y) => itemLabel(x).localeCompare(itemLabel(y), "ko"));
   else if (invSort === "qty") a.sort((x, y) => (y.qty || 1) - (x.qty || 1));
@@ -6487,7 +6567,7 @@ async function renderCraft(body, inv, refresh) {
     else if (invSort === "low") a.sort((x, y) => rank(x) - rank(y));
     else if (invSort === "name") a.sort((x, y) => x.name.localeCompare(y.name, "ko"));
     else if (invSort === "qty") a.sort((x, y) => maxTimes(y) - maxTimes(x));
-    else a.sort((x, y) => (KIND_ORDER[x.kind] ?? 9) - (KIND_ORDER[y.kind] ?? 9) || defKey(x) - defKey(y));
+    else a.sort(defaultCmp);
     return a;
   }
   function paintRecipes() {
@@ -7195,13 +7275,20 @@ async function renderCodex(pane) {
     item(out) {
       const KIND = { material: "재료", consumable: "소비 아이템", buff: "버프 아이템", equip: "장비" };
       const its = cx.items || [];
-      for (const k of [...new Set(its.map(i => i.kind))]) {
+      // 효과는 아직 얻지 못한 아이템도 보여 준다 (이름과 설명은 얻은 뒤에)
+      const G = t => t ? `${"DCBAS"[t - 1] || ""}급` : "";
+      const effOf = i => i.kind === "equip" ? `${SLOT_NAME[i.slot] || ""} · ${G(i.tier)} · Lv.${i.req_level || 1}부터 · ${fmtStats(i.stats)}`
+        : i.kind === "consumable" ? (fmtEffect(i.effect || {}) || "-")
+        : i.kind === "buff" ? (i.eff_text || "-")
+        : matInfo(i);
+      for (const k of ["equip", "consumable", "buff", "material"].filter(k => its.some(i => i.kind === k))) {
         const allI = its.filter(i => i.kind === k);
         const arr = cxApply(allI, i => !!i.got, i => i.name, i => i.first_at, () => 0);
         if (!arr.length && cxFiltering()) continue;
         out.push(h("p", { class: "codex-group" }, `${KIND[k] || k} · ${allI.filter(i => i.got).length}/${allI.length}`),
-          h("div", { class: "codex-grid" }, ...arr.map(i => cell(i.got, i.name, i.got && i.tier ? `${"DCBAS"[i.tier - 1] || ""}급` : null, () => info(i.name || "???",
-            desc(i.desc), i.got ? h("div", { class: "report" }, kv("분류", KIND[i.kind] || i.kind), i.tier ? kv("등급", `${"DCBAS"[i.tier - 1] || ""}급`) : null, kv("처음 얻은 날", i.first_at ? fmtDay(i.first_at) : null)) : null)))));
+          h("div", { class: "codex-grid" }, ...arr.map(i => cell(i.got, i.name, i.tier ? G(i.tier) : null, () => info(i.name || "???",
+            desc(i.desc), h("div", { class: "report" }, kv("분류", KIND[i.kind] || i.kind), i.tier ? kv("등급", G(i.tier)) : null,
+              kv("효과", effOf(i)), kv("처음 얻은 날", i.first_at ? fmtDay(i.first_at) : null)))))));
       }
     },
   };
@@ -7239,6 +7326,38 @@ async function renderCodex(pane) {
   maybeTour("union-codex");
 }
 
+/* ===== 운영자: 초대코드 신청 확인 ===== */
+function adminInviteRequests() {
+  const box = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
+  const ST = { pending: "확인 대기", approved: "승인 · 코드 발급", rejected: "거절" };
+  const paint = rows => {
+    if (!rows.length) return box.replaceChildren(h("p", { class: "hint", style: "margin:0" }, "들어온 신청이 없습니다."));
+    box.replaceChildren(...rows.map(r => {
+      const reason = h("input", { class: "input", maxlength: "200", placeholder: "거절 사유 (신청한 헌터에게 보입니다)" });
+      const act = async (ok, b) => {
+        if (!ok && !confirm("이 신청을 거절할까요?")) return;
+        busy(b, true, "…");
+        const { data, error } = await sb.rpc("invite_request_decide", { p_id: r.id, p_approve: ok, p_reason: ok ? null : reason.value });
+        busy(b, false);
+        if (error) return toast(koError(error));
+        toast(ok ? "승인했습니다. 신청한 헌터의 설정 › 계정에 초대코드가 나타납니다." : "거절했습니다.");
+        paint(data);
+      };
+      const yes = h("button", { class: "btn small", type: "button" }, "승인 · 코드 발급"), no = h("button", { class: "btn ghost small", type: "button" }, "거절");
+      yes.onclick = () => act(true, yes); no.onclick = () => act(false, no);
+      return h("div", { class: `ir-row${r.status === "pending" ? " pending" : ""}` },
+        h("div", { class: "ir-head" }, hunterLink({ codename: r.codename }), h("small", { class: "hint" }, `${r.grade || "-"}급 · Lv.${r.level ?? "-"}`),
+          h("span", { class: "badge" }, ST[r.status]), h("small", { class: "hint" }, new Date(r.at).toLocaleString("ko-KR"))),
+        h("div", { class: "report" },
+          h("div", { class: "kv" }, h("span", {}, "지금까지 데려온 헌터"), h("span", {}, `${r.invited_before}명`)),
+          r.code ? h("div", { class: "kv" }, h("span", {}, "발급한 코드"), h("span", {}, h("code", { class: "c" }, r.code), r.code_used ? " · 사용됨" : "")) : null,
+          r.reason ? h("div", { class: "kv" }, h("span", {}, "거절 사유"), h("span", {}, r.reason)) : null),
+        r.status === "pending" ? h("div", { class: "ir-act" }, reason, yes, no) : null);
+    }));
+  };
+  sb.rpc("invite_requests_admin").then(({ data, error }) => error ? box.replaceChildren(h("p", { class: "error" }, koError(error))) : paint(data || []));
+  return box;
+}
 /* ===== 운영자: 초대코드 발급 ===== */
 async function renderAdmin(pane) {
   const list = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
@@ -7323,6 +7442,8 @@ async function renderAdmin(pane) {
     h("div", { style: "display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;max-width:360px" },
       h("div", { class: "field", style: "margin:0" }, h("label", { for: "adm-rate" }, "배율"), rate), rateBtn),
     rateOut,
+    h("p", { class: "panel-title", style: "margin:24px 0 8px" }, "초대코드 신청"),
+    adminInviteRequests(),
     h("p", { class: "panel-title", style: "margin:24px 0 8px" }, "초대코드"),
     h("p", { class: "hint", style: "margin:0 0 12px" }, "초대코드는 한 번만 쓸 수 있습니다."),
     h("div", { style: "display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin-bottom:8px" },
@@ -7483,7 +7604,42 @@ async function setTheme(next) {
   if (state.settings) state.settings.theme = next;
   await sb.from("settings").update({ theme: next, updated_at: new Date().toISOString() }).eq("user_id", state.user.id);
 }
-let settingsTab = "screen";
+let settingsTab = "screen", settingsRestore = null;
+/* 설정 › 계정: 새 헌터를 데려올 초대코드 신청 (25레벨부터, 운영자 확인 뒤 발급) */
+function inviteRequestBox() {
+  const box = h("div", { class: "inv-req" }, h("p", { class: "hint", style: "margin:0" }, "불러오는 중…"));
+  const when = iso => new Date(iso).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" });
+  const paint = st => {
+    const title = h("p", { class: "panel-title", style: "margin:0 0 6px" }, "초대코드 신청");
+    const kids = [title, h("p", { class: "hint", style: "margin:0 0 10px;font-size:13px" },
+      `함께할 헌터를 데려오고 싶다면 초대코드를 신청해 주세요. 운영자가 확인한 뒤 이곳에 코드를 발급해 드립니다. ${st.min_level}레벨부터 신청할 수 있습니다.`
+      + (st.invited_count ? ` 지금까지 ${st.invited_count}명을 데려왔습니다.` : ""))];
+    if (st.status === "pending") kids.push(h("p", { style: "margin:0" }, `${when(st.at)}에 신청했습니다. 운영자가 확인할 때까지 기다려 주세요.`));
+    else if (st.status === "approved" && st.code && !st.code_used && !st.code_expired) {
+      const copy = h("button", { class: "btn ghost small", type: "button", onclick: () => navigator.clipboard?.writeText(st.code).then(() => toast("복사했습니다.")) }, "복사");
+      kids.push(h("div", { style: "display:flex;gap:8px;align-items:center;flex-wrap:wrap" }, h("code", { class: "c", style: "font-size:16px" }, st.code), copy),
+        st.expires_at ? h("p", { class: "hint", style: "margin:6px 0 0;font-size:13px" }, `한 번만 쓸 수 있으며 ${when(st.expires_at)}까지 유효합니다. 데려올 헌터에게 전해 주세요.`) : null);
+    } else {
+      if (st.status === "rejected") kids.push(h("div", { class: "rg-notice", style: "margin:0 0 10px" }, h("b", {}, "지난 신청이 거절되었습니다."),
+        st.reason ? h("p", { style: "margin:4px 0 0" }, `사유: ${st.reason}`) : null));
+      else if (st.status === "approved" && st.code_used) kids.push(h("p", { class: "hint", style: "margin:0 0 8px;font-size:13px" }, "받은 초대코드를 새 헌터가 사용했습니다."));
+      else if (st.status === "approved" && st.code_expired) kids.push(h("p", { class: "hint", style: "margin:0 0 8px;font-size:13px" }, "받은 초대코드의 기간이 지났습니다."));
+      const go = h("button", { class: "btn small", type: "button", disabled: !st.can_apply }, st.status ? "다시 신청하기" : "초대코드 신청하기");
+      go.onclick = async () => {
+        busy(go, true, "…");
+        const { data, error } = await sb.rpc("invite_request_submit");
+        busy(go, false);
+        if (error) return toast(koError(error));
+        toast("신청했습니다. 운영자가 확인하면 알림으로 알려 드립니다.");
+        paint(data);
+      };
+      kids.push(go, st.level < st.min_level ? h("p", { class: "hint", style: "margin:6px 0 0;font-size:13px" }, `지금 Lv.${st.level} · ${st.min_level}레벨이 되면 신청할 수 있습니다.`) : null);
+    }
+    box.replaceChildren(...kids);
+  };
+  sb.rpc("invite_request_state").then(({ data, error }) => error ? box.replaceChildren(h("p", { class: "error", style: "margin:0" }, koError(error))) : paint(data));
+  return box;
+}
 function openSettings() {
   const sec = (...kids) => h("section", { class: "set-sec" }, ...kids);
   const themeRow = h("div", { class: "cat-row", role: "radiogroup", "aria-label": "테마" });
@@ -7500,18 +7656,31 @@ function openSettings() {
       return sec(h("div", { class: "set-row" }, h("span", {}, "테마"), themeRow),
         h("label", { class: "set-row set-check" }, h("span", {}, "배경 효과 (심전도 그래프)"), fx));
     },
-    sound: () => sec(h("div", { class: "set-sfx" }, sfxRow()),
-      h("p", { class: "hint", style: "margin:4px 0 0;font-size:13px" }, "배경음악은 홈 화면의 배경음악 칸에서 고를 수 있습니다.")),
+    sound: () => {
+      // 모바일: 화면 위쪽의 배경음악 칸을 이곳으로 가져온다 (창을 닫으면 돌려놓는다)
+      if (isMobileView() && $("#bgm")) {
+        const box = $("#bgm"), yt = box.querySelector(".bgm-ytbox");
+        const parts = [...box.children].filter(e => e !== yt);
+        const before = parts.filter(e => yt && (e.compareDocumentPosition(yt) & Node.DOCUMENT_POSITION_FOLLOWING));
+        const wrap = h("div", { class: "bgm set-bgm" }, ...parts);
+        settingsRestore = () => { before.forEach(e => yt ? box.insertBefore(e, yt) : box.append(e)); parts.filter(e => !before.includes(e)).forEach(e => box.append(e)); settingsRestore = null; };
+        return sec(wrap, h("div", { class: "set-sfx" }, sfxRow()));
+      }
+      return sec(h("div", { class: "set-sfx" }, sfxRow()),
+        h("p", { class: "hint", style: "margin:4px 0 0;font-size:13px" }, "배경음악은 홈 화면의 배경음악 칸에서 고를 수 있습니다."));
+    },
     account: () => {
       const pw = h("button", { class: "btn ghost small", type: "button", onclick: () => { $("#dlg-info").close(); openPassword(); } }, "비밀번호 변경");
       const out = h("button", { class: "btn ghost small", type: "button", onclick: () => { $("#dlg-info").close(); logout(); } }, "로그아웃");
       return sec(h("div", { class: "set-row" }, h("span", {}, "이메일"), h("span", { class: "hint" }, state.user?.email || "")),
-        h("div", { style: "display:flex;gap:8px;flex-wrap:wrap" }, pw, out));
+        h("div", { style: "display:flex;gap:8px;flex-wrap:wrap" }, pw, out),
+        inviteRequestBox());
     },
   };
   const tabs = h("div", { class: "tabs set-tabs", role: "tablist", "aria-label": "설정 분류" });
   const body = h("div", { role: "tabpanel" });
   const paint = () => {
+    settingsRestore?.();
     tabs.replaceChildren(...[["screen", "화면"], ["sound", "소리"], ["account", "계정"]].map(([k, label]) =>
       h("button", { type: "button", role: "tab", "aria-selected": settingsTab === k ? "true" : "false", class: settingsTab === k ? "on" : null,
         onclick: () => { settingsTab = k; paint(); } }, label)));
@@ -7519,6 +7688,7 @@ function openSettings() {
   };
   paint();
   info("설정", tabs, body);
+  $("#dlg-info").addEventListener("close", () => settingsRestore?.(), { once: true });
 }
 $("#btn-settings").onclick = openSettings;
 
@@ -8645,7 +8815,8 @@ const TOURS = {
     { sel: '[data-tour="hm-an"]', text: "스테이터스 하나를 골라 분석하면 단계마다 그 스테이터스가 상승합니다. 던전 공략이나 탐색 등 다른 활동과 동시에 할 수 있으니 주기적으로 확인하여 분석하시기를 권장드립니다." },
     { sel: '[data-tour="hm-story"]', text: "스토리 퀘스트에서는 순차적으로 현 상황에서 중요한 이야기를 확인하실 수 있습니다. 현재는 튜토리얼이 마련되어 있으므로 기본 활동을 익히면서 장비와 아이템도 받을 수 있습니다." },
     { sel: '[data-tour="hm-todo"]', text: "헌터님만 확인할 수 있는 메모장이에요. 할 일을 적어 두고 끝나면 체크하실 수 있습니다." },
-    { sel: "#bgm", text: "배경음악을 켜고 끄거나 크기를 바꿀 수 있어요. 듣고 싶은 음악이 있다면 유튜브 링크로 재생할 수 있습니다. 효과음은 위쪽 설정에서 바꿀 수 있습니다." },
+    { sel: "#btn-settings", mo: true, text: "배경음악과 효과음은 위쪽 설정 › 소리에서 켜고 끄거나 크기를 바꿀 수 있어요. 듣고 싶은 음악이 있다면 유튜브 링크로 재생할 수 있습니다." },
+    { sel: "#bgm", pc: true, text: "배경음악을 켜고 끄거나 크기를 바꿀 수 있어요. 듣고 싶은 음악이 있다면 유튜브 링크로 재생할 수 있습니다. 효과음은 위쪽 설정에서 바꿀 수 있습니다." },
     { sel: "#side-party, #side-sns", all: true, pc: true, text: "다른 헌터와 파티를 맺은 경우, 파티 현황이 이곳에 나타납니다.\n이곳에서 헌터 전용 SNS 새 글을 확인할 수 있습니다. 카테고리 별로 다른 탭을 사용하고, 원하시면 게시글을 올릴 수 있습니다." },
     { text: "이용에 어려움이 생기시면 각 화면의 [도움말]과 그 옆의 [가이드]를 이용해주십시오.\n헌터님의 무한한 가능성을 기대하겠습니다." },
   ],
@@ -8811,13 +8982,13 @@ function maybeTour(key) {
   setTimeout(() => {
     if (blocked()) return;
     // 강조할 첫 부분이 화면에 없으면(진행 중 등) 자동으로 띄우지 않는다
-    const first = TOURS[key].find(st => st.sel && !(st.pc && isMobileView()));
+    const first = TOURS[key].find(st => st.sel && !(st.pc && isMobileView()) && !(st.mo && !isMobileView()));
     if (first && !tourTargets(first).length) return;
     startTour(key);
   }, 450);
 }
 function startTour(key) {
-  const steps = (TOURS[key] || []).filter(st => !(st.pc && isMobileView()));
+  const steps = (TOURS[key] || []).filter(st => !(st.pc && isMobileView()) && !(st.mo && !isMobileView()));
   if (!steps.length || tourNow) return;
   const host = document.querySelector("dialog[open]") || document.body;
   let i = 0, typing = null;
@@ -8936,7 +9107,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-11-1930";
+const BUILD = "2026-11-12-0710";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
