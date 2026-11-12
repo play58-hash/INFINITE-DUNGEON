@@ -3169,13 +3169,14 @@ async function renderGifts(body) {
         h("button", { class: "btn small", type: "button", onclick: () => respond(g.id, true) }, "받기"),
         h("button", { class: "btn ghost small", type: "button", onclick: () => confirm("이 선물을 거절할까요? 보낸 헌터에게 돌아갑니다.") && respond(g.id, false) }, "거절")))))
       : h("p", { class: "hint", style: "margin:0 0 16px" }, "받을 선물이 없습니다.")),
-    h("p", { class: "panel-title", style: "margin-top:18px" }, "최근 30일 기록"),
+    h("p", { class: "panel-title", style: "margin-top:18px" }, "선물 기록"),
+    h("p", { class: "hint", style: "margin:-4px 0 8px;font-size:13px" }, "최근 50개까지 보관합니다."),
     data.history.length ? h("table", { class: "list" },
       h("thead", {}, h("tr", {}, h("th", {}, "날짜"), h("th", {}, "보낸 · 받은"), h("th", {}, "내용"), h("th", {}, "상태"))),
       h("tbody", {}, ...data.history.map(g => h("tr", {},
         h("td", {}, fmtWhen(g.at)),
         h("td", {}, g.mine ? `→ ${g.to.codename}` : `← ${g.from.codename}`),
-        h("td", {}, giftContents(g)),
+        h("td", {}, giftContents(g), g.message ? h("div", { class: "gift-msg", style: "margin:2px 0 0" }, `“${g.message}”`) : null),
         h("td", {}, STATUS[g.status] || g.status)))))
       : h("p", { class: "hint", style: "margin:0" }, "기록이 없습니다."));
   maybeTour("soc-gifts");
@@ -3548,12 +3549,29 @@ async function renderRep(body, st) {
     sfx("notice"); toast("기부했습니다. 평판이 올랐습니다.");
     await loadAll(); renderHunter(); again(data);
   };
+  // 활동 구역 옮기기 — 지역 안정화 화면과 같은 설정
+  const regErr = h("div", { class: "error", role: "alert" });
+  const regSel = h("select", { class: "input rg-region", id: "rep-region", "aria-label": "활동 구역" },
+    ...Object.entries(REGIONS).map(([v, n]) => h("option", { value: v, selected: v === st.region }, `${n} 구역`)));
+  regSel.onchange = async () => {
+    regErr.textContent = "";
+    regSel.disabled = true;
+    const { error } = await sb.rpc("set_region", { p_region: regSel.value });
+    if (error) { regSel.disabled = false; regSel.value = st.region; regErr.textContent = koError(error); return; }
+    if (state.profile) state.profile.region = regSel.value;
+    toast(`${REGIONS[regSel.value]} 구역으로 옮겼습니다.`);
+    rgGrade = null;
+    renderHunter(); renderRep(body);
+  };
   body.replaceChildren(
+    h("div", { class: "rg-region-wrap", style: "margin:0 0 12px" }, h("label", { for: "rep-region" }, "활동 구역"), regSel,
+      h("span", { class: "hint" }, "구역 퀘스트와 기부는 활동 구역 기준입니다")),
+    regErr,
     h("div", { class: "rep-cards" }, ...(st.scores || []).map(card)),
     h("p", { class: "hint", style: "margin:8px 0 0;font-size:13px" }, `평판 · 구역 퀘스트 · 기부는 매주 월요일 0시(한국 시간)에 새로 시작합니다. 평판은 지난주 점수의 40%에서 다시 시작합니다. 다음 갱신: ${new Date(st.next_reset).toLocaleString("ko-KR", { month: "numeric", day: "numeric", weekday: "short", hour: "numeric", timeZone: "Asia/Seoul" })}`),
     h("div", { class: "card", style: "padding:14px 16px;margin-top:16px" },
       h("p", { class: "panel-title", style: "margin:0 0 4px" }, `${me?.name || ""} 구역 퀘스트`),
-      h("p", { class: "hint", style: "margin:0 0 10px;font-size:13px" }, "지금 활동 구역의 퀘스트입니다. 마치면 구역 평판 +5, 국제헌터연합 평판 +3을 함께 받습니다."),
+      h("p", { class: "hint", style: "margin:0 0 10px;font-size:13px" }, "지금 활동 구역에서 내가 들어갈 수 있는 던전으로 정해지는 퀘스트입니다. 마치면 구역 평판 +5, 국제헌터연합 평판 +3을 함께 받습니다."),
       qList),
     h("div", { class: "card", style: "padding:14px 16px;margin-top:14px" },
       h("p", { class: "panel-title", style: "margin:0 0 4px" }, `${me?.name || ""} 복원 사업 기부`),
@@ -7479,8 +7497,12 @@ function openHunter() {
   $("#edit-error").textContent = "";
   const sbox = $("#e-stats");
   sbox.replaceChildren(
-    h("div", { class: "stats", style: "margin:0 0 10px" }, ...[["HP", c.hp], ["MP", c.mp], ["ATK", c.atk], ["DEF", c.def], ["LUK", c.luk]]
-      .map(([k, v]) => h("div", { class: "stat" }, h("b", {}, String(v)), h("small", {}, k)))),
+    h("div", { class: "stats", style: "margin:0 0 10px" }, ...STAT_ORDER.map(k => {
+      const total = state.stats?.[k] ?? c[k], bonus = total - c[k];
+      return h("div", { class: "stat", title: bonus ? `기본 ${c[k]} + 장비 ${bonus}` : null },
+        h("b", {}, String(total)), h("small", {}, k.toUpperCase()),
+        bonus ? h("small", { class: "plus", style: "display:block;letter-spacing:0" }, `+${bonus}`) : null);
+    })),
     c.stat_points > 0
       ? h("button", { class: "btn block small", type: "button", onclick: () => { $("#dlg-hunter").close(); openStats(); } }, `스탯 포인트 ${c.stat_points} 분배`)
       : null,
@@ -8005,7 +8027,7 @@ const DOCS = {
 <tr><td>복원 사업 기부</td><td>5,000 Mh마다 +5</td><td>한 주 기부 10,000 Mh마다 +5</td></tr>
 </tbody></table></div>
 <p data-patch>평판, 구역 퀘스트, 기부는 매주 월요일 0시(한국 시간)에 새로 시작합니다. 평판은 지난주 점수의 40%에서 다시 시작합니다.</p>
-<p data-patch>구역 퀘스트는 지금 활동 구역에서 받습니다. <b>불안정한 게이트</b>(지난주 그 구역에서 공략이 가장 적었던 던전 10번 성공), <b>날뛰는 몬스터들</b>(몬스터 3종을 각각 10번 처치), <b>구역 평정</b>(보스 몬스터 1종 10번 처치) 세 가지이며, 마치면 레벨에 맞는 가능성을 받습니다.</p>
+<p data-patch>구역 퀘스트는 지금 활동 구역에서, 내가 들어갈 수 있는 등급의 던전 중에서 정해집니다. 활동 구역은 평판 화면 위쪽에서도 옮길 수 있습니다. <b>불안정한 게이트</b>(지난주 그 구역에서 공략이 가장 적었던 던전 10번 성공), <b>날뛰는 몬스터들</b>(몬스터 3종을 각각 10번 처치), <b>구역 평정</b>(보스 몬스터 1종 10번 처치) 세 가지이며, 마치면 레벨에 맞는 가능성을 받습니다.</p>
 </article>
 
 <article class="card prose" id="g-union">
@@ -9107,7 +9129,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-12-0710";
+const BUILD = "2026-11-12-1600";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
