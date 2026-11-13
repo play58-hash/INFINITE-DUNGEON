@@ -123,6 +123,15 @@ textarea.input { min-height: 88px; resize: vertical; }
   display: inline-block; padding: 2px 10px; border-radius: 999px;
   background: var(--surface-2); font-size: 14px; font-weight: 700;
 }
+/* 선호 스탯 강조 (테마 색) */
+.pref-text { color: var(--accent-text); }
+.pref-text.sub { color: color-mix(in srgb, var(--accent-text) 60%, var(--text-dim)); }
+.badge.pref-badge { background: color-mix(in srgb, var(--primary) 16%, var(--surface)); color: var(--accent-text); border: 1px solid color-mix(in srgb, var(--primary) 40%, transparent); }
+.badge.pref-badge.sub { background: transparent; color: color-mix(in srgb, var(--accent-text) 60%, var(--text-dim)); border-style: dashed; }
+.stat.pref { border-color: color-mix(in srgb, var(--primary) 55%, var(--border)); background: color-mix(in srgb, var(--primary) 9%, var(--surface)); }
+.stat.pref b, .stat.pref > small:not(.plus) { color: var(--accent-text); }
+.stat.pref.sub { border-style: dashed; background: color-mix(in srgb, var(--primary) 4%, var(--surface)); }
+.stat.pref.sub b, .stat.pref.sub > small:not(.plus) { color: color-mix(in srgb, var(--accent-text) 60%, var(--text)); }
 
 /* ===== 시작 화면 (로그인·초대코드·캐릭터 생성) ===== */
 .gate {
@@ -430,6 +439,12 @@ dialog.guide-dlg { width: min(920px, calc(100vw - 24px)); }
 .bt-name .bt-fx { margin-left: 6px; display: inline-flex; gap: 4px; font-size: 11px; color: var(--accent-text); font-weight: 700; overflow: visible; cursor: help; }
 .bt-name .bt-fx span { color: inherit; font-size: inherit; }
 .bt-legend { margin: -8px 0 14px; font-size: 12px; color: var(--text-dim); }
+.bt-who { cursor: pointer; border-radius: 4px; }
+.bt-who:hover, .bt-who:focus-visible { text-decoration: underline dotted; text-underline-offset: 3px; outline: none; }
+.bt-name .bt-buff { color: color-mix(in srgb, #E8A33D 75%, var(--text)); }
+.bt-pop { position: fixed; z-index: 1000; background: var(--surface); border: 1px solid var(--frame); border-radius: 10px; box-shadow: var(--shadow); padding: 10px 12px; font-size: 13px; line-height: 1.6; }
+.an-bookmark { margin: 8px 0 0; padding: 6px 10px; border-radius: 8px; font-size: 13px; background: color-mix(in srgb, #E8A33D 14%, var(--surface)); color: color-mix(in srgb, #E8A33D 60%, var(--text)); }
+.bt-pop p { margin: 4px 0; } .bt-pop ul { margin: 0 0 4px; padding-left: 18px; } .bt-pop > strong { font-size: 14px; }
 .bt-unit .gauge { margin: 0; height: 7px; background: var(--surface); }
 .bt-unit .gauge.mp { height: 4px; }
 .gauge.foe i { background: var(--danger); }
@@ -1571,26 +1586,26 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* ===== 게임 기준 데이터 ===== */
 const POSITIONS = {
-  dealer: { name: "딜러", desc: "강한 힘으로 적을 먼저 제압하는 헌터.",
-    A: { name: "갤런트리", en: "gallantry", tag: "용맹", desc: "마주한 상대와 정면 승부를 즐기는 헌터.", effect: "주는 피해 +20% · 지역 안정화: 공격받을 때 40% 확률로 혈투(그 공격의 피해를 절반만 받고 적을 되받아침)",
-      sub: "주는 피해 +10% · 지역 안정화: 공격받을 때 20% 확률로 혈투(받는 피해 절반 · 되받아치기는 같음)" },
-    B: { name: "스카우트", en: "scout", tag: "정찰병", desc: "넓은 시야를 가지고 상황을 주도하는 헌터.", effect: "공격횟수 +1 (회당 피해 60%, 합계 120%) · 지역 안정화: 공격받을 때 40% 확률로 혈투(그 공격의 피해를 절반만 받고 적을 되받아침)",
-      sub: "공격횟수 +1은 그대로, 회당 피해 55%(합계 110%) · 지역 안정화: 공격받을 때 20% 확률로 혈투(받는 피해 절반 · 되받아치기는 같음)" } },
-  tanker: { name: "탱커", desc: "적의 공격에도 무너지지 않는 헌터.",
-    A: { name: "뱅가드", en: "vanguard", tag: "선봉", desc: "가장 앞으로 나가 적의 시선을 끄는 헌터.", effect: "도발 (HP가 가장 위태로운 아군 1명을 지켜 50% 확률로 대신 피격) · 1인 공략 때는 10% 확률로 공격 회피 · 무한 던전: 직전 역에서 회피하지 못했으면 휴식 회복 1.5배",
-      sub: "도발 25% 확률(무한 던전은 피해의 25%) · 1인 공략 때 5% 확률로 회피 · 무한 던전 휴식 회복 1.5배는 그대로" },
-    B: { name: "시타델", en: "citadel", tag: "성채", desc: "적의 공격으로부터 수호하는 헌터.", effect: "받는 피해 -20% (아군과 함께면 20%를 인원수로 나눠 모두 -(20/n)%) · 지역 안정화: 절반은 늘 적용, 절반은 구역마다 MP 5로 다시 걸기, 최대 -30%",
-      sub: "받는 피해 -10% (아군과 함께면 모두 -(10/n)%) · 지역 안정화: 늘 적용되는 몫과 다시 거는 몫이 각각 절반" } },
-  supporter: { name: "서포터", desc: "상대의 능력을 전략적으로 가감하는 헌터.",
-    A: { name: "카탈리스트", en: "catalyst", tag: "촉매", desc: "아군을 극대화하는 헌터.", effect: "아군 1명의 ATK·DEF +30% (같은 아군에게 2명까지) · 1인 공략: ATK + MP의 20%(최대 12), 주는 피해 +10% · 지역 안정화: 구역마다 MP 5로 다시 걸기",
-      sub: "아군 1명의 ATK·DEF +15% · 1인 공략: ATK + MP의 10%(최대 12), 주는 피해 +5%" },
-    B: { name: "아티피스", en: "artifice", tag: "계략", desc: "적을 무력화시키는 헌터.", effect: "적 1명의 ATK·DEF -20% (무한 던전·지역 안정화 파티: 최대 HP가 가장 낮은 아군의 받는 피해 -20%) · 지역 안정화: 구역마다 MP 5로 다시 걸기",
-      sub: "적 1명의 ATK·DEF -10% (무한 던전·지역 안정화 파티: 최대 HP가 가장 낮은 아군의 받는 피해 -10%)" } },
-  healer: { name: "힐러", desc: "아군이 지치지 않도록 독려하는 헌터.",
-    A: { name: "리커버리", en: "recovery", tag: "회복", desc: "아군의 부상을 치유하는 헌터.", effect: "아군의 HP가 50% 미만일 경우 HP 30% 회복 (지역 안정화는 공략마다 인원 수만큼, HP 15%)",
-      sub: "아군의 HP가 50% 미만일 경우 HP 15% 회복 (지역 안정화는 HP 7.5%)" },
-    B: { name: "서플라이", en: "supply", tag: "공급", desc: "아군의 이능력 한도를 늘리는 헌터.", effect: "아군의 MP가 30% 미만일 경우 MP 30% 회복 · 그런 아군이 없고 자신의 MP가 30% 이상이면 HP가 가장 낮은 아군 HP 15% 회복 (구역·역마다 1번)",
-      sub: "MP 30% 미만인 아군 MP 15% 회복 · HP 회복은 7.5%" } },
+  dealer: { name: "딜러", desc: "강한 힘으로 적을 제압하는 헌터",
+    A: { name: "갤런트리", en: "gallantry", tag: "용맹", desc: "마주한 상대와 정면 승부를 즐기는 헌터", effect: "주는 피해 +20% · 지역 안정화에서, 피격 시 40% 확률로 혈투 발동 — 피격의 절반만 받고, 적에게 일반 공격",
+      sub: "주는 피해 +10% · 지역 안정화에서, 피격 시 20% 확률로 혈투 발동 — 피격의 절반만 받고, 적에게 일반 공격" },
+    B: { name: "스카우트", en: "scout", tag: "정찰병", desc: "넓은 시야를 가지고 상황을 주도하는 헌터", effect: "공격 횟수 +1 (회당 피해 60%, 두 번 합쳐 120%) · 지역 안정화에서, 피격 시 40% 확률로 혈투 발동 — 피격의 절반만 받고, 적에게 일반 공격",
+      sub: "공격 횟수 +1 (회당 피해 55%, 두 번 합쳐 110%) · 지역 안정화에서, 피격 시 20% 확률로 혈투 발동 — 피격의 절반만 받고, 적에게 일반 공격" } },
+  tanker: { name: "탱커", desc: "적의 공격에도 무너지지 않는 헌터",
+    A: { name: "뱅가드", en: "vanguard", tag: "선봉", desc: "가장 앞으로 나서 적의 시선을 끄는 헌터", effect: "50% 확률로 도발하여 HP 비율이 가장 낮은 아군 1명 대신 피격 · 1인 공략 시, 10% 확률로 공격 회피 · 무한 던전에서, 1인 공략 시, 직전 역에서 회피하지 못했다면 휴식 회복 속도 1.5배 · 무한 던전에서, 파티 공략 시, 아군의 피해 50%를 자신의 DEF에 따라 피해 감수(상시)",
+      sub: "25% 확률로 도발하여 HP 비율이 가장 낮은 아군 1명 대신 피격 · 1인 공략 시, 5% 확률로 공격 회피 · 무한 던전에서, 1인 공략 시, 직전 역에서 회피하지 못했다면 휴식 회복 속도 1.5배 · 무한 던전에서, 파티 공략 시, 아군의 피해 25%를 자신의 DEF에 따라 피해 감수(상시)" },
+    B: { name: "시타델", en: "citadel", tag: "성채", desc: "적의 공격으로부터 수호하는 헌터", effect: "아군이 N명일 때, 전원 받는 피해 -(20÷N)% · 지역 안정화에서, 아군이 N명일 때, 전원 받는 피해 -(10÷N)%를 상시 발동 후 구역마다 MP 5를 소모하여 전원 받는 피해 -(10÷N)% 추가",
+      sub: "아군이 N명일 때, 전원 받는 피해 -(10÷N)% · 지역 안정화에서, 아군이 N명일 때, 전원 받는 피해 -(5÷N)%를 상시 발동 후 구역마다 MP 5를 소모하여 전원 받는 피해 -(5÷N)% 추가" } },
+  supporter: { name: "서포터", desc: "상대의 능력을 전략적으로 가감하는 헌터",
+    A: { name: "카탈리스트", en: "catalyst", tag: "촉매", desc: "아군의 능력을 극대화하는 헌터", effect: "전투력이 가장 높은 아군 1명의 ATK·DEF +30% · 1인 공략 시, 자신의 ATK에 MP의 20% 더하여 보정(최대 +12) 및 공격 데미지 +10% 보정 · 지역 안정화에서, 구역마다 MP 5를 소모하여 능력 발동 · 지역 안정화에서, 1인 공략 시, 받는 피해 -10% 보정",
+      sub: "전투력이 가장 높은 아군 1명의 ATK·DEF +15% · 1인 공략 시, 자신의 ATK에 MP의 10% 더하여 보정(최대 +12) 및 공격 데미지 +5% 보정 · 지역 안정화에서, 구역마다 MP 5를 소모하여 능력 발동 · 지역 안정화에서, 1인 공략 시, 받는 피해 -5% 보정" },
+    B: { name: "아티피스", en: "artifice", tag: "계략", desc: "적의 능력을 무력화시키는 헌터", effect: "해당 구역 및 역에 존재하는 적의 ATK·DEF -20% · 파티 공략 시, 적 약화 대신 최대 HP가 가장 낮은 아군이 받는 피해 -20% · 지역 안정화에서, 구역마다 MP 5를 소모하여 능력 발동 · 레이드에서, 보스 공격 -20%, 파티가 주는 피해 +15%",
+      sub: "해당 구역 및 역에 존재하는 적의 ATK·DEF -10% · 파티 공략 시, 적 약화 대신 최대 HP가 가장 낮은 아군이 받는 피해 -10% · 지역 안정화에서, 구역마다 MP 5를 소모하여 능력 발동 · 레이드에서, 보스 공격 -10%, 파티가 주는 피해 +7.5%" } },
+  healer: { name: "힐러", desc: "아군이 지치지 않도록 독려하는 헌터",
+    A: { name: "리커버리", en: "recovery", tag: "회복", desc: "아군의 부상을 치유하는 헌터", effect: "아군의 HP가 50% 미만일 경우, MP 5를 소모하여 HP 30% 회복 · 지역 안정화에서, 공략마다 인원 수만큼(혼자면 1번), HP 15% 회복",
+      sub: "아군의 HP가 50% 미만일 경우, MP 5를 소모하여 HP 15% 회복 · 지역 안정화에서, 공략마다 인원 수만큼(혼자면 1번), HP 7.5% 회복" },
+    B: { name: "서플라이", en: "supply", tag: "공급", desc: "아군의 이능력 한도를 늘리는 헌터", effect: "아군의 MP가 30% 미만일 경우, MP 5를 소모하여 MP 30% 회복 · 위 대상이 없으며 자신의 MP가 30% 이상인 경우, MP 5를 소모하여 HP가 가장 낮은 아군의 HP 15% 회복(구역 및 역마다 1번) · 레이드에서, HP 15% 회복은 4턴마다 1회 발동",
+      sub: "아군의 MP가 30% 미만일 경우, MP 5를 소모하여 MP 15% 회복 · 위 대상이 없으며 자신의 MP가 30% 이상인 경우, MP 5를 소모하여 HP가 가장 낮은 아군의 HP 7.5% 회복(구역 및 역마다 1번) · 레이드에서, HP 7.5% 회복은 4턴마다 1회 발동" } },
 };
 const posLabel = (pos, opt) => POSITIONS[pos] ? `${POSITIONS[pos].name} · ${POSITIONS[pos][opt]?.name || ""}` : "-";
 // 포지션 고르기 (캐릭터 생성 · 서브 포지션 공용)
@@ -1612,6 +1627,8 @@ function posPicker(grid, row, pick, onChange) {
      h("small", { class: "pos-eff" }, p[opt].effect)));
 }
 const PREF = { dealer: ["atk", "luk"], tanker: ["hp", "def"], supporter: ["mp", "luk"], healer: ["mp", "hp"] };
+// 선호 스탯 강조: 메인 선호는 진하게, 서브에서만 선호인 스탯은 옅게
+const prefCls = (c, k) => (PREF[c?.main_position] || []).includes(k) ? " pref" : (PREF[c?.sub_position] || []).includes(k) ? " pref sub" : "";
 const STAT_NAME = { hp: "HP", mp: "MP", atk: "ATK", def: "DEF", luk: "LUK" };
 const prefText = pos => PREF[pos].map(k => STAT_NAME[k]).join("·");
 const REGIONS = { europe: "유럽", asia: "아시아", america: "아메리카", oceania: "오세아니아", africa: "아프리카" };
@@ -2041,7 +2058,7 @@ function renderHunter() {
       h("div", { class: "bar" }, h("i", { style: `width:${pct}%` }))),
     h("div", { class: "stats" }, ...STAT_ORDER.map(k => {
       const total = state.stats?.[k] ?? c[k], bonus = total - c[k];
-      return h("div", { class: "stat", title: bonus ? `기본 ${c[k]} + 장비 ${bonus}` : null },
+      return h("div", { class: "stat" + prefCls(c, k), title: [prefCls(c, k) ? (prefCls(c, k).includes("sub") ? "서브 포지션 선호 스탯" : "선호 스탯") : "", bonus ? `기본 ${c[k]} + 장비 ${bonus}` : ""].filter(Boolean).join(" · ") || null },
         h("b", {}, String(total)), h("small", {}, k.toUpperCase()),
         bonus ? h("small", { class: "plus", style: "display:block;letter-spacing:0" }, `+${bonus}`) : null);
     })),
@@ -2772,14 +2789,66 @@ function fxBadges(f, used) {
   if (f.cut) { used.add("cut"); out.push(h("span", { title: `받는 피해 -${f.cut}%` }, `▣${f.cut}`)); }
   return out.length ? h("span", { class: "bt-fx", "aria-label": out.map(x => x.title).join(", ") }, ...out) : null;
 }
-function battleBars(st, myName) {
+// 버프 기호 (출발 때 켜져 있던 버프, 공략 끝까지 적용)
+const BUFF_INFO = { pot: ["✦", "가능성 획득 증가"], cur: ["◈", "메헨 획득 증가"], stat: ["↑", "스탯 상승"], drop: ["✧", "아이템 드롭 확률 증가"], rest: ["≋", "무한 던전 휴식 시간 감소"], analysis: ["✎", "전력 분석 시간 감소"] };
+const buffCat = e => e.pot ? "pot" : e.cur ? "cur" : e.drop ? "drop" : e.rest ? "rest" : e.analysis ? "analysis" : "stat";
+const buffEffText = e => [e.pot && `가능성 +${Math.round(e.pot * 100)}%`, e.cur && `메헨 +${Math.round(e.cur * 100)}%`,
+  ...["hp", "mp", "atk", "def"].map(k => e[k] && `${k.toUpperCase()} +${Math.round(e[k] * 100)}%`), e.luk_add && `LUK +${e.luk_add}`,
+  e.drop && `드롭 확률 +${Math.round(e.drop * 100)}%`, e.rest && `휴식 시간 -${Math.round(e.rest * 100)}%`, e.analysis && `전력 분석 시간 -${Math.round(e.analysis * 100)}%`].filter(Boolean).join(" · ");
+const buffLeft = b => b.uses != null ? `${b.uses}번 남음` : b.left_min == null ? "" : b.left_min > 0 ? `남은 ${b.left_min >= 60 ? `${Math.floor(b.left_min / 60)}시간${b.left_min % 60 ? ` ${b.left_min % 60}분` : ""}` : `${b.left_min}분`}` : "시간은 끝났지만 이번 공략에는 끝까지 적용";
+function buffBadges(list, used) {
+  const out = (list || []).filter(b => b.effect && buffCat(b.effect) !== "analysis").map(b => {
+    const k = buffCat(b.effect); used.add("b:" + k);
+    return h("span", { title: `${b.name || BUFF_INFO[k][1]} — ${buffEffText(b.effect)}${buffLeft(b) ? " · " + buffLeft(b) : ""}` }, BUFF_INFO[k][0]);
+  });
+  return out.length ? h("span", { class: "bt-fx bt-buff" }, ...out) : null;
+}
+// 헌터 이름을 누르거나 마우스를 올리면 적용 상태를 모아 보여 준다
+let btPop = null;
+function closeBtPop() { btPop?.remove(); btPop = null; }
+document.addEventListener("click", e => { if (btPop && !e.target.closest(".bt-pop, .bt-who")) closeBtPop(); });
+function btPopFor(anchor, name, fx, em, eff) {
+  closeBtPop();
+  const rows = [];
+  if (em?.main_position) rows.push(h("p", {}, h("b", {}, "포지션 "), posLabel(em.main_position, em.main_option),
+    em.sub_position ? ` / 서브 ${posLabel(em.sub_position, em.sub_option)}` : ""));
+  const fxs = [];
+  if (fx?.atk) fxs.push(`아군 지원 ATK·DEF +30%${fx.atk > 1 ? ` ×${fx.atk}` : ""}`);
+  if (fx?.cut) fxs.push(`받는 피해 -${fx.cut}%`);
+  if (fx?.grd) fxs.push("아티피스 보호 (받는 피해 -20%)");
+  if (fx?.weak) fxs.push("적 약화 (ATK·DEF -20%)");
+  rows.push(h("p", {}, h("b", {}, "지금 받는 효과 "), fxs.length ? fxs.join(" · ") : "없음"));
+  const bl = (em?.buffs || []).filter(b => b.effect);
+  rows.push(h("p", { style: "margin-bottom:2px" }, h("b", {}, "버프 "), bl.length ? null : "없음"));
+  if (bl.length) rows.push(h("ul", {}, ...bl.map(b => h("li", {}, `${BUFF_INFO[buffCat(b.effect)][0]} ${b.name || BUFF_INFO[buffCat(b.effect)][1]} — ${buffEffText(b.effect)}`,
+    buffLeft(b) ? h("small", { class: "hint", style: "display:block" }, buffLeft(b)) : null))));
+  if (eff?.party && em && !em.leader && bl.some(b => b.effect?.rest)) rows.push(h("p", { class: "hint" }, "휴식 시간 감소 버프는 파티장의 것만 적용됩니다."));
+  if (eff?.party && em?.leader && bl.some(b => b.effect?.rest)) rows.push(h("p", { class: "hint" }, "파티장 버프라 파티 전체의 휴식 시간이 줄어듭니다."));
+  btPop = h("div", { class: "bt-pop", role: "dialog", "aria-label": `${name} 적용 상태` }, h("strong", {}, name), ...rows);
+  document.body.append(btPop);
+  const r = anchor.getBoundingClientRect(), w = Math.min(320, innerWidth - 16);
+  btPop.style.width = w + "px";
+  btPop.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left)) + "px";
+  const below = r.bottom + 6, hgt = btPop.offsetHeight;
+  btPop.style.top = (below + hgt > innerHeight - 8 ? Math.max(8, r.top - hgt - 6) : below) + "px";
+}
+function battleBars(st, myName, eff) {
+  if (btPop && !btPop.dataset.pin) closeBtPop();
   const pct = (a, b) => b > 0 ? Math.max(0, Math.min(100, a / b * 100)) : 0;
   const used = new Set();
   const myFx = st.fx && !st.party ? st.fx : null;
-  const ally = m => h("div", { class: `bt-unit${m.down || m.hp <= 0 ? " down" : ""}` },
-    h("div", { class: "bt-name" }, h("b", {}, m.n, m.down || m.hp <= 0 ? null : fxBadges(st.party ? st.fx?.[m.n] : myFx, used)), h("span", {}, m.down || m.hp <= 0 ? "쓰러짐" : `HP ${m.hp}/${m.mhp} · MP ${m.mp ?? "-"}/${m.mmp ?? "-"}`)),
+  const effOf = n => eff?.members?.find(x => x.name === n) || (!st.party ? eff?.members?.find(x => x.me) : null);
+  const ally = m => {
+    const fx = st.party ? st.fx?.[m.n] : myFx, em = effOf(m.n);
+    const who = h("b", { class: "bt-who", tabindex: "0", role: "button", "aria-label": `${m.n} 적용 상태 보기` }, m.n,
+      m.down || m.hp <= 0 ? null : fxBadges(fx, used), m.down || m.hp <= 0 ? null : buffBadges(em?.buffs, used));
+    who.onclick = e => { e.stopPropagation(); if (btPop?.dataset.pin === m.n) return closeBtPop(); btPopFor(who, m.n, fx, em, eff); btPop.dataset.pin = m.n; };
+    who.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); who.click(); } };
+    if (matchMedia("(hover: hover)").matches) { who.onmouseenter = () => btPopFor(who, m.n, fx, em, eff); who.onmouseleave = () => { if (!btPop?.dataset.pin) closeBtPop(); }; }
+    return h("div", { class: `bt-unit${m.down || m.hp <= 0 ? " down" : ""}` },
+    h("div", { class: "bt-name" }, who, h("span", {}, m.down || m.hp <= 0 ? "쓰러짐" : `HP ${m.hp}/${m.mhp} · MP ${m.mp ?? "-"}/${m.mmp ?? "-"}`)),
     h("div", { class: "gauge hp", title: "HP" }, h("i", { style: `width:${m.down ? 0 : pct(m.hp, m.mhp)}%` })),
-    m.mmp ? h("div", { class: "gauge mp", title: "MP" }, h("i", { style: `width:${pct(m.mp, m.mmp)}%` })) : null);
+    m.mmp ? h("div", { class: "gauge mp", title: "MP" }, h("i", { style: `width:${pct(m.mp, m.mmp)}%` })) : null); };
   const allies = st.party || (st.me ? [{ n: myName, ...st.me }] : []);
   const foe = f => h("div", { class: `bt-unit${f.hp <= 0 ? " dead" : ""}${f.boss ? " boss" : ""}` },
     h("div", { class: "bt-name" }, h("b", {}, (f.boss ? "보스 " : "") + f.n,
@@ -2789,7 +2858,8 @@ function battleBars(st, myName) {
     ...(allies.length ? allies.map(ally) : [h("p", { class: "bt-empty" }, "준비 중")]));
   const foeSide = h("div", { class: "bt-side" }, h("p", { class: "bt-title" }, "적"),
     ...(st.foes?.length ? st.foes.map(foe) : [h("p", { class: "bt-empty" }, "아직 만난 적이 없습니다.")]));
-  const legend = used.size ? h("p", { class: "bt-legend" }, [...used].map(k => `${FX_INFO[k][0]} ${FX_INFO[k][1]}`).join(" · ")) : null;
+  const legend = used.size ? h("p", { class: "bt-legend" }, [...used].map(k => k.startsWith("b:") ? `${BUFF_INFO[k.slice(2)][0]} ${BUFF_INFO[k.slice(2)][1]}` : `${FX_INFO[k][0]} ${FX_INFO[k][1]}`).join(" · "),
+    eff?.members?.length ? " · 이름을 누르면 적용 상태를 볼 수 있습니다" : "") : eff?.members?.length ? h("p", { class: "bt-legend" }, "이름을 누르면 적용 상태를 볼 수 있습니다") : null;
   return h("div", {}, h("div", { class: "bt", "aria-label": "전투 현황" }, allySide, foeSide), legend);
 }
 const myStartBars = () => { const t = state.stats || {}, c = state.character || {}; const mhp = t.hp ?? c.hp, mmp = t.mp ?? c.mp; return mhp ? { hp: mhp, mhp, mp: mmp, mmp } : null; };
@@ -4045,7 +4115,9 @@ async function renderHome(pane) {
       kids.push(h("div", { class: "home-act" },
         h("div", { class: "row" }, h("strong", {}, `${STAT_KO[ru.stat]} 분석 · ${ru.minutes}분`), ru.speed > 1 ? h("span", { class: "badge" }, `테스트 ${ru.speed}배`) : h("span", { class: "hint" }, `${fmtTime(ru.ends_at)} 완료`)),
         h("div", { class: "row", style: "margin-top:4px" }, h("span", { class: "hint" }, "남은 시간"), left),
-        h("div", { class: "bar", style: "margin-top:8px" }, bar), btns));
+        h("div", { class: "bar", style: "margin-top:8px" }, bar),
+        ru.cut > 0 ? h("p", { class: "an-bookmark" }, h("span", { "aria-hidden": "true" }, "✎ "), h("b", {}, "사서의 책갈피"), ` 적용 — 이번 분석 시간 -${Math.round(ru.cut * 100)}%`) : null,
+        btns));
       // 분석 집중: 분석 한 번에 한 번
       const fo = ru.focus;
       if (released() && fo?.status === "done")
@@ -4073,6 +4145,7 @@ async function renderHome(pane) {
       };
       paintChips();
       kids.push(chips,
+        a.bookmark > 0 ? h("p", { class: "an-bookmark" }, h("span", { "aria-hidden": "true" }, "✎ "), h("b", {}, "사서의 책갈피"), ` 사용 중 — 다음 분석 시간 -${Math.round(a.bookmark * 100)}%`) : null,
         h("div", { class: "kv", style: "border:0;padding:4px 0 0" }, h("span", {}, "분석 시간"), val), range,
         h("div", { class: "range-scale" }, h("span", {}, "5분"), h("span", {}, "180분")));
       if (state.profile?.is_admin) {
@@ -4272,6 +4345,8 @@ function renderDungeonRun(body, first) {
     stats, ptBox, rescueSlot, list, err, actions);
   const loadRescue = () => miniCard("rescue", loadRescue).then(b => b && rescueSlot.replaceChildren(b));
   loadRescue();
+  let runEff = null;
+  sb.rpc("run_effects", { p_kind: "infinite" }).then(({ data }) => { if (data) { runEff = data; paintStats(); } });
 
   const statBox = (k, v) => h("div", { class: "dg-stat" }, h("small", {}, k), h("b", {}, v));
   function paintStats() {
@@ -4281,7 +4356,7 @@ function renderDungeonRun(body, first) {
       statBox("메헨", `+${Number(cur.cur).toLocaleString()} Mh`));
     const bs = battleState(cur.events, "inf", pty ? null : myStartBars());
     if (pty && !bs.party) bs.party = pty.start;
-    ptBox.replaceChildren(battleBars(bs, state.profile?.codename || "나"));
+    ptBox.replaceChildren(battleBars(bs, state.profile?.codename || "나", runEff));
   }
   function paintLog() {
     const nearBottom = list.scrollTop + list.clientHeight >= list.scrollHeight - 40;
@@ -4740,6 +4815,8 @@ function renderRegionalRun(body, first) {
   const stats = h("div", { class: "dg-stats rg-run-stats" });
   const maxHp = t.max_hp || 100, maxMp = t.max_mp || 30;
   const ptBox = h("div", {});
+  let runEff = null;
+  sb.rpc("run_effects", { p_kind: "regional" }).then(({ data }) => { if (data) { runEff = data; paintStats(); } });
   const gauge = (label, v, max, cls) => h("div", { class: "dg-stat" },
     h("small", {}, label), h("b", {}, `${v}`, h("span", { class: "hint", style: "font-size:14px;font-weight:600" }, ` / ${max}`)),
     h("div", { class: `gauge ${cls}` }, h("i", { style: `width:${Math.max(0, Math.min(100, v / max * 100))}%` })));
@@ -4764,7 +4841,7 @@ function renderRegionalRun(body, first) {
     const bs = battleState(cur.events, "rg", t.party ? null : { hp: maxHp, mhp: maxHp, mp: maxMp, mmp: maxMp });
     if (t.party && !bs.party) bs.party = t.party.start;
     if (bs.me && !t.party) { bs.me.mhp = bs.me.mhp || maxHp; bs.me.mmp = bs.me.mmp || maxMp; }
-    ptBox.replaceChildren(battleBars(bs, state.profile?.codename || "나"));
+    ptBox.replaceChildren(battleBars(bs, state.profile?.codename || "나", runEff));
   }
   function paint() {
     const nearBottom = list.scrollTop + list.clientHeight >= list.scrollHeight - 40;
@@ -6196,7 +6273,7 @@ function renderOwned(body, inv, act, refresh) {
           && act(() => sb.rpc("shop_sell", { p_code: x.code, p_qty: x.qty }), "모두 팔았습니다.", "sell") }, "모두 판매") : null));
 
   // 버프 아이템: 쓰면 정해진 시간 동안 효과가 이어진다 (같은 종류는 하나만)
-  const BUFF_CAT = { pot: "가능성", cur: "메헨", stat: "능력치", util: "편의", analysis: "전력 분석" };
+  const BUFF_CAT = { pot: "가능성", cur: "메헨", stat: "능력치", util: "아이템 드롭", rest: "휴식 시간", analysis: "전력 분석" };
   const buffRow = x => h("div", { class: "item-row" },
     h("div", { class: "item-main" },
       h("strong", {}, `${x.name} × ${x.qty}`),
@@ -6736,21 +6813,22 @@ function openStats() {
   const label = { hp: "HP", mp: "MP", atk: "ATK", def: "DEF", luk: "LUK" };
   const desc = {
     hp: "1포인트 = HP +10. 많을수록 덜 쉬고, 지역 던전에서 더 버팀", mp: "1포인트 = MP +5. 역마다 1씩 소모, 많을수록 덜 쉼",
-    atk: "전투력과 공략 속도", def: "전투력, 받는 피해 감소", luk: "전투력, 치명타 확률 +1%",
+    atk: "전투력과 공략 속도", def: "전투력(1포인트당 가장 큼)과 공략 속도, 받는 피해 감소", luk: "전투력, 치명타 확률 +1%",
   };
   const pref = new Set([...(PREF[c.main_position] || []), ...(PREF[c.sub_position] || [])]);
   const save = $("#st-save");
   function paint() {
     const used = Object.values(add).reduce((a, b) => a + b, 0);
     $("#st-left").replaceChildren("남은 포인트 ", h("strong", {}, String(c.stat_points - used)),
-      h("span", { class: "hint", style: "display:block;margin-top:4px" }, `${POSITIONS[c.main_position].name}의 선호 스테이터스(${prefText(c.main_position)})는 전투력에 1.5배로 반영됩니다.`));
+      h("span", { class: "hint", style: "display:block;margin-top:4px" }, `${POSITIONS[c.main_position].name}의 `, h("b", { class: "pref-text" }, `선호 스테이터스(${prefText(c.main_position)})`), "는 전투력에 ", h("b", { class: "pref-text" }, "1.5배"), "로 반영됩니다.",
+        c.sub_position && c.sub_position !== c.main_position ? [` 서브 포지션 ${POSITIONS[c.sub_position].name}의 `, h("b", { class: "pref-text sub" }, `선호 스테이터스(${prefText(c.sub_position)})`), "는 ", h("b", { class: "pref-text sub" }, "1.25배"), "입니다."] : null));
     $("#st-rows").replaceChildren(resetStatsBtn(() => $("#dlg-stats").close()) || "", ...Object.keys(add).map(k => h("div", { class: "alloc" },
-      h("div", {}, h("strong", {}, label[k]), pref.has(k) ? h("span", { class: "badge", style: "margin-left:6px;font-size:12px" }, "선호") : null,
+      h("div", {}, h("strong", { class: prefCls(c, k) ? "pref-text" + (prefCls(c, k).includes("sub") ? " sub" : "") : null }, label[k]), prefCls(c, k) ? h("span", { class: "badge pref-badge" + (prefCls(c, k).includes("sub") ? " sub" : ""), style: "margin-left:6px;font-size:12px" }, prefCls(c, k).includes("sub") ? "서브 선호" : "선호") : null,
         h("small", { class: "hint" }, desc[k])),
       h("div", { class: "alloc-ctl" },
         h("button", { type: "button", class: "btn ghost small", disabled: add[k] === 0, "aria-label": `${label[k]} 빼기`,
           onclick: () => { add[k]--; paint(); } }, "−"),
-        h("span", { class: "alloc-val" }, String(c[k] + add[k] * per[k]),
+        h("span", { class: "alloc-val" + (prefCls(c, k) ? " pref-text" + (prefCls(c, k).includes("sub") ? " sub" : "") : "") }, String(c[k] + add[k] * per[k]),
           add[k] ? h("small", { class: "plus" }, ` +${add[k] * per[k]}`) : null),
         h("button", { type: "button", class: "btn ghost small", disabled: used >= c.stat_points, "aria-label": `${label[k]} 더하기`,
           onclick: () => { add[k]++; paint(); } }, "+")))));
@@ -7527,7 +7605,7 @@ function openHunter() {
   sbox.replaceChildren(
     h("div", { class: "stats", style: "margin:0 0 10px" }, ...STAT_ORDER.map(k => {
       const total = state.stats?.[k] ?? c[k], bonus = total - c[k];
-      return h("div", { class: "stat", title: bonus ? `기본 ${c[k]} + 장비 ${bonus}` : null },
+      return h("div", { class: "stat" + prefCls(c, k), title: [prefCls(c, k) ? (prefCls(c, k).includes("sub") ? "서브 포지션 선호 스탯" : "선호 스탯") : "", bonus ? `기본 ${c[k]} + 장비 ${bonus}` : ""].filter(Boolean).join(" · ") || null },
         h("b", {}, String(total)), h("small", {}, k.toUpperCase()),
         bonus ? h("small", { class: "plus", style: "display:block;letter-spacing:0" }, `+${bonus}`) : null);
     })),
@@ -7943,7 +8021,9 @@ const DOCS = {
 <ol start="4"><li><b>DEF</b></li></ol>
 <p>외부 충격을 얼마나 상쇄할 수 있는 지에 대한 척도로, 기본 10으로 시작하며 스탯 1 포인트 당 1이 오릅니다.</p>
 <ol start="5"><li><b>LUK</b></li></ol>
-<p>이능력을 얼마나 적재적소에 사용할 수 있는 지에 대한 척도로,  높을수록 치명타 확률이 증가합니다. 던전에서 함정을 만날 경우, 해당 확률에 따라 회피할 수 있습니다. 기본 5로 시작하며 스탯 1포인트 당 1이 오릅니다.</p></div></details>
+<p>이능력을 얼마나 적재적소에 사용할 수 있는 지에 대한 척도로,  높을수록 치명타 확률이 증가합니다. 던전에서 함정을 만날 경우, 해당 확률에 따라 회피할 수 있습니다. 기본 5로 시작하며 스탯 1포인트 당 1이 오릅니다.</p>
+<h3>스탯에 따른 전투력</h3>
+<ul><li>다섯 스탯은 모두 <b>전투력</b>을 올립니다. 전투력이 높을수록 무한 던전에서 한 역을 더 빨리 정리하고, 지역 안정화에서는 전투가 짧아져 피해를 줄입니다.</li><li>스탯 1포인트당 전투력이 오르는 정도는 <b>DEF가 가장 크고</b>, ATK가 그다음이며, HP · MP · LUK는 비슷합니다. 포지션의 선호 스탯은 더 크게 반영됩니다.<br><i>*스탯별로 전투력이 오르는 비율의 차이는 포지션마다 무한 던전의 공략 수준을 맞추고자 두었습니다.</i></li><li><b>HP</b>: 최대 HP가 늘어 한 역에서 잃는 HP 비율이 줄고, 그만큼 무한 던전에서 <b>휴식을 덜 합니다.</b> <b>&#39;더는 버티기 어려워 복귀&#39;하게 되는 역도 늦춰집니다.</b></li><li><b>MP</b>: 무한 던전은 역마다 MP를 쓰므로, <b>MP가 많을수록 MP가 떨어져 쉬는 일이 줄어듭니다. </b>힐<b>러 · 서포터는 포지션 능력을 더 오래 쓸 수 있습니다.</b></li><li><b>ATK</b>: 전투력을 올려 <b>한 역을 더 빨리 공략</b>합니다.</li><li><b>DEF</b>: 받는 피해를 줄이는 동시에 전<b>투력도 가장 크게 올립니다.</b> 역 정리가 빨라지고 휴식이 줄며 &#39;더는 버티기 어려워 복귀&#39;하게 되는 역도 늦춰집니다. <b>탱커가 공략 속도를 올리기 좋은 스탯입니다.</b></li><li><b>LUK</b>: <b>치명타 확률</b>이 올라 전투력이 오르고, 지<b>역 안정화의 함정을 피할 확률</b>도 오릅니다.</li><li><b>지역 안정화</b>는 공략 시간이 등급마다 정해져 있어 스탯이 시간을 줄이지는 않고, <b>대신 성공률을 올립니다.</b></li></ul></div></details>
 <details class="g-sub"><summary>전력 분석</summary><div class="g-sub-body"><p>공략 활동을 진행하면서, 헌터님 스스로 자신의 전력을 되돌아볼 수 있습니다.</p>
 <p>홈 탭의 전력 분석에서  <b>5분 단위로 최대 180분까지 특정 스탯 분석</b>이 가능하며, <b>일정 시간을 들여 한 단계를 넘어섰을 경우, 해당 스탯의 1 포인트가 영구 상승</b>합니다.</p>
 <p>전력 분석은 <b>공략 활동(무한 던전·탐색·별의 무덤·별의 제단·지역 안정화·레이드)과 동시 진행이 가능</b>합니다.</p>
@@ -7958,7 +8038,7 @@ const DOCS = {
 <p><i>*딜러 포지션을 메인과 서브로 모두 선택할 경우(갤-갤, 스-스, 갤-스, 스-갤), 피격 시 60% 확률로 혈투 발동</i></p>
 <h3>탱커</h3>
 <ul><li>적의 공격에도 무너지지 않는 헌터</li><li><b>선호 스탯</b><b> HP·DEF</b> </li></ul>
-<ol><li><b>뱅가드</b><ul><li>가장 앞으로 나서 적의 시선을 끄는 헌터</li><li><b>50% 확률로 도발</b>하여 HP가 가장 적은 아군 1명 <b>대신 피격</b><br><b>1인 공략 시, 10% 확률로 공격 회피</b><br><b>무한 던전</b>에서, <b>1인 공략 시, 직전 역에서 회피하지 못했다면 휴식 회복 속도 1.5배 </b><br><b>무한 던전</b>에서, <b>파티 공략 시, 아군의 피해 50%를 자신의 DEF에 따라 피해 감수(상시)</b></li><li>서브 포지션 선택 시, 25% 확률로 도발하여 HP가 가장 적은 아군 1명 <b>대신 피격</b><br><b>1인 공략 시, 5% 확률로 공격 회피</b><br><b>무한 던전</b>에서, <b>1인 공략 시, 직전 역에서 회피하지 못했다면 휴식 회복 속도 1.5배 </b><br><b>무한 던전</b>에서, <b>파티 공략 시, 아군의 피해 25</b><b>%를 자신의 DEF에 따라 피해 감수(상시)</b></li></ul></li></ol>
+<ol><li><b>뱅가드</b><ul><li>가장 앞으로 나서 적의 시선을 끄는 헌터</li><li><b>50% 확률로 도발</b>하여 HP 비율이 가장 낮은 아군 1명 <b>대신 피격</b><br><b>1인 공략 시, 10% 확률로 공격 회피</b><br><b>무한 던전</b>에서, <b>1인 공략 시, 직전 역에서 회피하지 못했다면 휴식 회복 속도 1.5배 </b><br><b>무한 던전</b>에서, <b>파티 공략 시, 아군의 피해 50%를 자신의 DEF에 따라 피해 감수(상시)</b></li><li>서브 포지션 선택 시, 25% 확률로 도발하여 HP 비율이 가장 낮은 아군 1명 <b>대신 피격</b><br><b>1인 공략 시, 5% 확률로 공격 회피</b><br><b>무한 던전</b>에서, <b>1인 공략 시, 직전 역에서 회피하지 못했다면 휴식 회복 속도 1.5배 </b><br><b>무한 던전</b>에서, <b>파티 공략 시, 아군의 피해 25</b><b>%를 자신의 DEF에 따라 피해 감수(상시)</b></li></ul></li></ol>
 <p><i>*지역 안정화에서, </i><i>파티에 뱅가드가 여러 명 존재할 경우, 도발 대상은 중첩되지 않음</i></p>
 <ol start="2"><li><b>시타델</b><ul><li>적의 공격으로부터 수호하는 헌터</li><li>아군이 N명일 때, <b>전원 받는 피해 -(20÷N)%</b><br><b>지역 안정화</b>에서, 아군이 N명일 때, <b>전원 받는 피해 -(10÷N)%를 상시 발동 후 구역마다 MP 5를 소모하여 전원 받는 피해 -(10÷N)% 추가</b></li><li>서브 포지션 선택 시, 아군이 N명일 때, <b>전원 받는 피해 -(10÷N)%</b><br><b>지역 안정화</b>에서, 아군이 N명일 때, <b>전원 받는 피해 -(5÷N)%를 상시 발동 후 구역마다 MP 5를 소모하여 전원 받는 피해 -(5÷N)% 추가</b></li></ul></li></ol>
 <p><i>*파티에 시타델이 여러 명 존재할 경우, 받는 피해 최대 -60%까지 적용. 지역 안정화에서는 최대 -30%까지 적용</i></p>
@@ -7967,12 +8047,12 @@ const DOCS = {
 <ol><li><b>카탈리스트</b><ul><li>아군의 능력을 극대화하는 헌터</li><li><b>전투</b><b>력이 가장 높은 </b><b>아군 1명의 ATK·DEF +30%<br>1인 공략 시</b>, <b>자신의 ATK에 MP의 20% 더하여 보정(최대 +12) 및 공격 </b><b>데미지+10% 보정</b><br><b>지역 안정화</b>에서, <b>구역마다 MP 5를 소모</b>하여 능력 발동<br><b>지역 안정화</b>에서, <b>1인 공략 시</b>, <b>받는 피해 -10% 보정</b></li><li>서브 포지션 선택 시, 전투력이 가장 높은 <b>아군 1명의 ATK·DEF +15</b><b>%</b><br><b>1인 공략 시</b>, <b>자신의 ATK에 MP의 10% 더하여 보정(최대 +12) 및 공격 </b><b>데미지+5% 보정</b><br><b>지역 안정화</b>에서, <b>구역마다 MP 5를 소모</b>하여 능력 발동<br><b>지역 안정화</b>에서, <b>1인 공략 시</b>, <b>받는 피해 -5% 보정</b></li></ul></li></ol>
 <p>*전투력은 장비를 포함한 5가지 스탯에 선호 스탯 · 치명타 · 딜러의 주는 피해 보정까지 반영한 값으로 계산</p>
 <p><i>*파티에 카탈리스트가 여러 명 존재할 경우, 최대 2명까지</i><i> 동일 아군에게 강화 중첩(최대 +69%)</i></p>
-<ol start="2"><li><b>아티피스</b><ul><li>적의 능력을 무력화시키는 헌터</li><li><b>해당 구역 및 역에 존재하는 </b><b>적의 ATK·DEF -20%</b><br><b>파티 공략 시, 적 약화 대신 </b><b>최대 </b><b>HP가 가장 낮은 아군이 받는 피해 -20%</b><br><b>지역 안정화</b>에서 <b>구역마다 MP 5를 소모</b>하여 능력 발동<br>레이드에서, 보스 공격 -20%, 파티가 주는 피해 +15% </li><li>서브 포지션 선택 시, <b>해당 구역 및 역에 존재하는 </b><b>적의 ATK·DEF -10%</b><br><b>파티 공략 시, 적 약화 대신 </b><b>최대 </b><b>HP가 가장 낮은 아군이 받는 피해 -10%</b><br><b>지역 안정화</b>에서, <b>구역마다 MP 5를 소모</b>하여 능력 발동<br>레이드에서, 보스 공격 -10%, 파티가 주는 피해 7.5%</li></ul></li></ol>
-<p><i>*파티에 아티피스가 여러 명 존재할 경우, 피해 감소 대상은 중첩 가능</i></p>
+<ol start="2"><li><b>아티피스</b><ul><li>적의 능력을 무력화시키는 헌터</li><li><b>해당 구역 및 역에 존재하는 </b><b>적의 ATK·DEF -20%</b><br><b>파티 공략 시, 적 약화 대신 </b><b>최대 </b><b>HP가 가장 낮은 아군이 받는 피해 -20%</b><br><b>지역 안정화</b>에서 <b>구역마다 MP 5를 소모</b>하여 능력 발동<br>레이드에서, 보스 공격 -20%, 파티가 주는 피해 +15% </li><li>서브 포지션 선택 시, <b>해당 구역 및 역에 존재하는 </b><b>적의 ATK·DEF -10%</b><br><b>파티 공략 시, 적 약화 대신 </b><b>최대 </b><b>HP가 가장 낮은 아군이 받는 피해 -10%</b><br><b>지역 안정화</b>에서, <b>구역마다 MP 5를 소모</b>하여 능력 발동<br>레이드에서, 보스 공격 -10%, 파티가 주는 피해 +7.5%</li></ul></li></ol>
+<p><i>*파티에 아티피스가 여러 명 존재할 경우, 무한 던전에서는 같은 아군에게 피해 감소가 중첩될 수 있으며, 지역 안정화에서는 아티피스마다 서로 다른 아군을 보호</i></p>
 <p><i>*지역 안정화에서 구역마다 </i><i> MP 5를 소모하는 포지션을 메인과 서브에 동시에 가진 경우(예: 시타델-아티피스)</i><i>, MP 5를 소모하여 동시 발동</i></p>
 <h3>힐러</h3>
 <ul><li>아군이 지치지 않도록 독려하는 헌터</li><li><b>선</b><b>호 스탯</b><b> MP·HP</b></li></ul>
-<ol><li>리커버리<ul><li>아군의 부상을 치유하는 헌터</li><li><b>아군의 HP가 50% 미만일 경우, MP 5를 소모하여 HP 30% 회복</b><p><b>지역 안정화</b>에서, <b>공략마다 인원 수만큼</b>(혼자면 1번), <b>HP 15% 회복</b></p></li><li>서브 포지션 선택 시, 아군의 HP가 50% 미만일 경우, MP 5를 소모하여 <b>HP 15% 회복</b><br>지역 안정화에서, 공략마다 인원 수만큼(혼자면 1번), <b>HP 7.5% 회복</b></li></ul></li><li>서플라이<ul><li>아군의 이능력 한도를 늘리는 헌터</li><li><b>아군의 MP가 30% 미만일 경우, MP 5를 소모하여 MP 30% 회복</b><br><b>위 대상이 없으며 자신의 MP가</b> <b>30% 이상인 경우,</b><b> MP 5를 소모하여 HP가 가장 낮은 아군의 HP 15% 회복</b>(구역 및 역마다 1번)<br>레이드에서, HP 15% 회복은 4턴마다 1회 발동</li><li>서브 포지션 선택 시, 아군의 MP가 30% 미만일 경우, MP 5를 소모하여 <b>MP 15% 회복</b><br>위 대상이 없으며 자신의 MP가 30% 이상인 경, MP 5를 소모하여 HP가 가장 낮은 아군의<b> HP 7.5% 회복</b>(구역 및 역마다 1번)<br>레이드에서, HP 7.5% 회복은 4턴마다 1회 발동</li></ul></li></ol></div></details>
+<ol><li>리커버리<ul><li>아군의 부상을 치유하는 헌터</li><li><b>아군의 HP가 50% 미만일 경우, MP 5를 소모하여 HP 30% 회복</b><p><b>지역 안정화</b>에서, <b>공략마다 인원 수만큼</b>(혼자면 1번), <b>HP 15% 회복</b></p></li><li>서브 포지션 선택 시, 아군의 HP가 50% 미만일 경우, MP 5를 소모하여 <b>HP 15% 회복</b><br>지역 안정화에서, 공략마다 인원 수만큼(혼자면 1번), <b>HP 7.5% 회복</b></li></ul></li><li>서플라이<ul><li>아군의 이능력 한도를 늘리는 헌터</li><li><b>아군의 MP가 30% 미만일 경우, MP 5를 소모하여 MP 30% 회복</b><br><b>위 대상이 없으며 자신의 MP가</b> <b>30% 이상인 경우,</b><b> MP 5를 소모하여 HP가 가장 낮은 아군의 HP 15% 회복</b>(구역 및 역마다 1번)<br>레이드에서, HP 15% 회복은 4턴마다 1회 발동</li><li>서브 포지션 선택 시, 아군의 MP가 30% 미만일 경우, MP 5를 소모하여 <b>MP 15% 회복</b><br>위 대상이 없으며 자신의 MP가 30% 이상인 경우, MP 5를 소모하여 HP가 가장 낮은 아군의<b> HP 7.5% 회복</b>(구역 및 역마다 1번)<br>레이드에서, HP 7.5% 회복은 4턴마다 1회 발동</li></ul></li></ol></div></details>
 <details class="g-sub"><summary>프로필 사진·소개</summary><div class="g-sub-body"><p>프로필 사진과 캐릭터 소개를 바꿀 수 있습니다. </p>
 <ul><li>프로필 사진은 1:1의 이미지나 단색으로 설정이 가능합니다.</li><li>사진을 직접 그리지 않았다면 세부 정보의 <b>프로필 사진 출처</b>에 그린 분이나 만든 곳을 적을 수 있습니다. </li><li>소개는 &#39;모두 공개&#39;, &#39;친구 공개&#39;, &#39;나만 보기&#39;의 공개 범위에 따라 원하는 곳에 특징을 적을 수 있습니다.</li></ul></div></details>
 <details class="g-sub"><summary>타이틀</summary><div class="g-sub-body"><p>특정 행동을 반복한 경우, 타이틀을 획득할 수 있습니다.</p>
@@ -7984,7 +8064,7 @@ const DOCS = {
 <p>재개방된 무한 던전에서는 세 가지 활동이 가능합니다.</p>
 <details class="g-sub"><summary>전투</summary><div class="g-sub-body"><p>각 역을 공략하며 한계까지 진입하는 공략 활동입니다. <b>최소 6시간부터 최대 12시간 동안 공략이 가능하며, 창을 닫아도 진행</b>됩니다. </p>
 <ol><li>진입 전, <b>최대 3가지의 아이템을 종류당 5개까지 보급품</b>으로 챙겨갈 수 있습니다. 남은 아이템은 다시 인벤토리에 회수됩니다.</li><li>역을 공략하며 <b>HP·MP가 부족할 경우 보급품을 먼저 사용</b>하고, 이후에는 역 공략이 끝난 뒤 <b>휴식을 취하며 진입</b>합니다.</li><li>역마다 1~2마리의 몬스터 또는 보스 몬스터를 조우하여 전투를 진행합니다. 보스 몬스터의 난이도가 높지만 보상이 더 많습니다.</li><li>시간이 다 되었거나, 더 버티기 어려우면 복귀합니다. 결과를 수령하기 전에, <b>[조금 더 진입]</b>으로 한계 이상까지 도전이 가능합니다. <b>50% 확률로 성공하면 추가 보상을 받을 수 있지만, 실패할 경우 보상의 20%를 잃고 던전 구조대의 구조를 받아 복귀</b>합니다.</li><li>매주 공략한 역의 수를 기록하여 순위가 기록됩니다. 순위에 따른 보상은 아직 준비 중입니다.</li></ol>
-<ul><li><b>벽에 막혀 복귀하는 기준</b> — 다음 역에 들어가기 전, 그 역에서 만날 적 전부에게 받을 피해를 합쳐 봅니다. 이 피해가 <b>헌터님의 최대 HP의 70%를 넘으면</b> 더는 버틸 수 없다고 보고 그 자리에서 복귀합니다. 피해는 역이 깊어질수록 커지며, 보스 몬스터가 나오는 역에서 가장 큽니다.</li><li>이 판단은 HP가 가득 찬 상태를 기준으로 하므로 <b>보급품이나 휴식으로는 벽을 넘을 수 없습니다.</b> 보급품은 휴식 시간을 줄여 정한 시간 안에 더 멀리 가게 해 줍니다. 벽을 넘으려면 받는 피해를 줄이는 DEF, 적을 빨리 처치하는 공격력, 버틸 수 있는 최대 HP를 올려야 하며, 벽에 막혀 돌아오면 결과 화면에서 어떤 스탯이 필요한지 안내해 드립니다.</li><li><b>보급품 사용기준</b> — 벽에 막히지 않았다면, 들어가기 전에 그 역의 피해를 받고 남을 HP를 미리 따져 봅니다.<ul><li><b>HP</b>: 남을 HP가 <b>최대 HP의 30%보다 적을 것 같으면</b> HP 보급품을 하나씩 씁니다. 순서는 안정 앰플 → 별조각 사탕 → 은하수 이슬이며, 충분해지면 멈춥니다. 힐러 포지션은 전투 중에 쓸 수 있는 회복까지 감안해 판단합니다.</li><li><b>MP</b>: MP가 다 떨어졌으면 각성 앰플 → 은하수 이슬 순서로 씁니다.</li><li>보급품을 다 써도 부족하면 그 자리에서 <b>휴식</b>해 HP·MP를 가득 채운 뒤 들어갑니다. 이때 <b>맥동하는 마석</b>을 챙겼다면 하나를 써서 휴식 시간을 절반으로 줄입니다.</li><li>파티로 공략할 때는 파티장이 챙긴 보급품을 함께 쓰며, HP·MP가 부족해진 파티원에게 먼저 씁니다.</li></ul></li></ul></div></details>
+<ul><li><b>벽에 막혀 복귀하는 기준</b> — 다음 역에 들어가기 전, 그 역에서 만날 적 전부에게 받을 피해를 합쳐 봅니다. 이 피해가 <b>헌터님의 최대 HP의 70%를 넘으면</b> 더는 버틸 수 없다고 보고 그 자리에서 복귀합니다. 피해는 역이 깊어질수록 커지며, 보스 몬스터가 나오는 역에서 가장 큽니다.</li><li>이 판단은 HP가 가득 찬 상태를 기준으로 하므로 <b>보급품이나 휴식으로는 벽을 넘을 수 없습니다.</b> 보급품은 휴식 시간을 줄여 정한 시간 안에 더 멀리 가게 해 줍니다. 벽을 넘으려면 받는 피해를 줄이는 DEF, 적을 빨리 처치하는 공격력, 버틸 수 있는 최대 HP를 올려야 하며, 벽에 막혀 돌아오면 결과 화면에서 어떤 스탯이 필요한지 안내해 드립니다.</li><li><b>보급품 사용기준</b> — 벽에 막히지 않았다면, 들어가기 전에 그 역의 피해를 받고 남을 HP를 미리 따져 봅니다.<ul><li><b>HP</b>: 남을 HP가 <b>최대 HP의 30%보다 적을 것 같으면</b> HP 보급품을 하나씩 씁니다. 순서는 안정 앰플 → 별조각 사탕 → 은하수 이슬이며, 충분해지거나 <b>HP가 가득 차면 멈춥니다</b>. 힐러 포지션은 전투 중에 쓸 수 있는 회복까지 감안해 판단합니다.</li><li><b>MP</b>: MP가 다 떨어졌으면 각성 앰플 → 은하수 이슬 순서로 씁니다.</li><li>보급품을 다 써도 부족하면 그 자리에서 <b>휴식</b>해 HP·MP를 가득 채운 뒤 들어갑니다. 이때 <b>맥동하는 마석</b>을 챙겼다면 하나를 써서 휴식 시간을 절반으로 줄입니다.</li><li>파티로 공략할 때는 파티장이 챙긴 보급품을 함께 쓰며, HP·MP가 부족해진 파티원에게 먼저 씁니다.</li></ul></li></ul></div></details>
 <details class="g-sub"><summary>구조 요청</summary><div class="g-sub-body"><p>전투로 진입해 있는 동안 <b>3시간마다, 그리고 복귀 30분 전에 한 번 더</b> 다른 파티의 [구조 요청]이 들어오고 알림으로 알려 드립니다. </p>
 <ul><li>무한 던전 화면에서 [구조하러 가기]를 누르면 20초 동안 3×3 칸에 마물과 헌터가 번갈아 나타나며, <b>마물만 눌러 처치</b>해야 합니다.</li><li>마물을 60% 이상 처치하고 헌터를 1번까지만 잘못 누르면 감사의 선물로 소비 아이템 1개를 받습니다. 구조에 실패하거나 요청을 놓쳐도 무한 던전 공략에는 아무 영향이 없습니다. 다만 <b>요청은 들어온 뒤 10분 동안만</b> 받을 수 있고, 그 뒤에는 지나갑니다.</li></ul></div></details>
 <details class="g-sub"><summary>탐색</summary><div class="g-sub-body"><p><b>하루 최대 3번 무한 던전의 역 하나에 진입하여 아이템을 파밍</b>할 수 있습니다. </p>
@@ -8034,7 +8114,7 @@ const DOCS = {
 <section class="card prose g-cat" id="g-inv" data-cat="inv">
 <h2 class="g-cat-title">인벤토리</h2>
 <p>인벤토리 메뉴에서는 현재 가지고 있는 아이템, 상점, 조합, 거래소를 이용할 수 있습니다.</p>
-<details class="g-sub"><summary>보유</summary><div class="g-sub-body"><ul><li>현재 가지고 있는 장비, 소비, 재료 아이템을 확인 및 판매할 수 있습니다. </li><li>장비의 경우 D급 1개부터 차례로 장비 등급이 오를 때마다 1개씩 더해지는 별가루와 재화를 소모하여 강화가 가능합니다. 6강부터는 동일한 장비를 추가 재료로 요구합니다.</li><li>조합으로 만드는 버프 아이템을 쓰면 정해진 시간 동안 가능성이나 메헨을 더 얻거나, 능력치가 오르는 등의 효과가 이어집니다. 인벤토리의 [버프] 분류에서 [사용]을 누르면 바로 켜지고, 켜진 버프와 남은 시간은 헌터 정보와 인벤토리 위쪽에 보입니다.</li><li><b>버프는 가능성 · 메헨 · 능력치 · 편의 · 전력 분석 종류마다 하나만 적용됩니다</b><b>. </b>같은 아이템을 또 쓰면 남은 시간이 늘어나고, 같은 종류의 다른 아이템을 쓰면 그 효과로 바뀝니다.</li><li><b>지역 안정화와 무한 던전은 공략을 시작할 때 켜져 있던 버프가 그 공략 전체에 적용</b>됩니다. 공략 중에 버프 시간이 끝나도 결과에는 그대로 반영됩니다.</li></ul></div></details>
+<details class="g-sub"><summary>보유</summary><div class="g-sub-body"><ul><li>현재 가지고 있는 장비, 소비, 재료 아이템을 확인 및 판매할 수 있습니다. </li><li>장비의 경우 D급 1개부터 차례로 장비 등급이 오를 때마다 1개씩 더해지는 별가루와 재화를 소모하여 강화가 가능합니다. 6강부터는 동일한 장비를 추가 재료로 요구합니다.</li><li>조합으로 만드는 버프 아이템을 쓰면 정해진 시간 동안 가능성이나 메헨을 더 얻거나, 능력치가 오르는 등의 효과가 이어집니다. 인벤토리의 [버프] 분류에서 [사용]을 누르면 바로 켜지고, 켜진 버프와 남은 시간은 헌터 정보와 인벤토리 위쪽에 보입니다.</li><li><b>버프는 가능성 획득 증가 </b><b>· 메헨 획득 증가 </b><b>· 스탯 상승 · 무한 던전 휴식 시간 감소</b><b> · 아이템 드롭 확률 증가·가 </b><b>전력 분석 시간 감소 </b><b>종류가 있으며, 종류</b><b>마다 하나만 적용됩니다</b><b>. </b><br>(예: 가능성 획득 +10% 아이템과 메헨 획득 5% 획득 아이템 모두 사용할 경우, 각 버프가 모두 적용)<br>같은 아이템을 또 쓰면 남은 시간이 늘어나고, 같은 종류의 다른 아이템을 쓰면 그 효과로 바뀝니다.<br>(예: ATK +5% 버프 상태에서 DEF +5% 버프 아이템 사용 시, DEF +5%만 적용)</li><li><b>지역 안정화와 무한 던전은 공략을 시작할 때 켜져 있던 버프가 그 공략 전체에 적용</b>됩니다. 공략 중에 버프 시간이 끝나도 결과에는 그대로 반영됩니다.</li><li>무한 던전을 파티로 공략할 때, 파티 전체가 함께 쉬는 <b>휴식 시간 감소 버프 아이템은 파티장의 버프만 적용</b>됩니다.</li></ul></div></details>
 <details class="g-sub"><summary>조합</summary><div class="g-sub-body"><ul><li>2~3개의 재료 아이템을 합쳐 새로운 아이템을 획득할 수 있습니다. 처음 성공한 조합식은 도감 및 조합 메뉴에 기록되어 계속 참고할 수 있습니다.</li><li>조합식이 틀려도 아이템이 사라지진 않으나, <b>조합 중 1% 확률로 아이템이 대실패하여 재료 아이템이 모두 파괴</b>되는 경우가 존재합니다. 반대로, <b>조합 성공 시 5% 확률로 아이템을 2개 획득할 수 있는 대성공</b> 현상도 관측되고 있습니다.</li><li>공략 기록이나 탐색 중에 <b>벽에 새겨진 낙서</b>를 발견할 때가 있습니다. 아직 모르는 조합식을 빗대어 적은 것이 많으며, 발견한 낙서는 도감의 조합식 설명에 남습니다.</li><li>알게 된 조합식은 [칸 채우기] 기능을 통해 자동으로 재료 아이템을 채울 수 있습니다.</li><li>알게 된 조합식은 전체 · 장비 · 소비로 나누어 볼 수 있고, 아이템 이름으로 검색하면 결과뿐 아니라 재료에 그 아이템이 들어간 조합식도 찾아 줍니다.</li><li>[칸 채우기] 옆 칸에 횟수를 정하면 가진 재료만큼 여러 번을 한꺼번에 조합할 수 있습니다. 한꺼번에 조합해도 대실패와 대성공은 한 번마다 따로 정해집니다. 장비가 재료로 들어가는 조합식은 강화 단계가 낮은 장비부터 사용합니다.</li></ul></div></details>
 <details class="g-sub"><summary>분해</summary><div class="g-sub-body"><ul><li>조합식을 알고 있는 아이템을 분해할 수 있습니다. <b>하나를 분해할 때마다 그 조합식에 들어간 재료 중 1개를 무작위로 돌려받습니다. </b></li><li>장착 중인 장비는 분해할 수 없으며, 강화된 장비를 분해하면 강화 단계는 사라지지만, 강화에 쓴 별가루를 1개부터 전부까지 무작위로 돌려받습니다.</li></ul></div></details>
 <details class="g-sub" data-patch><summary>장비 숙련도</summary><div class="g-sub-body"><ul><li>장비를 장착한 채로 지역 안정화나 무한 던전 결과를 받을 때마다 그 장비의 숙련이 쌓입니다. </li><li>오래 함께한 장비에는 이름 옆에 ★이 붙고, 별은 최대 5개까지 늘어납니다. 장비가 다른 헌터에게 넘어가면 숙련은 처음부터 다시 쌓입니다.</li></ul></div></details>
@@ -9080,7 +9160,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-13-0110";
+const BUILD = "2026-11-13-1650";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
