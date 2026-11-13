@@ -2788,12 +2788,14 @@ function battleState(events, mode, fallbackMe) {
   return { me, foes, party, fx };
 }
 // 버프/디버프 기호: ▲ 아군 지원 · ◇ 아티피스 보호 · ▣ 받는 피해 감소 · ▼ 적 약화
-const FX_INFO = { atk: ["▲", "아군 지원 (ATK·DEF 증가, 숫자는 증가율)"], grd: ["◇", "아티피스 보호 (받는 피해 -20%)"], cut: ["▣", "받는 피해 감소"], weak: ["▼", "적 약화 (ATK·DEF -20%)"] };
+const FX_INFO = { atk: ["▲", "아군 지원 (ATK·DEF 증가, 숫자는 증가율)"], grd: ["◇", "아티피스 보호 (받는 피해 감소, 숫자는 감소율)"], cut: ["▣", "받는 피해 감소"], weak: ["▼", "적 약화 (ATK·DEF 감소, 숫자는 감소율)"],
+  rweak: ["▼", "보스 약화 (보스 공격 감소, 숫자는 감소율)"], cat: ["✚", "카탈리스트 1인 보정"] };
 function fxBadges(f, used) {
   if (!f) return null;
   const out = [];
   if (f.atk) { used.add("atk"); out.push(h("span", { title: `아군 지원 ATK·DEF +${f.atkp ?? 30}%${f.atk > 1 ? ` (카탈리스트 ${f.atk}명)` : ""}` }, `▲${f.atkp ?? 30}`)); }
-  if (f.grd) { used.add("grd"); out.push(h("span", { title: FX_INFO.grd[1] }, "◇")); }
+  if (!f.atk && f.catmp != null) { used.add("cat"); out.push(h("span", { title: `카탈리스트 1인 보정: ATK +${f.catmp}(MP)${f.catdmg ? `, 주는 피해 +${f.catdmg}%` : ""}` }, "✚")); }
+  if (f.grd) { used.add("grd"); out.push(h("span", { title: `아티피스 보호 받는 피해 -${f.grdp ?? 20}%` }, `◇${f.grdp ?? 20}`)); }
   if (f.cut) { used.add("cut"); out.push(h("span", { title: `받는 피해 -${f.cut}%` }, `▣${f.cut}`)); }
   return out.length ? h("span", { class: "bt-fx", "aria-label": out.map(x => x.title).join(", ") }, ...out) : null;
 }
@@ -2815,17 +2817,19 @@ function buffBadges(list, used) {
 let btPop = null;
 function closeBtPop() { btPop?.remove(); btPop = null; }
 document.addEventListener("click", e => { if (btPop && !e.target.closest(".bt-pop, .bt-who")) closeBtPop(); });
-function btPopFor(anchor, name, fx, em, eff) {
+function btPopFor(anchor, name, fx, em, eff, foeFx) {
   closeBtPop();
   const rows = [];
   if (em?.main_position) rows.push(h("p", {}, h("b", {}, "포지션 "), posLabel(em.main_position, em.main_option),
     em.sub_position ? ` / 서브 ${posLabel(em.sub_position, em.sub_option)}` : ""));
   const fxs = [];
+  if (fx && !fx.atk && fx.catmp != null) fxs.push(`카탈리스트 1인 보정: ATK +${fx.catmp}(MP)${fx.catdmg ? `, 주는 피해 +${fx.catdmg}%` : ""}`);
   if (fx?.atk) fxs.push(`${fx.catmp != null ? "카탈리스트 1인 보정: " : "아군 지원 "}ATK·DEF +${fx.atkp ?? 30}%${fx.atk > 1 ? ` (카탈리스트 ${fx.atk}명)` : ""}`
     + (fx.catmp ? `, ATK +${fx.catmp}(MP)` : "") + (fx.catdmg ? `, 주는 피해 +${fx.catdmg}%` : "") + (fx.catcut ? `, 받는 피해 -${fx.catcut}%` : ""));
   if (fx?.cut) fxs.push(`받는 피해 -${fx.cut}%`);
-  if (fx?.grd) fxs.push("아티피스 보호 (받는 피해 -20%)");
-  if (fx?.weak) fxs.push("적 약화 (ATK·DEF -20%)");
+  if (fx?.grd) fxs.push(`아티피스 보호 (받는 피해 -${fx.grdp ?? 20}%)`);
+  if (fx?.weak) fxs.push(`적 약화 (ATK·DEF -${fx.weakp ?? 20}%)`);
+  if (foeFx?.weak) fxs.push(`보스 약화 (보스 공격 -${foeFx.weakp}%${foeFx.weakdmg ? `, 파티가 주는 피해 +${foeFx.weakdmg}%` : ""})`);
   rows.push(h("p", {}, h("b", {}, "지금 받는 효과 "), fxs.length ? fxs.join(" · ") : "없음"));
   const bl = (em?.buffs || []).filter(b => b.effect);
   rows.push(h("p", { style: "margin-bottom:2px" }, h("b", {}, "버프 "), bl.length ? null : "없음"));
@@ -2851,9 +2855,9 @@ function battleBars(st, myName, eff) {
     const fx = st.party ? st.fx?.[m.n] : myFx, em = effOf(m.n);
     const who = h("b", { class: "bt-who", tabindex: "0", role: "button", "aria-label": `${m.n} 적용 상태 보기` }, m.n,
       m.down || m.hp <= 0 ? null : fxBadges(fx, used), m.down || m.hp <= 0 ? null : buffBadges(em?.buffs, used));
-    who.onclick = e => { e.stopPropagation(); if (btPop?.dataset.pin === m.n) return closeBtPop(); btPopFor(who, m.n, fx, em, eff); btPop.dataset.pin = m.n; };
+    who.onclick = e => { e.stopPropagation(); if (btPop?.dataset.pin === m.n) return closeBtPop(); btPopFor(who, m.n, fx, em, eff, st.foeFx); btPop.dataset.pin = m.n; };
     who.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); who.click(); } };
-    if (matchMedia("(hover: hover)").matches) { who.onmouseenter = () => btPopFor(who, m.n, fx, em, eff); who.onmouseleave = () => { if (!btPop?.dataset.pin) closeBtPop(); }; }
+    if (matchMedia("(hover: hover)").matches) { who.onmouseenter = () => btPopFor(who, m.n, fx, em, eff, st.foeFx); who.onmouseleave = () => { if (!btPop?.dataset.pin) closeBtPop(); }; }
     return h("div", { class: `bt-unit${m.down || m.hp <= 0 ? " down" : ""}` },
     h("div", { class: "bt-name" }, who, h("span", {}, m.down || m.hp <= 0 ? "쓰러짐" : `HP ${m.hp}/${m.mhp} · MP ${m.mp ?? "-"}/${m.mmp ?? "-"}`)),
     h("div", { class: "gauge hp", title: "HP" }, h("i", { style: `width:${m.down ? 0 : pct(m.hp, m.mhp)}%` })),
@@ -2861,7 +2865,8 @@ function battleBars(st, myName, eff) {
   const allies = st.party || (st.me ? [{ n: myName, ...st.me }] : []);
   const foe = f => h("div", { class: `bt-unit${f.hp <= 0 ? " dead" : ""}${f.boss ? " boss" : ""}` },
     h("div", { class: "bt-name" }, h("b", {}, (f.boss ? "보스 " : "") + f.n,
-      f.hp > 0 && myFx?.weak ? (used.add("weak"), h("span", { class: "bt-fx", title: FX_INFO.weak[1] }, "▼")) : null), h("span", {}, f.hp <= 0 ? "처치" : f.max > 1 ? `HP ${Math.round(f.hp)}/${Math.round(f.max)}` : "")),
+      f.hp > 0 && st.foeFx?.weak ? (used.add("rweak"), h("span", { class: "bt-fx", title: `보스 공격 -${st.foeFx.weakp}%${st.foeFx.weakdmg ? ` · 파티가 주는 피해 +${st.foeFx.weakdmg}%` : ""}` }, `▼${st.foeFx.weakp}`))
+        : f.hp > 0 && myFx?.weak ? (used.add("weak"), h("span", { class: "bt-fx", title: `적 ATK·DEF -${myFx.weakp ?? 20}%` }, `▼${myFx.weakp ?? 20}`)) : null), h("span", {}, f.hp <= 0 ? "처치" : f.max > 1 ? `HP ${Math.round(f.hp)}/${Math.round(f.max)}` : "")),
     h("div", { class: "gauge foe", title: "HP" }, h("i", { style: `width:${pct(f.hp, f.max)}%` })));
   const allySide = h("div", { class: "bt-side" }, h("p", { class: "bt-title" }, st.party ? `아군 · 파티 ${allies.length}명` : "아군"),
     ...(allies.length ? allies.map(ally) : [h("p", { class: "bt-empty" }, "준비 중")]));
@@ -5921,7 +5926,11 @@ function raidRunBox(run, w, off, refresh) {
     const dealt = lastAct?.dealt || 0;
     dealtEl.textContent = fmtN(dealt);
     const party = lastAct?.party || (run.kind === "raid" ? (run.members || []).map(m => ({ n: m.name, hp: 1, mhp: 1 })) : [{ n: state.profile?.codename || "나", ...(myStartBars() || {}) }]);
-    bars.replaceChildren(battleBars({ party, foes: [{ n: w.theme?.boss || "레이드 보스", boss: true, hp: Math.max(0, w.max_hp - before - dealt), max: w.max_hp }] }, state.profile?.codename || "나"));
+    const rfx = ev.find(e => e.type === "theme" && e.fx);
+    const me = state.profile?.codename;
+    const reff = rfx?.em ? { party: true, members: rfx.em.map(m => ({ ...m, me: m.name === me,
+      buffs: (m.buffs || []).map(x => ({ ...x, left_min: x.ends_at ? Math.max(0, Math.ceil((Date.parse(x.ends_at) - now) / 60e3)) : null })) })) } : null;
+    bars.replaceChildren(battleBars({ party, fx: rfx?.fx, foeFx: rfx?.foefx, foes: [{ n: w.theme?.boss || "레이드 보스", boss: true, hp: Math.max(0, w.max_hp - before - dealt), max: w.max_hp }] }, me || "나", reff));
     if (now >= end) { clearInterval(timer); sfx("notice"); setTimeout(refresh, 1500); }
   }
   const box = h("div", { class: "home-box rd-box" },
@@ -9171,7 +9180,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-13-2030";
+const BUILD = "2026-11-13-2120";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
