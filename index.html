@@ -443,6 +443,8 @@ dialog.guide-dlg { width: min(920px, calc(100vw - 24px)); }
 .bt-who:hover, .bt-who:focus-visible { text-decoration: underline dotted; text-underline-offset: 3px; outline: none; }
 .bt-name .bt-buff { color: color-mix(in srgb, #E8A33D 75%, var(--text)); }
 .bt-pop { position: fixed; z-index: 1000; background: var(--surface); border: 1px solid var(--frame); border-radius: 10px; box-shadow: var(--shadow); padding: 10px 12px; font-size: 13px; line-height: 1.6; }
+.shop-have { margin-left: 8px; font-size: 12px; font-weight: 700; color: var(--text-dim); padding: 1px 8px; border-radius: 999px; background: var(--surface-2); vertical-align: 1px; }
+.shop-have.on { color: var(--accent-text); background: color-mix(in srgb, var(--primary) 12%, var(--surface)); }
 .an-bookmark { margin: 8px 0 0; padding: 6px 10px; border-radius: 8px; font-size: 13px; background: color-mix(in srgb, #E8A33D 14%, var(--surface)); color: color-mix(in srgb, #E8A33D 60%, var(--text)); }
 .bt-pop p { margin: 4px 0; } .bt-pop ul { margin: 0 0 4px; padding-left: 18px; } .bt-pop > strong { font-size: 14px; }
 .bt-unit .gauge { margin: 0; height: 7px; background: var(--surface); }
@@ -1656,6 +1658,12 @@ const TIER_NAME = { 1: "D급", 2: "C급", 3: "B급", 4: "A급", 5: "S급" };
 const RARITY = { common: "흔함", normal: "보통", rare: "희귀" };
 const matInfo = x => x.grade ? `${RARITY[x.rarity] || ""} · ${x.grade}급 보스 재료` : `${RARITY[x.rarity] || ""}${x.rarity === "common" ? " · 강화·조합 재료" : " · 조합 재료"}`;
 const STAT_ORDER = ["hp", "mp", "atk", "def", "luk"];
+// 장비 실제 능력치: 강화 1단계마다 기본의 10%, 숙련 별 하나마다 2% (서버 계산과 같음)
+function gearStats(g) {
+  const out = {};
+  for (const k of STAT_ORDER) if (g?.stats?.[k]) out[k] = Math.round(Math.round(g.stats[k] * (1 + 0.1 * (g.enhance || 0))) * (1 + 0.02 * (g.star || 0)));
+  return out;
+}
 function fmtStats(st) {
   return STAT_ORDER.filter(k => st && st[k]).map(k => `${k.toUpperCase()} +${st[k]}`).join(", ") || "-";
 }
@@ -6219,7 +6227,7 @@ function invSorted(arr, word) {
 function renderOwned(body, inv, act, refresh) {
   const equipped = Object.fromEntries(inv.gear.filter(g => g.equipped).map(g => [g.slot, g]));
   // 장착 칸: 마우스를 올리거나 누르면 세부 정보, 강화 · 해제 버튼
-  const gearInfo = g => `${SLOT_NAME[g.slot]} · ${TIER_NAME[g.tier]} · Lv.${g.req_level}부터 · ${fmtStats(g.stats)}`;
+  const gearInfo = g => `${SLOT_NAME[g.slot]} · ${TIER_NAME[g.tier]} · Lv.${g.req_level}부터 · ${fmtStats(gearStats(g))}`;
   const slotCard = slot => {
     const g = equipped[slot];
     if (!g) return h("div", { class: "slot" }, h("small", { class: "hint" }, SLOT_NAME[slot]), h("span", { class: "hint" }, "비어 있음"));
@@ -6230,7 +6238,7 @@ function renderOwned(body, inv, act, refresh) {
     const card = h("div", { class: "slot slot-on", tabindex: "0", "aria-label": `${SLOT_NAME[slot]} ${gearName(g)} 세부 정보` },
       h("small", { class: "hint" }, SLOT_NAME[slot]),
       h("strong", { class: `tier${g.tier}` }, gearName(g)),
-      h("span", { class: "hint" }, fmtStats(g.stats)),
+      h("span", { class: "hint" }, fmtStats(gearStats(g))),
       h("div", { class: "slot-btns" },
         g.enhance < 10 ? h("button", { class: "btn ghost small", type: "button", onclick: () => openEnhance(g.id, refresh) }, "강화") : null,
         h("button", { class: "btn ghost small", type: "button",
@@ -6249,7 +6257,7 @@ function renderOwned(body, inv, act, refresh) {
     h("div", { class: "item-main" },
       h("strong", { class: `tier${g.tier}` }, gearName(g)),
       g.equipped ? h("span", { class: "badge", style: "margin-left:6px" }, "장착 중") : null,
-      h("div", { class: "hint" }, `${SLOT_NAME[g.slot]} · ${TIER_NAME[g.tier]} · Lv.${g.req_level}부터 · ${fmtStats(g.stats)}`),
+      h("div", { class: "hint" }, `${SLOT_NAME[g.slot]} · ${TIER_NAME[g.tier]} · Lv.${g.req_level}부터 · ${fmtStats(gearStats(g))}`),
       g.mastery ? h("div", { class: "hint", style: "font-size:12px" }, masteryText(g)) : null,
       h("div", { class: "hint item-desc" }, g.description)),
     h("div", { class: "item-actions" },
@@ -6354,9 +6362,11 @@ function renderShop(body, inv, act) {
       const qty = h("input", { class: "input qty-input", type: "number", min: "1", max: it.kind === "equip" ? "5" : "99", value: "1",
         "aria-label": `${it.name} 수량` });
       const lowLv = inv.level < it.req_level;
+      const have = it.kind === "equip" ? inv.gear.filter(g => g.code === it.code).length : (inv.stacks.find(x => x.code === it.code)?.qty || 0);
       return h("div", { class: "item-row" },
         h("div", { class: "item-main" },
-          h("strong", { class: it.tier ? `tier${it.tier}` : null }, it.name),
+          h("strong", { class: it.tier ? `tier${it.tier}` : null }, it.name,
+            h("span", { class: "shop-have" + (have ? " on" : "") }, `보유 ${have.toLocaleString()}${it.kind === "equip" ? "개" : "개"}`)),
           h("div", { class: "hint" }, it.kind === "equip"
             ? `${SLOT_NAME[it.slot]} · ${TIER_NAME[it.tier]} · Lv.${it.req_level}부터 · ${fmtStats(it.stats)}`
             : fmtEffect(it.effect)),
@@ -6421,7 +6431,7 @@ async function renderTrade(body, inv, refresh) {
         h("div", { class: "item-main" },
           h("strong", { class: l.tier ? `tier${l.tier}` : null }, nameOf(l), l.qty > 1 ? ` × ${l.qty}` : ""),
           h("div", { class: "hint" }, l.kind === "equip"
-            ? `${SLOT_NAME[l.slot] || ""} · ${TIER_NAME[l.tier] || ""} · Lv.${l.req_level}부터 · ${fmtStats(l.stats)}`
+            ? `${SLOT_NAME[l.slot] || ""} · ${TIER_NAME[l.tier] || ""} · Lv.${l.req_level}부터 · ${fmtStats(gearStats(l))}`
             : (KIND[l.kind] || "")),
           h("div", { class: "hint", style: "margin-top:2px" }, l.mine ? "내가 올린 물건" : h("span", {}, "판매 ", hunterLink(l.seller)), ` · ${(ms => ms >= 864e5 ? `${Math.floor(ms / 864e5)}일 ${Math.floor(ms % 864e5 / 36e5)}시간` : fmtDur(ms))(Date.parse(l.expires_at) - Date.now())} 남음`)),
         h("div", { class: "item-actions", style: "align-items:center" },
@@ -6524,7 +6534,7 @@ async function renderDismantle(body, inv, refresh) {
       const cb = h("input", { type: "checkbox", "aria-label": `${gearName(g)} 분해할 장비로 고르기` });
       cb.onchange = () => { cb.checked ? pick.add(g.id) : pick.delete(g.id); go.disabled = !pick.size; go.textContent = pick.size ? `${pick.size}개 분해` : "분해"; };
       return h("label", { class: "dm-gear" }, cb, h("span", {}, h("b", { class: `tier${g.tier}` }, gearName(g)),
-        h("small", { class: "hint" }, ` ${fmtStats(g.stats)}${g.mastery ? ` · 숙련 ${g.mastery}번` : ""}`)));
+        h("small", { class: "hint" }, ` ${fmtStats(gearStats(g))}${g.mastery ? ` · 숙련 ${g.mastery}번` : ""}`)));
     })) : null;
     if (x.gears) { go.disabled = true; }
     go.onclick = async () => {
@@ -9160,7 +9170,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-13-1650";
+const BUILD = "2026-11-13-1700";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
