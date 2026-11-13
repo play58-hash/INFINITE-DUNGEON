@@ -2788,11 +2788,11 @@ function battleState(events, mode, fallbackMe) {
   return { me, foes, party, fx };
 }
 // 버프/디버프 기호: ▲ 아군 지원 · ◇ 아티피스 보호 · ▣ 받는 피해 감소 · ▼ 적 약화
-const FX_INFO = { atk: ["▲", "아군 지원 (ATK·DEF +30%)"], grd: ["◇", "아티피스 보호 (받는 피해 -20%)"], cut: ["▣", "받는 피해 감소"], weak: ["▼", "적 약화 (ATK·DEF -20%)"] };
+const FX_INFO = { atk: ["▲", "아군 지원 (ATK·DEF 증가, 숫자는 증가율)"], grd: ["◇", "아티피스 보호 (받는 피해 -20%)"], cut: ["▣", "받는 피해 감소"], weak: ["▼", "적 약화 (ATK·DEF -20%)"] };
 function fxBadges(f, used) {
   if (!f) return null;
   const out = [];
-  if (f.atk) { used.add("atk"); out.push(h("span", { title: FX_INFO.atk[1] + (f.atk > 1 ? ` ×${f.atk}` : "") }, f.atk > 1 ? `▲${f.atk}` : "▲")); }
+  if (f.atk) { used.add("atk"); out.push(h("span", { title: `아군 지원 ATK·DEF +${f.atkp ?? 30}%${f.atk > 1 ? ` (카탈리스트 ${f.atk}명)` : ""}` }, `▲${f.atkp ?? 30}`)); }
   if (f.grd) { used.add("grd"); out.push(h("span", { title: FX_INFO.grd[1] }, "◇")); }
   if (f.cut) { used.add("cut"); out.push(h("span", { title: `받는 피해 -${f.cut}%` }, `▣${f.cut}`)); }
   return out.length ? h("span", { class: "bt-fx", "aria-label": out.map(x => x.title).join(", ") }, ...out) : null;
@@ -2821,7 +2821,8 @@ function btPopFor(anchor, name, fx, em, eff) {
   if (em?.main_position) rows.push(h("p", {}, h("b", {}, "포지션 "), posLabel(em.main_position, em.main_option),
     em.sub_position ? ` / 서브 ${posLabel(em.sub_position, em.sub_option)}` : ""));
   const fxs = [];
-  if (fx?.atk) fxs.push(`아군 지원 ATK·DEF +30%${fx.atk > 1 ? ` ×${fx.atk}` : ""}`);
+  if (fx?.atk) fxs.push(`${fx.catmp != null ? "카탈리스트 1인 보정: " : "아군 지원 "}ATK·DEF +${fx.atkp ?? 30}%${fx.atk > 1 ? ` (카탈리스트 ${fx.atk}명)` : ""}`
+    + (fx.catmp ? `, ATK +${fx.catmp}(MP)` : "") + (fx.catdmg ? `, 주는 피해 +${fx.catdmg}%` : "") + (fx.catcut ? `, 받는 피해 -${fx.catcut}%` : ""));
   if (fx?.cut) fxs.push(`받는 피해 -${fx.cut}%`);
   if (fx?.grd) fxs.push("아티피스 보호 (받는 피해 -20%)");
   if (fx?.weak) fxs.push("적 약화 (ATK·DEF -20%)");
@@ -9170,7 +9171,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-13-1700";
+const BUILD = "2026-11-13-2030";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
