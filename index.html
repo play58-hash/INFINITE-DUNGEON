@@ -336,6 +336,8 @@ code.c { font-family: ui-monospace, Menlo, monospace; background: var(--surface-
 .mini-cover { position: absolute; inset: 0; display: grid; place-items: center; background: color-mix(in srgb, var(--bg) 55%, transparent); z-index: 3; border-radius: inherit; }
 .mini-cover .mini-start-btn { width: auto; min-width: 140px; }
 .mini-start-btn { margin-top: 12px; }
+.cast-bar { position: fixed; left: 50%; top: 14px; transform: translateX(-50%); z-index: 61; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--accent); box-shadow: var(--shadow); font-size: 14px; width: min(560px, calc(100vw - 24px)); box-sizing: border-box; line-height: 1.5; }
+.cast-bar span { flex: 1; }
 .build-bar { position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%); z-index: 60; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--accent); box-shadow: var(--shadow); font-size: 14px; white-space: nowrap; }
 /* 배경 파형: 화면 아래쪽에 느리게 흐르는 선 3개 (그림 1장, 움직임은 transform만 써서 가볍게) */
 .bg-waves { position: fixed; left: 0; right: 0; bottom: 0; height: 46vh; z-index: -1; pointer-events: none; overflow: hidden; }
@@ -5872,8 +5874,8 @@ function raidSlotBox(r, off, refresh) {
     kids.push(h("div", { class: "rd-group" },
       h("p", { style: "margin:0 0 6px;font-weight:700" }, `토벌대 ${n} / 10명 모임`),
       h("p", { class: "hint", style: "margin:0 0 8px" }, n >= 10 ? "곧 출발합니다." : now < auto
-        ? `10명이 모이면 바로, ${fmtTime(sl.auto_at)}부터는 5명 이상이면 출발합니다.`
-        : n >= 5 ? "곧 출발합니다." : `5명이 모이면 출발합니다. ${fmtTime(sl.closes_at)}까지 모이지 않으면 취소됩니다.`),
+        ? `10명이 모이면 바로, ${fmtTime(sl.auto_at)}부터는 5명 이상이면 출발합니다. 토벌대가 만들어지고 15분이 지나면 모인 인원으로 출발합니다.`
+        : n >= 5 ? "곧 출발합니다." : "5명이 모이면 출발합니다. 토벌대가 만들어지고 15분이 지나면 모인 인원으로 출발합니다."),
       h("div", { class: "rd-members" }, ...(g.members || []).map(m => {
         return h("span", { class: `rd-mem${m.me ? " me" : ""}` }, rdAvatar(m), hunterLink(m), h("small", {}, `Lv.${m.level} · ${POSITIONS[m.position]?.[m.option]?.name || ""}`));
       })),
@@ -6018,7 +6020,7 @@ function raidRules(rw) {
       h("li", {}, "평일에는 하루 한 번 개인 도전을 할 수 있습니다. 15~20분 동안 혼자 보스와 싸웁니다."),
       h("li", {}, "개인 도전으로 깎은 피해만큼 내 포지션의 토벌 버프가 차오릅니다."),
       h("li", {}, "토·일 오후 2시와 오후 10시, 모두 4번 토벌이 열립니다. 회차마다 한 번씩 참여할 수 있고, 한 토벌대는 최대 10명입니다."),
-      h("li", {}, "10명이 모이면 바로, 회차가 열리고 10분이 지나면 5명 이상일 때 출발합니다. 1시간 안에 5명이 모이지 않으면 취소됩니다."),
+      h("li", {}, "10명이 모이면 바로, 회차가 열리고 10분이 지나면 5명 이상일 때 출발합니다. 토벌대가 만들어지고 15분이 지나도 5명이 모이지 않으면 모인 인원으로 출발합니다."),
       h("li", {}, "도전과 토벌 중에는 무한 던전·지역 안정화 같은 공략에 들어갈 수 없습니다."),
       h("li", {}, "보스 체력을 0까지 깎으면 그 순간 이번 주 레이드는 성공으로 확정됩니다. 성공하면 기여도에 따라 보상을, 실패하면 참여 보상만 받습니다."),
       h("li", {}, "주 중간에 성공이 확정되어도 남은 기간 동안 개인 도전과 주말 토벌을 계속할 수 있습니다(추가 토벌). 다만 체력이 다한 뒤에 준 피해는 기여도에 일부만 반영됩니다."),
@@ -8110,7 +8112,7 @@ const DOCS = {
 <p><i>*주말 토벌에 나설 때 더해지며, 회복할 수 있는 한도는 그대로입니다.</i></p>
 <p>혼자 싸우는 개인 도전에서는 딜러가 아닌 포지션도 주는 피해 보정을 받습니다. 탱커 · 힐러 +20%, 아티피스 +5%입니다(카탈리스트는 혼자일 때의 주는 피해 +10%만 받습니다). 서브 포지션으로 딜러 능력을 가지면 그만큼 줄어듭니다.</p>
 <h3>토벌</h3>
-<ul><li><b>주말(토·일)에는</b> <b>오후 2시와 오후 10시, 모두 4번 토벌이 열립니다.</b> 회차가 열리면 1시간 동안 참여할 수 있고, 회차마다 한 번씩 참여할 수 있습니다. 한 토벌대는 최대 10명이며, 10명이 모이면 바로, 회차가 열리고 10분이 지나면 5명 이상일 때 출발합니다. 1시간 안에 5명이 모이지 않으면 그 토벌대는 취소됩니다.</li><li>개인 도전과 토벌을 하는 동안에는 무한 던전·지역 안정화·탐색·별의 무덤·별의 제단에 들어갈 수 없습니다. 토벌을 기다리는 동안도 마찬가지이며, 대기를 그만두면 바로 들어갈 수 있습니다.</li><li>기여도는 포지션과 상관없이 <b>헌터님 자신의 능력으로 보스에게 준 피해</b>로 매깁니다. 아군을 돕는 효과는 함께 싸우는 헌터의 기여도를 깎지 않고 토벌 전체를 돕습니다. 같은 능력이라면 어떤 포지션이든 비슷한 기여도를 얻습니다.</li><li><b>보스 체력을 0까지 깎으면 그 주 레이드는 성공</b>으로 확정되고, 알림으로 알려 드립니다. 남은 기간에도 개인 도전과 주말 토벌을 계속할 수 있지만(추가 토벌), 체력이 다한 뒤에 준 피해는 기여도에 일부만 반영됩니다. 성공하면 참여 보상과 함께 기여도에 따른 성공 보상을, 실패하면 참여 보상만 받습니다. 보스의 위력은 지난 레이드의 결과에 맞춰 매주 달라집니다.</li></ul></div></details>
+<ul><li><b>주말(토·일)에는</b> <b>오후 2시와 오후 10시, 모두 4번 토벌이 열립니다.</b> 회차가 열리면 1시간 동안 참여할 수 있고, 회차마다 한 번씩 참여할 수 있습니다. 한 토벌대는 최대 10명이며, 10명이 모이면 바로, 회차가 열리고 10분이 지나면 5명 이상일 때 출발합니다. 토벌대가 만들어지고 15분이 지나도 5명이 모이지 않으면, 모인 인원으로 출발합니다.</li><li>개인 도전과 토벌을 하는 동안에는 무한 던전·지역 안정화·탐색·별의 무덤·별의 제단에 들어갈 수 없습니다. 토벌을 기다리는 동안도 마찬가지이며, 대기를 그만두면 바로 들어갈 수 있습니다.</li><li>기여도는 포지션과 상관없이 <b>헌터님 자신의 능력으로 보스에게 준 피해</b>로 매깁니다. 아군을 돕는 효과는 함께 싸우는 헌터의 기여도를 깎지 않고 토벌 전체를 돕습니다. 같은 능력이라면 어떤 포지션이든 비슷한 기여도를 얻습니다.</li><li><b>보스 체력을 0까지 깎으면 그 주 레이드는 성공</b>으로 확정되고, 알림으로 알려 드립니다. 남은 기간에도 개인 도전과 주말 토벌을 계속할 수 있지만(추가 토벌), 체력이 다한 뒤에 준 피해는 기여도에 일부만 반영됩니다. 성공하면 참여 보상과 함께 기여도에 따른 성공 보상을, 실패하면 참여 보상만 받습니다. 보스의 위력은 지난 레이드의 결과에 맞춰 매주 달라집니다.</li></ul></div></details>
 <details class="g-sub" data-patch><summary>평판</summary><div class="g-sub-body"><ul><li>아시아, 유럽, 아프리카, 아메리카, 오세아니아, 국제헌터연합 구역마다 특정 활동을 수행할 경우 구역 평판 점수가 오릅니다.</li><li>캐릭터를 생성할 때, 또는 기존 유저는 지역 안정화 - 평판 메뉴에서 시작 구역을 한 곳 선택할 수 있습니다. 시작 구역의 평판은 10점부터 시작하고, 10점 이하로 떨어지지 않습니다.</li></ul>
 <div class="table-scroll"><table><thead><tr><th style="text-align:center"><b>점수</b></th><th style="text-align:center"><b>단계</b></th><th style="text-align:center"><b>효과(해당 구역 지역 던전만, 국제헌터연합의 경우 무한 던전)</b></th></tr></thead><tbody><tr><td style="text-align:center">0~9</td><td style="text-align:center">낯선 이방인</td><td>없음</td></tr><tr><td style="text-align:center">10~40</td><td style="text-align:center">익숙한 헌터</td><td>메헨 +2%</td></tr><tr><td style="text-align:center">41~60</td><td style="text-align:center">믿음직한 헌터</td><td>메헨 +5%</td></tr><tr><td style="text-align:center">61~75</td><td style="text-align:center">○○의 수호자</td><td>메헨 +5%, 아이템 획득 확률 +2%</td></tr><tr><td style="text-align:center">76~90</td><td style="text-align:center">○○의 영웅</td><td>메헨 +5%, 아이템 획득 확률 +5%</td></tr><tr><td style="text-align:center">91~100</td><td style="text-align:center">살아있는 전설</td><td>메헨 +10%, 아이템 획득 확률 +10%, 보스 아이템 획득 확률 +5%</td></tr></tbody></table></div>
 <div class="table-scroll"><table><thead><tr><th style="text-align:center"><b>활동</b></th><th style="text-align:center"><b>구역 평판</b></th><th style="text-align:center"><b>국제헌터연합 평판</b></th></tr></thead><tbody><tr><td>지역 안정화 성공</td><td style="text-align:center">+2</td><td style="text-align:center">(구역 무관) +1</td></tr><tr><td>무한 던전 공략</td><td style="text-align:center">-</td><td style="text-align:center">+5</td></tr><tr><td>구역 퀘스트</td><td style="text-align:center">+5</td><td style="text-align:center">+3</td></tr><tr><td>복원 사업 기부</td><td style="text-align:center">5,000 Mh마다 +5</td><td style="text-align:center">10,000 Mh마다 +5</td></tr></tbody></table></div>
@@ -9181,7 +9183,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-14-2250";
+const BUILD = "2026-11-14-2310";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
@@ -9204,6 +9206,22 @@ async function checkBuild() {
   } catch {}
 }
 setInterval(checkBuild, 5 * 60e3);
+// 운영 공지 띠: 화면 위 가운데. 같은 공지는 확인을 누르면 다시 뜨지 않는다
+async function checkBroadcast() {
+  if (document.hidden || !state.profile || document.querySelector(".cast-bar")) return;
+  try {
+    const { data } = await sb.rpc("get_broadcast");
+    if (!data?.id || !data.text) return;
+    let seen = null; try { seen = localStorage.getItem("id-cast-seen"); } catch {}
+    if (seen === data.id) return;
+    const bar = h("div", { class: "cast-bar", role: "status" }, h("span", {}, data.text),
+      h("button", { class: "btn small", type: "button", onclick: () => { try { localStorage.setItem("id-cast-seen", data.id); } catch {} bar.remove(); } }, "확인"));
+    document.body.append(bar);
+  } catch {}
+}
+setInterval(checkBroadcast, 2 * 60e3);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) checkBroadcast(); });
+setTimeout(checkBroadcast, 4e3);
 // 내 프로필 사진 주소도 50분마다 새로 받는다
 setInterval(async () => {
   if (!state.profile?.avatar_url || Date.now() - (state.avatarAt || 0) < 50 * 60e3) return;
