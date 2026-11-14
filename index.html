@@ -1661,7 +1661,8 @@ const STAT_ORDER = ["hp", "mp", "atk", "def", "luk"];
 // 장비 실제 능력치: 강화 1단계마다 기본의 10%, 숙련 별 하나마다 2% (서버 계산과 같음)
 function gearStats(g) {
   const out = {};
-  for (const k of STAT_ORDER) if (g?.stats?.[k]) out[k] = Math.round(Math.round(g.stats[k] * (1 + 0.1 * (g.enhance || 0))) * (1 + 0.02 * (g.star || 0)));
+  const base = g?.base_stats || g?.stats;   // 인벤토리는 base_stats(기본값)와 stats(강화 반영값)를 함께 준다 — 기본값에서 계산
+  for (const k of STAT_ORDER) if (base?.[k]) out[k] = Math.round(Math.round(base[k] * (1 + 0.1 * (g.enhance || 0))) * (1 + 0.02 * (g.star || 0)));
   return out;
 }
 function fmtStats(st) {
@@ -9180,7 +9181,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-13-2120";
+const BUILD = "2026-11-14-2250";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
