@@ -6793,7 +6793,8 @@ async function openEnhance(gearId, onDone, lastResult) {
     maxed || !g.enhance_dup ? null : dupBox,
     maxed ? null : h("p", { class: "hint", style: "margin:10px 0 0" },
       g.enhance_dup ? "고른 장비는 성공·실패와 관계없이 사라집니다(강화 단계도 함께). 실패해도 단계는 유지되지만 비용은 돌려받지 못합니다."
-        : "실패해도 단계는 유지되지만 비용은 돌려받지 못합니다. +6부터는 장착하지 않은 같은 장비 1개가 더 필요합니다."));
+        : "실패해도 단계는 유지되지만 비용은 돌려받지 못합니다. +6부터는 장착하지 않은 같은 장비 1개가 더 필요합니다."),
+    inheritBox(inv, g, gearId, onDone));
   go.textContent = maxed ? "최대 강화" : "강화하기";
   paintDups();
   go.onclick = async () => {
@@ -6808,6 +6809,36 @@ async function openEnhance(gearId, onDone, lastResult) {
   const dlg = $("#dlg-enh");
   dlg.onclose = () => { dlg.onclose = null; onDone(); };
   if (!dlg.open) dlg.showModal();
+}
+
+// 강화 전승: 같은 부위의 낮은 등급 장비에서 이 장비로 강화 단계를 옮긴다 (이전 단계 −1, 최대 +5, 메헨만 든다)
+function inheritBox(inv, g, gearId, onDone) {
+  if (!inv.inherit_on) return null;
+  const srcs = inv.gear.filter(x => x.id !== g.id && x.slot === g.slot && x.tier < g.tier && Math.min(x.enhance - 1, 5) > g.enhance)
+    .sort((a, b) => b.enhance - a.enhance);
+  const pick = async (x, btn) => {
+    busy(btn, true, "…");
+    const { data: pv, error } = await sb.rpc("inherit_enhance", { p_from: x.id, p_to: g.id, p_preview: true });
+    busy(btn, false);
+    if (error) return toast(koError(error));
+    if (!pv.enough) return toast(`메헨이 부족합니다. (${pv.cost.toLocaleString()} Mh 필요)`);
+    if (!confirm(`${gearName(x)}의 강화를 ${g.name}에 옮길까요?\n\n${g.name} +${pv.to_enhance} → +${pv.result}\n비용 ${pv.cost.toLocaleString()} Mh\n\n${gearName(x)}은(는) 사라지고, 숙련은 옮겨지지 않습니다.`
+      + (x.equipped ? (pv.equip ? `\n${g.name}이(가) 그 자리에 바로 장착됩니다.` : `\n${pv.req_level}레벨부터 장착할 수 있어 장착은 비워 둡니다.`) : ""))) return;
+    busy(btn, true, "…");
+    const { data: res, error: e2 } = await sb.rpc("inherit_enhance", { p_from: x.id, p_to: g.id });
+    busy(btn, false);
+    if (e2) return toast(koError(e2));
+    toast(`강화 전승 완료 — ${res.name} +${res.enhance}${res.equipped ? " (장착됨)" : ""}`);
+    openEnhance(gearId, onDone);
+  };
+  return h("div", { class: "report", style: "margin-top:12px" },
+    h("p", { class: "panel-title", style: "margin:0 0 4px" }, "강화 전승"),
+    h("p", { class: "hint", style: "margin:0 0 8px" }, "같은 부위의 더 낮은 등급 장비에서 강화를 옮겨 옵니다. 이전 장비 단계보다 1단계 낮게(최대 +5) 옮겨지고, 메헨만 듭니다. 이전 장비는 사라집니다."),
+    srcs.length ? h("div", { class: "craft-pick" }, ...srcs.map(x => {
+      const b = h("button", { type: "button", class: `tier${x.tier}` }, `${gearName(x)} → +${Math.min(x.enhance - 1, 5)}`);
+      b.onclick = () => pick(x, b);
+      return b;
+    })) : h("span", { class: "hint" }, "옮겨 올 수 있는 장비가 없습니다. (같은 부위·낮은 등급, 이 장비보다 2단계 이상 높게 강화된 장비)"));
 }
 
 /* ===== 스탯 분배 ===== */
@@ -9183,7 +9214,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-14-2310";
+const BUILD = "2026-11-14-2350";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
