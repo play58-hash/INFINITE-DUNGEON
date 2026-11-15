@@ -3011,7 +3011,7 @@ async function renderSocial(pane, tab) {
   const tabBtn = (id, label, n) => h("button", { type: "button", class: socialTab === id ? "on" : null, onclick: () => renderSocial(pane, id) },
     label, n > 0 ? h("span", { class: "nbadge" }, String(n)) : null);
   pane.replaceChildren(
-    paneHead("교류", { sns: "soc-sns", friends: "soc-friends", party: "soc-party", gifts: "soc-gifts" }[socialTab]),
+    paneHead("교류", { sns: "soc-sns", friends: "soc-friends", party: "soc-party", gifts: "soc-gifts", chron: "soc-chron" }[socialTab]),
     h("p", { class: "hint", style: "margin:0 0 16px" }, "SNS에서 다른 헌터들과 이야기를 나누고, 친구와 메시지·선물을 주고받고, 파티를 꾸려 함께 던전에 들어갑니다."),
     h("div", { class: "tabs soc-tabs", style: "max-width:540px", "data-tour": "soc-tabs" },
       tabBtn("sns", "SNS", s.guild_unread || 0),
@@ -3039,9 +3039,10 @@ async function renderChronicle(body) {
     (groups.at(-1)?.k === k ? groups.at(-1).items : (groups.push({ k, items: [] }), groups.at(-1).items)).push(e); }
   body.replaceChildren(
     h("p", { class: "hint", style: "margin:0 0 12px" }, "승급, 레벨 달성, 등급별 첫 지역 안정화, 무한 던전 역 도달, 레이드 토벌, 타이틀 획득 같은 순간이 날짜와 함께 남습니다. 다른 헌터도 헌터 정보에서 볼 수 있습니다."),
-    rows.length ? h("div", { class: "card chron-page" }, ...groups.map(g => h("div", {}, h("p", { class: "panel-title", style: "margin:4px 0 6px" }, g.k),
+    rows.length ? h("div", { class: "card chron-page", "data-tour": "ch-list" }, ...groups.map(g => h("div", {}, h("p", { class: "panel-title", style: "margin:4px 0 6px" }, g.k),
       h("ol", { class: "chron" }, ...g.items.map(e => h("li", { class: `chron-${e.kind}` }, h("i", { "aria-hidden": "true" }, CHRON_ICON[e.kind] || "·"), h("span", {}, e.text), h("time", {}, fmtKDate(e.at))))))))
-      : h("p", { class: "hint" }, "아직 남긴 기록이 없습니다."));
+      : h("p", { class: "hint", "data-tour": "ch-list" }, "아직 남긴 기록이 없습니다."));
+  maybeTour("soc-chron");
 }
 // 새 알림 (내 댓글에 달린 답글 · 거래소 판매) — 교류 메뉴 숫자 배지에 더해진다
 function noticeBox(pane) {
@@ -3682,19 +3683,20 @@ async function renderRep(body, st) {
     renderHunter(); renderRep(body);
   };
   body.replaceChildren(
-    h("div", { class: "rg-region-wrap", style: "margin:0 0 12px" }, h("label", { for: "rep-region" }, "활동 구역"), regSel,
+    h("div", { class: "rg-region-wrap", style: "margin:0 0 12px", "data-tour": "rp-region" }, h("label", { for: "rep-region" }, "활동 구역"), regSel,
       h("span", { class: "hint" }, "구역 퀘스트와 기부는 활동 구역 기준입니다")),
     regErr,
-    h("div", { class: "rep-cards" }, ...(st.scores || []).map(card)),
+    h("div", { class: "rep-cards", "data-tour": "rp-cards" }, ...(st.scores || []).map(card)),
     h("p", { class: "hint", style: "margin:8px 0 0;font-size:13px" }, `평판 · 구역 퀘스트 · 기부는 매주 월요일 0시(한국 시간)에 새로 시작합니다. 평판은 지난주 점수의 40%에서 다시 시작합니다. 다음 갱신: ${new Date(st.next_reset).toLocaleString("ko-KR", { month: "numeric", day: "numeric", weekday: "short", hour: "numeric", timeZone: "Asia/Seoul" })}`),
-    h("div", { class: "card", style: "padding:14px 16px;margin-top:16px" },
+    h("div", { class: "card", style: "padding:14px 16px;margin-top:16px", "data-tour": "rp-quests" },
       h("p", { class: "panel-title", style: "margin:0 0 4px" }, `${me?.name || ""} 구역 퀘스트`),
       h("p", { class: "hint", style: "margin:0 0 10px;font-size:13px" }, "지금 활동 구역에서 내가 들어갈 수 있는 던전으로 정해지는 퀘스트입니다. 마치면 구역 평판 +5, 국제헌터연합 평판 +3을 함께 받습니다."),
       qList),
-    h("div", { class: "card", style: "padding:14px 16px;margin-top:14px" },
+    h("div", { class: "card", style: "padding:14px 16px;margin-top:14px", "data-tour": "rp-donate" },
       h("p", { class: "panel-title", style: "margin:0 0 4px" }, `${me?.name || ""} 복원 사업 기부`),
       h("p", { class: "hint", style: "margin:0 0 10px;font-size:13px" }, `5,000 Mh마다 ${me?.name || "구역"} 평판 +5, 한 주 기부가 10,000 Mh 쌓일 때마다 국제헌터연합 평판 +5. 이번 주 기부 ${fmtN(st.donated_total || 0)} Mh · 가진 메헨 ${fmtN(st.currency || 0)} Mh`),
       h("div", { style: "display:flex;gap:8px;align-items:center;flex-wrap:wrap" }, units, h("span", { class: "hint" }, "× 5,000 Mh ="), cost, give)));
+  maybeTour("regional-rep");
 }
 function progressBox(codename) {
   if (!patched()) return null;
@@ -4545,7 +4547,7 @@ async function renderRegional(pane, tab) {
     raidOn() ? h("button", { type: "button", class: tab === "raid" ? "on" : null, onclick: () => renderRegional(pane, "raid") }, "레이드") : null,
     patched() ? h("button", { type: "button", class: tab === "rep" ? "on" : null, onclick: () => renderRegional(pane, "rep") }, "평판") : null) : null;
   if (tab === "rep") {   // 평판 (11/16 공개, 그 전에는 운영자만)
-    pane.replaceChildren(paneHead("지역 안정화", "regional"),
+    pane.replaceChildren(paneHead("지역 안정화", "regional-rep"),
       h("p", { class: "hint", style: "margin:0 0 16px" }, "구역과 국제헌터연합의 평판을 쌓으면 그곳에서 메헨과 아이템을 더 얻을 수 있습니다."), tabs, body);
     return renderRep(body);
   }
@@ -9024,6 +9026,7 @@ const TOURS = {
     { sel: '[data-tour="inv-slots"]', text: "무기 · 방어구 · 장신구를 한 개씩 착용할 수 있습니다.\n장비마다 착용 레벨이 있으니 확인부탁드립니다." },
     { sel: '[data-tour="inv-tools"]', text: "가진 아이템을 전체 · 장비 · 소비 · 재료로 나누어 넘겨 볼 수 있습니다.\n이름으로 검색하거나 등급 순으로 정렬할 수도 있습니다." },
     { sel: '[data-tour="inv-gear"]', text: "장비는 메헨과 별가루로 +10까지 강화할 수 있습니다. +6부터는 같은 장비 하나를 추가로 재료로 사용합니다.\n필요 없는 장비는 판매하여 메헨을 획득할 수 있습니다." },
+    { sel: '[data-tour="inv-gear"]', patch: true, text: "공략에 함께 나간 장비에는 숙련이 쌓이고, 숙련이 오르면 이름 옆에 ★이 붙으며 능력치도 조금씩 오릅니다.\n더 높은 등급 장비로 바꿀 때는 강화 창의 [강화 전승]으로 이전 장비의 강화를 옮겨 올 수 있습니다." },
     { sel: '[data-tour="inv-cons"], [data-tour="inv-mats"]', all: true, text: "소비 아이템은 던전에 보급품으로 챙겨 갈 수 있습니다.\n재료는 조합에 쓰거나 팔 수 있습니다." },
   ],
   "inv-shop": [
@@ -9045,6 +9048,18 @@ const TOURS = {
     { sel: '[data-tour="pt-invite"]', text: "코드네임으로 초대하면 파티가 만들어지고 헌터님이 파티장으로 임명됩니다. 최대 5명까지 함께 할 수 있습니다." },
     { sel: '[data-tour="pt-members"]', text: "파티장이 출발하면 무한 던전이나 지역 안정화에 모두 함께 진입합니다.\n누군가 다른 활동 중이거나 최고 · 최저 레벨 차이가 25 이상이면 출발할 수 없습니다." },
     { text: "파티로 들어가면 몬스터는 인원만큼 강해지지만 성공률이 오르고, 보상은 모두 똑같이 수령합니다." },
+  ],
+  "regional-rep": [
+    { text: "평판은 아시아 · 유럽 · 아프리카 · 아메리카 · 오세아니아 구역과 국제헌터연합에 따로 쌓입니다.\n처음 들어오면 시작 구역을 하나 고르며, 시작 구역은 10점부터 시작합니다." },
+    { sel: '[data-tour="rp-cards"]', text: "구역마다 평판 점수와 단계, 지금 받는 효과를 볼 수 있습니다.\n단계가 오를수록 그 구역의 지역 안정화에서 메헨과 아이템을 더 얻고, 국제헌터연합 평판은 무한 던전에 적용됩니다." },
+    { text: "지역 안정화에 성공하면 그 구역 평판과 국제헌터연합 평판이 함께 오르고, 무한 던전 결과를 받으면 국제헌터연합 평판이 오릅니다." },
+    { sel: '[data-tour="rp-quests"]', text: "구역 퀘스트는 활동 구역에서 내가 들어갈 수 있는 던전으로 정해집니다.\n마치면 가능성과 함께 구역 평판과 국제헌터연합 평판을 받습니다." },
+    { sel: '[data-tour="rp-donate"]', text: "메헨을 기부해 활동 구역의 평판을 올릴 수도 있습니다." },
+    { sel: '[data-tour="rp-region"]', text: "구역 퀘스트와 기부는 지금 활동 구역 기준입니다. 활동 구역은 이곳이나 지역 안정화 화면에서 옮길 수 있습니다.\n평판 · 퀘스트 · 기부는 매주 월요일 0시에 새로 시작하며, 평판은 지난주 점수의 일부에서 다시 시작합니다." },
+  ],
+  "soc-chron": [
+    { sel: '[data-tour="ch-list"]', text: "헌터님이 걸어온 길의 중요한 순간이 날짜와 함께 달별로 남습니다.\n승급, 레벨 달성, 등급별 첫 지역 안정화, 무한 던전 역 도달, 레이드 토벌 성공, 타이틀 획득, 평판 단계, 장비 숙련이 기록됩니다." },
+    { text: "헌터 정보에서도 최근 기록과 지역 평판을 볼 수 있습니다.\n다른 헌터의 헌터 정보를 열면 그 헌터의 연대기도 볼 수 있습니다." },
   ],
   "soc-gifts": [
     { sel: '[data-tour="gf-in"]', text: "친구가 보낸 메헨 · 아이템 · 장비가 이곳에 도착합니다.\n원하신다면 받거나 거절할 수 있습니다." },
@@ -9098,7 +9113,7 @@ function maybeTour(key) {
   }, 450);
 }
 function startTour(key) {
-  const steps = (TOURS[key] || []).filter(st => !(st.pc && isMobileView()) && !(st.mo && !isMobileView()));
+  const steps = (TOURS[key] || []).filter(st => !(st.pc && isMobileView()) && !(st.mo && !isMobileView()) && !(st.patch && !patched()));
   if (!steps.length || tourNow) return;
   const host = document.querySelector("dialog[open]") || document.body;
   let i = 0, typing = null;
@@ -9217,7 +9232,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-15-0335";
+const BUILD = "2026-11-15-2240";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
