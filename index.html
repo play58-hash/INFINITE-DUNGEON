@@ -339,6 +339,9 @@ code.c { font-family: ui-monospace, Menlo, monospace; background: var(--surface-
 .live-bar { position: fixed; left: 50%; top: 14px; transform: translate(-50%, -12px); z-index: 62; width: min(520px, calc(100vw - 24px)); box-sizing: border-box; padding: 10px 14px; border-radius: 12px; background: var(--primary); color: var(--on-primary); box-shadow: var(--shadow); font-size: 14px; font-weight: 600; line-height: 1.5; text-align: center; opacity: 0; transition: opacity .25s, transform .25s; pointer-events: none; }
 .live-bar.on { opacity: 1; transform: translate(-50%, 0); }
 .cast-bar ~ .live-bar { top: 84px; }
+.rd-runs { list-style: none; margin: 0; padding: 0; }
+.rd-runs li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.rd-runs li:last-child { border-bottom: 0; }
 .cast-bar { position: fixed; left: 50%; top: 14px; transform: translateX(-50%); z-index: 61; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--primary); box-shadow: var(--shadow); font-size: 14px; width: min(560px, calc(100vw - 24px)); box-sizing: border-box; line-height: 1.5; }
 .cast-bar span { flex: 1; }
 .build-bar { position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%); z-index: 60; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--primary); box-shadow: var(--shadow); font-size: 14px; white-space: nowrap; }
@@ -5823,13 +5826,18 @@ async function renderRaid(body) {
     if (w.status === "open" && w.phase === "weekday") kids.push(raidChallengeBox(r, () => renderRaid(body)));
     if (w.status === "open" && w.phase === "weekend") kids.push(raidSlotBox(r, off, () => renderRaid(body)));
   }
-  if (w.status === "settled" && r.mine) kids.push(raidRewardBox(r.mine, w.result));
+  if (w.status === "settled" && r.mine) kids.push(raidRewardBox(r.mine, w.result, w.id));
   kids.push(raidBuffBox(w));
   kids.push(raidMeBox(r));
   if (r.last) kids.push(raidLastBox(r.last));
   kids.push(raidRules(w.rewards));
   body.replaceChildren(...kids);
   maybeTour("regional-raid");
+  let seenRun = null, seenFinal = null;
+  try { seenRun = localStorage.getItem("id-raid-seen-run"); seenFinal = localStorage.getItem("id-raid-seen-final"); } catch {}
+  const doneRun = r.run && !run && Date.parse(r.run.ends_at) <= now && now - Date.parse(r.run.ends_at) < 6 * 3600e3 ? r.run : null;
+  if (doneRun && String(doneRun.id) !== seenRun && !tourNow) openRaidRun(doneRun.id);
+  else if (w.status === "settled" && r.mine && String(w.id) !== seenFinal && !tourNow) openRaidFinal(w.id);
 }
 
 function raidChallengeBox(r, refresh) {
@@ -5961,7 +5969,62 @@ function raidDoneBox(run) {
     run.overkill > 0 ? h("p", { class: "hint", style: "margin:6px 0 0;font-size:13px" }, "보스 체력이 다한 뒤에 준 피해는 추가 토벌로 기여도에 일부만 반영되었습니다.") : null,
     run.kind === "raid" && run.members?.length > 1 ? h("details", { style: "margin-top:8px" }, h("summary", {}, "토벌대 기여도"),
       h("div", {}, ...[...run.members].sort((a, b) => b.contrib - a.contrib).map(m =>
-        h("div", { class: "kv" }, h("span", {}, m.name, m.alive ? "" : " (쓰러짐)"), h("span", {}, fmtN(Math.round(m.contrib))))))) : null);
+        h("div", { class: "kv" }, h("span", {}, m.name, m.alive ? "" : " (쓰러짐)"), h("span", {}, fmtN(Math.round(m.contrib))))))) : null,
+    h("button", { class: "btn ghost small", type: "button", style: "margin-top:10px", onclick: () => openRaidRun(run.id) }, "결과 화면"));
+}
+// 레이드 결과 화면: 전투 하나(개인 도전 · 토벌)
+async function openRaidRun(id) {
+  const { data: v, error } = await sb.rpc("raid_run_view", { p_id: id });
+  if (error) return toast(koError(error));
+  const raid = v.kind === "raid";
+  const kids = [
+    h("div", { class: "rd-hero" + (v.icon ? " has-icon" : ""), style: "margin:0 0 12px" }, raidIcon(v.icon),
+      h("p", { class: "rd-kicker" }, `${raid ? "토벌" : "개인 도전"} · ${fmtKDay(v.started_at)}`), h("h3", {}, v.boss || "레이드 보스")),
+    h("div", { class: "kv" }, h("span", {}, "내가 보스에게 준 피해"), h("b", {}, fmtN(v.dmg))),
+    raid ? h("div", { class: "kv" }, h("span", {}, "토벌대 전체 피해"), h("span", {}, fmtN(v.total))) : null,
+    h("div", { class: "kv" }, h("span", {}, "기여도"), h("b", {}, fmtN(v.contrib))),
+    v.overkill > 0 ? h("p", { class: "hint", style: "margin:6px 0 0;font-size:13px" }, "보스 체력이 다한 뒤에 준 피해는 추가 토벌로 기여도에 일부만 반영되었습니다.") : null];
+  if (raid && v.members?.length) kids.push(h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "토벌대"),
+    ...v.members.map((m, i) => h("div", { class: "kv" }, h("span", { style: m.me ? "font-weight:700" : null }, `${i + 1}. ${m.name}${m.alive ? "" : " (쓰러짐)"}`),
+      h("span", {}, `피해 ${fmtN(m.dmg)} · 기여도 ${fmtN(m.contrib)}`))));
+  const ev = v.log || [];
+  kids.push(h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "전투 기록"),
+    h("ol", { class: "dg-log" }, ...ev.map(e => h("li", { class: `ev ev-${e.type}${e.boss ? " ev-boss" : ""}` }, h("time", {}, fmtTime(e.at)), h("span", {}, e.text)))));
+  try { localStorage.setItem("id-raid-seen-run", String(v.id)); } catch {}
+  info(raid ? "토벌 결과" : "개인 도전 결과", ...kids);
+}
+// 이번 주 내 전투 목록
+async function openRaidRuns() {
+  const { data: rs, error } = await sb.rpc("raid_my_runs", {});
+  if (error) return toast(koError(error));
+  info("이번 주 전투 기록", rs?.length ? h("ul", { class: "rd-runs" }, ...rs.map(r => h("li", {},
+    h("div", {}, h("b", {}, r.kind === "raid" ? "토벌" : "개인 도전"), h("small", { class: "hint" }, ` ${fmtKDay(r.started_at)}`),
+      h("div", { class: "hint", style: "font-size:13px" }, r.done ? `피해 ${fmtN(r.dmg)} · 기여도 ${fmtN(r.contrib)}` : "전투 중")),
+    r.done ? h("button", { class: "btn ghost small", type: "button", onclick: () => openRaidRun(r.id) }, "결과 화면") : null)))
+    : h("p", { class: "hint" }, "이번 주에 참여한 전투가 없습니다."));
+}
+// 한 주의 최종 결과
+async function openRaidFinal(week) {
+  const { data: f, error } = await sb.rpc("raid_final_view", week ? { p_week: week } : {});
+  if (error) return toast(koError(error));
+  const m = f.mine;
+  const kids = [
+    h("div", { class: "rd-hero" + (f.icon ? " has-icon" : ""), style: "margin:0 0 12px" }, raidIcon(f.icon),
+      h("p", { class: "rd-kicker" }, `RAID · ${f.name || ""}`), h("h3", {}, f.boss || "레이드 보스"),
+      h("p", { class: "rd-phase", style: "margin:6px 0 0" }, f.success ? "토벌 성공" : "토벌 실패")),
+    h("div", { class: "kv" }, h("span", {}, "준 피해 / 보스 체력"), h("span", {}, `${fmtN(f.dealt)} / ${fmtN(f.max_hp)}`)),
+    h("div", { class: "kv" }, h("span", {}, "참여 헌터"), h("span", {}, `${f.participants || 0}명`))];
+  if (m) kids.push(h("p", { class: "panel-title", style: "margin:14px 0 6px" }, f.success ? "내 성공 보상" : "내 참여 보상"),
+    h("div", { class: "kv" }, h("span", {}, "기여도 순위"), h("b", {}, `${m.rank}위 · 기여도 ${fmtN(Math.round(m.contrib))}`)),
+    h("div", { class: "kv" }, h("span", {}, "가능성"), h("span", {}, `+${fmtN(m.pot)}`)),
+    h("div", { class: "kv" }, h("span", {}, "메헨"), h("span", {}, `+${fmtN(m.cur)} Mh`)),
+    m.items?.length ? h("div", { class: "kv" }, h("span", {}, "아이템"), h("span", {}, m.items.map(i => `${i.name} ×${i.qty}`).join(", "))) : null,
+    f.granted === false ? h("p", { class: "hint", style: "margin:6px 0 0" }, "시험용 레이드라 실제로 지급하지는 않았습니다.") : null);
+  else kids.push(h("p", { class: "hint", style: "margin:12px 0 0" }, "이 레이드에는 참여하지 않았습니다."));
+  if (f.ranking?.length) kids.push(h("p", { class: "panel-title", style: "margin:14px 0 6px" }, "기여도 순위"),
+    h("ol", { class: "rd-rank" }, ...f.ranking.map(q => h("li", { class: q.me ? "me" : null }, h("span", { class: "rk" }, String(q.rank)), rdAvatar(q), hunterLink(q), h("span", {}, fmtN(q.contrib))))));
+  try { localStorage.setItem("id-raid-seen-final", String(f.id)); } catch {}
+  info("레이드 최종 결과", ...kids);
 }
 
 function raidBuffBox(w) {
@@ -5990,21 +6053,23 @@ function raidMeBox(r) {
   return h("div", { class: "home-box rd-box", "data-tour": "rd-rank" },
     h("p", { class: "panel-title", style: "margin:0 0 6px" }, "이번 주 기여도"),
     h("div", { class: "kv" }, h("span", {}, "내 기여도"), h("b", {}, fmtN(me.contrib))),
-    h("div", { class: "kv" }, h("span", {}, "참여"), h("span", {}, `개인 도전 ${me.challenges || 0}번 · 토벌 ${me.raids || 0}번`)),
+    h("div", { class: "kv" }, h("span", {}, "참여"), h("span", {}, `개인 도전 ${me.challenges || 0}번 · 토벌 ${me.raids || 0}번`,
+      me.runs ? h("button", { class: "btn ghost small", type: "button", style: "margin-left:8px", onclick: openRaidRuns }, "전투 기록") : null)),
     r.ranking?.length ? h("ol", { class: "rd-rank" }, ...r.ranking.map((q, i) => {
       return h("li", { class: q.codename === state.profile?.codename ? "me" : null }, h("span", { class: "rk" }, String(i + 1)), rdAvatar(q), hunterLink(q), h("span", {}, fmtN(q.contrib)));
     })) : h("p", { class: "hint", style: "margin:8px 0 0" }, "아직 참여한 헌터가 없습니다."),
     h("p", { class: "hint", style: "margin:8px 0 0" }, "기여도는 포지션과 상관없이 헌터 자신의 능력으로 보스에게 준 피해로 매깁니다. 같은 능력이면 어떤 포지션이든 비슷한 기여도를 얻습니다."));
 }
 
-function raidRewardBox(mine, res) {
+function raidRewardBox(mine, res, weekId) {
   return h("div", { class: "home-box rd-box" },
     h("p", { class: "panel-title", style: "margin:0 0 6px" }, res?.success ? "레이드 성공 보상" : "참여 보상"),
     h("div", { class: "kv" }, h("span", {}, "기여도 순위"), h("b", {}, `${mine.rank}위 / ${res?.participants || "-"}명`)),
     h("div", { class: "kv" }, h("span", {}, "가능성"), h("span", {}, `+${fmtN(mine.pot)}`)),
     h("div", { class: "kv" }, h("span", {}, "메헨"), h("span", {}, `+${fmtN(mine.cur)} Mh`)),
     mine.items?.length ? h("div", { class: "kv" }, h("span", {}, "아이템"), h("span", {}, mine.items.map(i => `${i.name} ×${i.qty}`).join(", "))) : null,
-    res?.granted === false ? h("p", { class: "hint", style: "margin:6px 0 0" }, "시험용 레이드라 실제로 지급하지는 않았습니다.") : null);
+    res?.granted === false ? h("p", { class: "hint", style: "margin:6px 0 0" }, "시험용 레이드라 실제로 지급하지는 않았습니다.") : null,
+    h("button", { class: "btn ghost small", type: "button", style: "margin-top:10px", onclick: () => openRaidFinal(weekId) }, "최종 결과"));
 }
 
 function raidLastBox(l) {
@@ -6013,7 +6078,8 @@ function raidLastBox(l) {
     h("div", { class: "kv" }, h("span", {}, l.boss || "-"), h("b", { class: l.success ? "ok-text" : null }, l.success ? "토벌 성공" : "토벌 실패")),
     h("div", { class: "kv" }, h("span", {}, "준 피해 / 보스 체력"), h("span", {}, `${fmtN(l.dealt)} / ${fmtN(l.max_hp)}`)),
     h("div", { class: "kv" }, h("span", {}, "참여 헌터"), h("span", {}, `${l.participants || 0}명`)),
-    l.mine ? h("div", { class: "kv" }, h("span", {}, "내 순위"), h("span", {}, `${l.mine.rank}위 · 기여도 ${fmtN(l.mine.contrib)}`)) : null);
+    l.mine ? h("div", { class: "kv" }, h("span", {}, "내 순위"), h("span", {}, `${l.mine.rank}위 · 기여도 ${fmtN(l.mine.contrib)}`)) : null,
+    h("button", { class: "btn ghost small", type: "button", style: "margin-top:10px", onclick: () => openRaidFinal(null) }, "최종 결과"));
 }
 
 function raidRules(rw) {
@@ -9233,7 +9299,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-15-2315";
+const BUILD = "2026-11-16-0120";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
