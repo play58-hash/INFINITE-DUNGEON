@@ -6692,7 +6692,8 @@ async function renderCraft(body, inv, refresh) {
   const rcChips = h("div", { class: "cat-row", role: "tablist", "aria-label": "조합식 분류" });
   const rcQ = h("input", { class: "input", type: "search", maxlength: "20", placeholder: "아이템 이름으로 조합식 찾기 (결과·재료)", "aria-label": "조합식 검색", value: craftQ });
   const rcList = h("div", {});
-  const RC_CATS = [["all", "전체"], ["equip", "장비"], ["consumable", "소비"]];
+  const RC_CATS = [["all", "전체"], ["equip", "장비"], ["consumable", "소비"], ["buff", "버프"]];
+  const rcIn = (r, id) => id === "all" || r.kind === id || (id === "consumable" && r.kind === "buff");   // 버프도 소비 아이템이다 (인벤토리와 같게)
   rcQ.oninput = () => { craftQ = rcQ.value; paintRecipes(); };
   function recipeRow(r) {
     const max = maxTimes(r);
@@ -6725,11 +6726,11 @@ async function renderCraft(body, inv, refresh) {
     const all = known || [];
     const w = craftQ.trim().toLowerCase();
     const hit = r => !w || r.name.toLowerCase().includes(w) || r.ingredients.some(x => x.name.toLowerCase().includes(w));
-    const count = id => all.filter(r => id === "all" || r.kind === id).length;
+    const count = id => all.filter(r => rcIn(r, id)).length;
     rcChips.replaceChildren(...RC_CATS.map(([id, label]) => h("button", {
       type: "button", role: "tab", class: `cat-chip big${craftCat === id ? " on" : ""}`, "aria-selected": craftCat === id ? "true" : "false",
       onclick: () => { craftCat = id; paintRecipes(); } }, label, h("span", { class: "inv-n" }, String(count(id))))));
-    const rows = recipeSorted(all.filter(r => (craftCat === "all" || r.kind === craftCat) && hit(r)));
+    const rows = recipeSorted(all.filter(r => rcIn(r, craftCat) && hit(r)));
     rcList.replaceChildren(...(rows.length ? rows.map(recipeRow)
       : [h("p", { class: "hint", style: "margin:0" }, !all.length ? "아직 없습니다. 여러 재료를 넣어 보며 찾아보세요." : w ? `'${craftQ.trim()}'이(가) 들어간 조합식이 없습니다.` : "이 분류의 조합식은 아직 없습니다.")]));
   }
@@ -9232,7 +9233,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-15-2240";
+const BUILD = "2026-11-15-2315";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
