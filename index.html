@@ -2541,7 +2541,7 @@ async function openTimer() {
   w.addEventListener("pagehide", timerStop);
   await timerFetch(); timerPaint();
   timer.tick = setInterval(timerPaint, 1000);
-  timer.poll = setInterval(() => { if (!document.hidden) timerFetch().then(timerPaint); }, 60000);
+  timer.poll = setInterval(() => { timerFetch().then(timerPaint); }, 60000);   // 타이머 창은 게임 탭이 가려져 있을 때 보는 창이라 쉬지 않는다
 }
 document.addEventListener("click", e => { if (e.target.closest?.("#btn-timer")) openTimer(); });
 
@@ -8209,7 +8209,7 @@ const DOCS = {
 <details class="g-sub"><summary>구조 요청</summary><div class="g-sub-body"><p>전투로 진입해 있는 동안 <b>3시간마다, 그리고 복귀 30분 전에 한 번 더</b> 다른 파티의 [구조 요청]이 들어오고 알림으로 알려 드립니다. </p>
 <ul><li>무한 던전 화면에서 [구조하러 가기]를 누르면 20초 동안 3×3 칸에 마물과 헌터가 번갈아 나타나며, <b>마물만 눌러 처치</b>해야 합니다.</li><li>마물을 60% 이상 처치하고 헌터를 1번까지만 잘못 누르면 감사의 선물로 소비 아이템 1개를 받습니다. 구조에 실패하거나 요청을 놓쳐도 무한 던전 공략에는 아무 영향이 없습니다. 다만 <b>요청은 들어온 뒤 10분 동안만</b> 받을 수 있고, 그 뒤에는 지나갑니다.</li></ul></div></details>
 <details class="g-sub"><summary>탐색</summary><div class="g-sub-body"><p><b>하루 최대 3번 무한 던전의 역 하나에 진입하여 아이템을 파밍</b>할 수 있습니다. </p>
-<ul><li><b>10×10의 맵 중 무작위 위치에서 시작하여 5+(레벨÷5)칸을 이동</b>하며 도달한 칸에 있는 재화·가능성·아이템을 획득할 수 있습니다. 이동은 방향 버튼, 키보드 방향키, 맵 위의 칸을 눌러서 할 수 있습니다.</li><li>탐색 중 <b>[유한함]을 마주친 경우, 잔여 이동 칸이 남아있어도 탐색을 마치게 됩니다.</b></li></ul></div></details>
+<ul><li><b>10×10의 맵 중 무작위 위치에서 시작하여 5+(레벨÷5)칸을 이동</b>하며 도달한 칸에 있는 재화·가능성·아이템을 획득할 수 있습니다. 이동은 방향 버튼, 키보드 방향키, 맵 위의 칸을 눌러서 할 수 있습니다.</li><li>탐색 중 <b>[유한함]을 마주친 경우, 잔여 이동 칸이 남아있어도 탐색을 마치게 됩니다.</b></li><li>[유한함]은 <b>하루에 한 번만 마주칩니다.</b> 그날 한 번 마주쳤다면, 이후의 탐색에서는 더 이상 나타나지 않습니다.</li></ul></div></details>
 <details class="g-sub"><summary>별의 무덤</summary><div class="g-sub-body"><p>2126년 재개방 이후 발견되는 특수 공간입니다. 헌터들의 이능력을 뛰어넘는 강력한 힘을 가졌던 별이 잠들어 묻힌 곳으로, 위험성을 감안하여 <b>10레벨 이상부터 진입</b>이 가능합니다.</p>
 <ul><li><b>하루 최대 3번, 탐색과 별도로 기회를 가지며 방식은 탐색과 동일</b>합니다. 다만, 별의 무덤에서는 별가루·별조각 사탕·은하수 이슬·가능성이 발견되는 것으로 보고되었습니다.</li><li>탐색과 달리 별의 무덤에서는 헌터님이 <b>2칸 움직일 때마다 1칸 움직이는 [별지기]라는 무덤의 수호 몬스터가 존재</b>합니다. 별지기와 조우할 경우 즉시 마치게 되니 별지기의 위치를 확인하며 움직이시길 바랍니다.</li></ul></div></details>
 <details class="g-sub"><summary>별의 제단</summary><div class="g-sub-body"><p>별의 무덤 깊은 곳에서 발견된 제단입니다. <b>20레벨 이상, 그날 별의 무덤을 한 번 다녀온 헌터만 하루 1번</b> 들어갈 수 있으며, 8+(레벨÷5)칸을 이동합니다.</p>
@@ -9314,7 +9314,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-17-2205";
+const BUILD = "2026-11-17-2250";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
