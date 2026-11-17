@@ -2541,7 +2541,7 @@ async function openTimer() {
   w.addEventListener("pagehide", timerStop);
   await timerFetch(); timerPaint();
   timer.tick = setInterval(timerPaint, 1000);
-  timer.poll = setInterval(() => timerFetch().then(timerPaint), 60000);
+  timer.poll = setInterval(() => { if (!document.hidden) timerFetch().then(timerPaint); }, 60000);
 }
 document.addEventListener("click", e => { if (e.target.closest?.("#btn-timer")) openTimer(); });
 
@@ -2649,11 +2649,21 @@ function paintUpdates(d) {
   info("업데이트 노트", h("p", { class: "hint", style: "margin:0 0 12px" }, "게임에 새로 들어온 내용과 바뀐 점을 정리해 둡니다. 고친 노트는 고친 시각이 함께 표시됩니다."), writeBtn, list);
 }
 document.addEventListener("click", e => { if (e.target.closest?.("#btn-updates")) openUpdates(); });
+// 1분마다: 창이 가려져 있으면 쉰다. 알림 · SNS는 가벼운 요약을 먼저 보고, 바뀐 것이 있을 때만 목록을 받는다
+async function socialTick(force) {
+  if (document.hidden && !force) return;
+  refreshSocial(); refreshSideParty(); touchPresence(); updatesPaint();
+  let pk = null; try { pk = (await sb.rpc("poll_peek")).data; } catch {}
+  const stale = Date.now() - (social.snsAt || 0) > 5 * 60e3;   // 좋아요 · 글 수정은 요약에 안 잡히니 5분에 한 번은 다시 받는다
+  if (!pk || pk.notif !== social.peekNotif) { social.peekNotif = pk?.notif; notifPull(); }
+  if (!pk || pk.sns !== social.peekSns || stale) { social.peekSns = pk?.sns; social.snsAt = Date.now(); refreshSideSns(); }
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden && social.poll) socialTick(true); });
 function startSocial() {
   stopSocial();
   refreshSocial();
   refreshSideSns(); refreshSideParty(); touchPresence(); notifStart(); updatesPaint();
-  social.poll = setInterval(() => { refreshSocial(); refreshSideSns(); refreshSideParty(); touchPresence(); notifPull(); updatesPaint(); }, 60000);
+  social.poll = setInterval(socialTick, 60000);
   // 새 메시지는 실시간으로 받는다
   social.chan = sb.channel("dm-" + state.user.id)
     .on("postgres_changes", { event: "INSERT", schema: "public", table: "dm_messages", filter: `recipient=eq.${state.user.id}` }, payload => {
@@ -4425,6 +4435,7 @@ function renderDungeonRun(body, first) {
   }
   const pollDelay = () => (cur.speed > 1 ? 3000 : 15000);
   async function poll() {
+    if (document.hidden) { dgPoll = setTimeout(poll, pollDelay()); return; }   // 창이 가려져 있으면 쉰다
     const { data, error } = await sb.rpc("get_battle_log");
     if (error) err.textContent = koError(error);
     else if (data) { const was = cur.returned; err.textContent = ""; cur = data; if (!was && cur.returned) sfx("notice"); paintStats(); paintLog(); paintActions(); tick(); }
@@ -4888,6 +4899,7 @@ function renderRegionalRun(body, first) {
   }
   async function poll() {
     dgPoll = null;
+    if (document.hidden) { dgPoll = setTimeout(poll, cur.speed > 1 ? 2000 : 15000); return; }   // 창이 가려져 있으면 쉰다
     const { data, error } = await sb.rpc("get_regional_status");
     if (error) err.textContent = koError(error);
     else if (data) { const was = cur.returned; err.textContent = ""; cur = data; if (!was && cur.returned) sfx("notice"); paint(); tick(); }
@@ -7613,28 +7625,30 @@ async function renderAdmin(pane) {
   const list = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
   const count = h("input", { class: "input", type: "number", min: "1", max: "20", value: "1", id: "adm-count" });
   const days = h("input", { class: "input", type: "number", min: "1", max: "365", value: "14", id: "adm-days" });
+  const uses = h("input", { class: "input", type: "number", min: "1", max: "500", value: "1", id: "adm-uses" });
   const out = h("div", { class: "error", role: "alert" });
   const btn = h("button", { class: "btn", type: "button" }, "초대코드 발급");
   btn.onclick = async () => {
     out.textContent = "";
     busy(btn, true);
-    const { data, error } = await sb.rpc("issue_invite", { p_count: Number(count.value), p_days: Number(days.value) });
+    const { data, error } = await sb.rpc("issue_invite", { p_count: Number(count.value), p_days: Number(days.value), p_uses: Number(uses.value) || 1 });
     busy(btn, false);
     if (error) return (out.textContent = koError(error));
     toast(`${data.length}개 발급했습니다.`);
     loadCodes();
   };
   async function loadCodes() {
-    const { data, error } = await sb.from("invite_codes").select("code, used_by, used_at, expires_at, created_at").order("created_at", { ascending: false }).limit(100);
+    const { data, error } = await sb.from("invite_codes").select("code, used_by, used_at, expires_at, created_at, uses, max_uses").order("created_at", { ascending: false }).limit(100);
     if (error) return list.replaceChildren(h("p", { class: "error" }, koError(error)));
     const now = Date.now();
     list.replaceChildren(h("table", { class: "list" },
       h("thead", {}, h("tr", {}, h("th", {}, "코드"), h("th", {}, "상태"), h("th", {}, "만료"))),
       h("tbody", {}, ...data.map(r => {
-        const status = r.used_by ? "사용됨" : (r.expires_at && Date.parse(r.expires_at) < now ? "만료" : "사용 가능");
+        const max = r.max_uses || 1, used = r.uses ?? (r.used_by ? 1 : 0), full = used >= max;
+        const status = (full ? "사용됨" : (r.expires_at && Date.parse(r.expires_at) < now ? "만료" : "사용 가능")) + (max > 1 ? ` (${used}/${max}명)` : "");
         return h("tr", {},
           h("td", {}, h("code", { class: "c" }, r.code), " ",
-            !r.used_by ? h("button", { class: "btn ghost small", type: "button", onclick: () => navigator.clipboard?.writeText(r.code).then(() => toast("복사했습니다.")) }, "복사") : null),
+            !full ? h("button", { class: "btn ghost small", type: "button", onclick: () => navigator.clipboard?.writeText(r.code).then(() => toast("복사했습니다.")) }, "복사") : null),
           h("td", {}, status),
           h("td", {}, r.expires_at ? new Date(r.expires_at).toLocaleDateString("ko-KR") : "-"));
       }))));
@@ -7699,6 +7713,7 @@ async function renderAdmin(pane) {
     h("div", { style: "display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin-bottom:8px" },
       h("div", { class: "field", style: "margin:0" }, h("label", { for: "adm-count" }, "개수 (1~20)"), count),
       h("div", { class: "field", style: "margin:0" }, h("label", { for: "adm-days" }, "유효 기간 (일)"), days),
+      h("div", { class: "field", style: "margin:0" }, h("label", { for: "adm-uses" }, "코드 하나로 받을 인원 (1~500)"), uses),
       btn),
     out, list,
     h("p", { class: "panel-title", style: "margin:24px 0 8px" }, "비밀번호 재설정"),
@@ -9299,7 +9314,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-16-0120";
+const BUILD = "2026-11-17-2205";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
@@ -9341,7 +9356,7 @@ setTimeout(checkBroadcast, 4e3);
 // 실시간 소식 띠: 레이드 토벌 시작 · 헌터 승급 · 레이드 토벌 성공. 화면 위 가운데 3초 동안 하나씩
 let liveCursor = null, liveQ = [], liveShowing = false;
 async function pollLive() {
-  if (!state.profile) return;
+  if (!state.profile || (document.hidden && liveCursor != null)) return;
   try {
     const { data } = await sb.rpc("get_live_events", liveCursor == null ? {} : { p_after: liveCursor });
     if (!data) return;
