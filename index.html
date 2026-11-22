@@ -454,6 +454,7 @@ dialog.guide-dlg { width: min(920px, calc(100vw - 24px)); }
 .shop-have { margin-left: 8px; font-size: 12px; font-weight: 700; color: var(--text-dim); padding: 1px 8px; border-radius: 999px; background: var(--surface-2); vertical-align: 1px; }
 .shop-have.on { color: var(--accent-text); background: color-mix(in srgb, var(--primary) 12%, var(--surface)); }
 .an-bookmark { margin: 8px 0 0; padding: 6px 10px; border-radius: 8px; font-size: 13px; background: color-mix(in srgb, #E8A33D 14%, var(--surface)); color: color-mix(in srgb, #E8A33D 60%, var(--text)); }
+.it-tip { cursor: help; text-decoration: underline dotted; text-underline-offset: 3px; }
 .bt-pop p { margin: 4px 0; } .bt-pop ul { margin: 0 0 4px; padding-left: 18px; } .bt-pop > strong { font-size: 14px; }
 .bt-unit .gauge { margin: 0; height: 7px; background: var(--surface); }
 .bt-unit .gauge.mp { height: 4px; }
@@ -2835,7 +2836,7 @@ function buffBadges(list, used) {
 // 헌터 이름을 누르거나 마우스를 올리면 적용 상태를 모아 보여 준다
 let btPop = null;
 function closeBtPop() { btPop?.remove(); btPop = null; }
-document.addEventListener("click", e => { if (btPop && !e.target.closest(".bt-pop, .bt-who")) closeBtPop(); });
+document.addEventListener("click", e => { if (btPop && !e.target.closest(".bt-pop, .bt-who, .it-tip")) closeBtPop(); });
 function btPopFor(anchor, name, fx, em, eff, foeFx) {
   closeBtPop();
   const rows = [];
@@ -2859,6 +2860,42 @@ function btPopFor(anchor, name, fx, em, eff, foeFx) {
   btPop = h("div", { class: "bt-pop", role: "dialog", "aria-label": `${name} 적용 상태` }, h("strong", {}, name), ...rows);
   document.body.append(btPop);
   const r = anchor.getBoundingClientRect(), w = Math.min(320, innerWidth - 16);
+  btPop.style.width = w + "px";
+  btPop.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left)) + "px";
+  const below = r.bottom + 6, hgt = btPop.offsetHeight;
+  btPop.style.top = (below + hgt > innerHeight - 8 ? Math.max(8, r.top - hgt - 6) : below) + "px";
+}
+// 아이템 이름을 누르거나 마우스를 올리면 보유 개수와 효과를 보여 준다 (알게 된 조합식)
+function itemTipEl(code, label, items, inv) {
+  const it = items?.[code];
+  if (!it) return label;
+  const el = h("span", { class: "it-tip", tabindex: "0", role: "button", "aria-label": `${it.name} 정보 보기` }, label);
+  const show = () => itemPopFor(el, it, code, inv);
+  el.onclick = e => { e.stopPropagation(); if (btPop?.dataset.pin === code) return closeBtPop(); show(); btPop.dataset.pin = code; };
+  el.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); el.click(); } };
+  if (matchMedia("(hover: hover)").matches) { el.onmouseenter = () => { if (!btPop?.dataset.pin) show(); }; el.onmouseleave = () => { if (!btPop?.dataset.pin) closeBtPop(); }; }
+  return el;
+}
+function itemPopFor(anchor, it, code, inv) {
+  closeBtPop();
+  const KIND = { material: "재료", consumable: "소비 아이템", buff: "버프 아이템", equip: "장비" };
+  let have;
+  if (it.kind === "equip") {
+    const gs = (inv?.gear || []).filter(g => g.code === code), on = gs.filter(g => g.equipped).length;
+    have = `${gs.length}개${on ? ` (장착 중 ${on}개)` : ""}`;
+  } else have = `${(inv?.stacks || []).find(x => x.code === code)?.qty || 0}개`;
+  const eff = it.kind === "equip" ? `${SLOT_NAME[it.slot] || ""} · ${TIER_NAME[it.tier] || ""} · Lv.${it.req_level || 1}부터 · ${fmtStats(it.stats)}`
+    : it.kind === "consumable" ? (fmtEffect(it.effect || {}) || "-")
+    : it.kind === "buff" ? (it.eff_text || "-")
+    : matInfo(it);
+  btPop = h("div", { class: "bt-pop", role: "dialog", "aria-label": `${it.name} 정보` },
+    h("strong", { class: it.tier ? `tier${it.tier}` : null }, it.name),
+    h("p", {}, h("b", {}, "분류 "), KIND[it.kind] || it.kind),
+    h("p", {}, h("b", {}, "보유 "), have),
+    h("p", {}, h("b", {}, "효과 "), eff),
+    it.desc && it.kind !== "buff" ? h("p", { class: "hint" }, it.desc) : null);
+  document.body.append(btPop);
+  const r = anchor.getBoundingClientRect(), w = Math.min(300, innerWidth - 16);
   btPop.style.width = w + "px";
   btPop.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left)) + "px";
   const below = r.bottom + 6, hgt = btPop.offsetHeight;
@@ -5747,6 +5784,7 @@ const RAID_SPECIAL = { fury: "광폭화", armor: "단단한 외피", sweep: "휩
 const RAID_SPECIAL_DESC = { fury: "시간이 지날수록 보스의 공격이 강해집니다.", armor: "보스에게 주는 피해가 줄어듭니다.", sweep: "광역 공격이 더 자주, 더 강하게 들어옵니다.",
   drain: "헌터의 MP가 더 빨리 줄어듭니다.", curse: "회복 효과가 줄어듭니다." };
 const fmtN = n => Number(n || 0).toLocaleString();
+const fmtKMD = iso => new Date(iso).toLocaleString("ko-KR", { month: "long", day: "numeric", weekday: "short", timeZone: "Asia/Seoul" });
 const fmtKDay = iso => new Date(iso).toLocaleString("ko-KR", { month: "numeric", day: "numeric", weekday: "short", hour: "numeric", minute: "2-digit", timeZone: "Asia/Seoul" });
 let raidSpeed = 1;
 // 보스 아이콘: 저장해 둔 path 모양만 그린다 (색은 화면에서 정한다)
@@ -5760,6 +5798,12 @@ function raidHomeBox() {
   sb.rpc("raid_state").then(({ data: r, error }) => {
     if (error || !r) return;
     const w = r.week;
+    if (!w && r.off) {   // 레이드를 쉬는 주
+      box.hidden = false;
+      return box.replaceChildren(h("div", { class: "hm-raid-row" },
+        h("div", {}, h("p", { class: "panel-title", style: "margin:0 0 2px" }, "레이드"), h("p", { class: "hint", style: "margin:0" }, `이번 주는 레이드를 쉽니다. ${fmtKMD(r.off.resume)}부터 다시 열립니다.`)),
+        h("button", { class: "btn ghost small", type: "button", onclick: goRaid }, "자세히")));
+    }
     if (!w || !w.theme) {   // 아직 열리지 않았으면 시작 안내만
       if (!r.open_at || Date.parse(r.open_at) <= Date.now()) return;
       box.hidden = false;
@@ -5803,6 +5847,14 @@ async function renderRaid(body) {
   if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
   const off = Date.parse(r.now) - Date.now();
   const w = r.week;
+  if (!w && r.off) {   // 레이드를 쉬는 주
+    body.replaceChildren(
+      h("div", { class: "rd-hero" }, h("p", { class: "rd-kicker" }, "RAID"), h("h3", {}, "이번 주는 레이드를 쉽니다"),
+        h("p", { class: "hint", style: "margin:0" }, `${fmtKMD(r.off.resume)}부터 새로운 레이드 보스가 나타납니다. 그동안 개인 도전과 토벌은 열리지 않습니다.`)),
+      raidRules(),
+      r.last ? raidLastBox(r.last) : null);
+    return;
+  }
   if (!w) {
     const before = Date.now() + off < Date.parse(r.open_at);
     body.replaceChildren(
@@ -6670,7 +6722,7 @@ async function renderDismantle(body, inv, refresh) {
 
 let craftCat = "all", craftQ = "";
 async function renderCraft(body, inv, refresh) {
-  const { data: known } = await sb.rpc("get_recipes");
+  const [{ data: known }, { data: rcItems }] = await Promise.all([sb.rpc("get_recipes"), sb.rpc("recipe_items")]);
   const picks = [];   // { kind: "stack", code, name } | { kind: "gear", id, name, tier }
   let batch = null;   // 알게 된 조합식으로 칸을 채웠을 때 { r, times } — 여러 번 한꺼번에 조합
   const slots = h("div", { class: "craft-slots" });
@@ -6779,8 +6831,8 @@ async function renderCraft(body, inv, refresh) {
     const w = craftQ.trim().toLowerCase();
     const mark = name => w && name.toLowerCase().includes(w) ? h("mark", {}, name) : name;
     return h("div", { class: "item-row" },
-      h("div", { class: "item-main" }, h("strong", { class: r.tier ? `tier${r.tier}` : null }, mark(r.name), r.qty > 1 ? ` × ${r.qty}` : ""),
-        h("div", { class: "hint" }, ...r.ingredients.flatMap((x, i) => [i ? " + " : "", mark(x.name)])),
+      h("div", { class: "item-main" }, h("strong", { class: r.tier ? `tier${r.tier}` : null }, itemTipEl(r.result, mark(r.name), rcItems, inv), r.qty > 1 ? ` × ${r.qty}` : ""),
+        h("div", { class: "hint" }, ...r.ingredients.flatMap((x, i) => [i ? " + " : "", itemTipEl(x.code, mark(x.name), rcItems, inv)])),
         h("div", { class: "hint", style: "font-size:12px" }, max > 0 ? `지금 재료로 최대 ${max}번` : "재료가 부족합니다")),
       h("div", { class: "item-actions", style: "align-items:center" }, qty,
         h("button", { class: "btn ghost small", type: "button", "data-sfx": "own", disabled: max < 1,
@@ -9314,7 +9366,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-17-2250";
+const BUILD = "2026-11-22-1830";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
