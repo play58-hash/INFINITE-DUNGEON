@@ -455,6 +455,7 @@ dialog.guide-dlg { width: min(920px, calc(100vw - 24px)); }
 .shop-have.on { color: var(--accent-text); background: color-mix(in srgb, var(--primary) 12%, var(--surface)); }
 .an-bookmark { margin: 8px 0 0; padding: 6px 10px; border-radius: 8px; font-size: 13px; background: color-mix(in srgb, #E8A33D 14%, var(--surface)); color: color-mix(in srgb, #E8A33D 60%, var(--text)); }
 .it-tip { cursor: help; text-decoration: underline dotted; text-underline-offset: 3px; }
+.rank-all { display: block; font-size: 11px; font-weight: 400; color: var(--text-dim); white-space: nowrap; }
 .bt-pop p { margin: 4px 0; } .bt-pop ul { margin: 0 0 4px; padding-left: 18px; } .bt-pop > strong { font-size: 14px; }
 .bt-unit .gauge { margin: 0; height: 7px; background: var(--surface); }
 .bt-unit .gauge.mp { height: 4px; }
@@ -7042,6 +7043,11 @@ function openStats() {
 /* ===== 국제헌터연합: 주간 랭킹 ===== */
 let unionMode = "solo";
 let unionView = "rank";
+let unionBand = 0;   // 0 = 전체, 1~5 = 레벨 구간
+// 레벨별 랭킹: 12월 1일 0시부터 (운영자는 먼저 본다)
+const BAND_OPEN = Date.parse("2026-12-01T00:00:00+09:00");
+const bandOn = () => Date.now() >= BAND_OPEN || !!state.profile?.is_admin;
+const BANDS = [[0, "전체"], [1, "Lv.1~19"], [2, "Lv.20~39"], [3, "Lv.40~59"], [4, "Lv.60~79"], [5, "Lv.80 이상"]];
 const unionTabs = pane => h("div", { class: "tabs", style: "max-width:440px;margin:0 0 14px", "data-tour": "un-tabs" },
   h("button", { type: "button", class: unionView === "rank" ? "on" : null, onclick: () => { unionView = "rank"; renderUnion(pane); } }, "랭킹"),
   h("button", { type: "button", class: unionView === "codex" ? "on" : null, onclick: () => { unionView = "codex"; renderCodex(pane); } }, "도감"),
@@ -7053,7 +7059,12 @@ async function renderUnion(pane, offset = 0, mode = unionMode) {
   if (unionView === "hunters") return renderHunters(pane);
   if (unionView === "guild") return renderUnionGuild(pane);
   unionMode = mode;
+  if (!bandOn()) unionBand = 0;
+  const band = unionBand;
   const body = h("div", {}, h("p", { class: "hint" }, "불러오는 중…"));
+  const bandRow = bandOn() ? h("div", { class: "cat-row", role: "tablist", "aria-label": "레벨 구간", style: "margin:10px 0 0", "data-tour": "un-band" },
+    ...BANDS.map(([id, label]) => h("button", { type: "button", role: "tab", class: `cat-chip${band === id ? " on" : ""}`, "aria-selected": band === id ? "true" : "false",
+      onclick: () => { unionBand = id; renderUnion(pane, offset, mode); } }, label))) : null;
   pane.replaceChildren(
     paneHead("국제헌터연합", "union-rank"), unionTabs(pane),
     h("p", { class: "hint", style: "margin:0 0 16px" }, "무한 던전 주간 랭킹은 매주 월요일 0시(한국 시간)에 새로 시작합니다. 같은 역이면 먼저 도달한 쪽이 앞섭니다. 혼자 세운 기록과 파티로 세운 기록은 따로 겨룹니다."),
@@ -7064,18 +7075,26 @@ async function renderUnion(pane, offset = 0, mode = unionMode) {
       h("div", { class: "tabs", style: "max-width:320px;flex:1 1 240px", "data-tour": "un-week" },
         h("button", { type: "button", class: offset === 0 ? "on" : null, onclick: () => renderUnion(pane, 0, mode) }, "이번 주"),
         h("button", { type: "button", class: offset === 1 ? "on" : null, onclick: () => renderUnion(pane, 1, mode) }, "지난주 (확정)"))),
+    bandRow,
+    band ? h("p", { class: "hint", style: "margin:8px 0 0" }, mode === "party"
+      ? "기록을 세울 때 파티원 평균 레벨로 구간을 나눕니다. 옆의 작은 숫자는 전체 순위입니다."
+      : "기록을 세울 때의 레벨로 구간을 나눕니다. 옆의 작은 숫자는 전체 순위입니다.") : null,
+    bandRow ? h("div", { style: "height:10px" }) : null,
     body,
     h("p", { class: "hint", style: "margin-top:20px" }, mode === "party"
       ? "파티 기록은 파티장 이름으로 오릅니다. 파티장 이름을 누르면 함께한 파티원을 볼 수 있습니다."
       : "코드네임을 누르면 헌터 정보와 타이틀, 도감 달성률을 보고 친구 신청을 할 수 있습니다."));
-  const { data, error } = await sb.rpc(mode === "party" ? "get_party_ranking" : "get_weekly_ranking", { p_offset: offset });
+  const { data, error } = band
+    ? await sb.rpc("get_level_ranking", { p_mode: mode, p_offset: offset, p_band: band })
+    : await sb.rpc(mode === "party" ? "get_party_ranking" : "get_weekly_ranking", { p_offset: offset });
   if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
   const ws = new Date(`${data.week_start}T00:00:00+09:00`), we = new Date(ws.getTime() + 6 * 864e5);
   const span = `${ws.getMonth() + 1}월 ${ws.getDate()}일 ~ ${we.getMonth() + 1}월 ${we.getDate()}일`;
   if (!data.rows.length) {
     maybeTour("union-rank");
     return body.replaceChildren(h("p", { class: "hint", style: "margin:0 0 8px" }, span),
-      h("div", { class: "soon" }, offset === 0
+      h("div", { class: "soon" }, band ? `${BANDS[band][1]} 구간에는 ${offset === 0 ? "아직 " : "지난주 "}기록이 없습니다.`
+        : offset === 0
         ? (mode === "party" ? "아직 파티 기록이 없습니다. 파티를 꾸려 무한 던전에 들어가 보세요." : "아직 기록이 없습니다. 무한 던전에서 첫 기록을 세워 보세요.")
         : "지난주 기록이 없습니다."));
   }
@@ -7090,9 +7109,11 @@ async function renderUnion(pane, offset = 0, mode = unionMode) {
     h("table", { class: "list rank", "data-tour": "un-table" },
       h("thead", {}, h("tr", {}, h("th", {}, "순위"), h("th", {}, mode === "party" ? "파티장" : "헌터"), h("th", {}, mode === "party" ? "파티" : "등급"), h("th", { style: "text-align:right" }, "최고 도달"))),
       h("tbody", {}, ...data.rows.map(r => h("tr", { class: r.me ? "me" : null },
-        h("td", {}, h("span", { class: "rank-n" + (r.rank <= 3 ? " top" : "") }, String(r.rank))),
+        h("td", {}, h("span", { class: "rank-n" + (r.rank <= 3 ? " top" : "") }, String(r.rank)),
+          band && r.overall ? h("small", { class: "rank-all", title: "전체 순위" }, `전체 ${r.overall}위`) : null),
         h("td", {}, h("button", { type: "button", class: "hunter-link", onclick: () => mode === "party" ? showMembers(r) : openPublicHunter(r.codename) }, r.codename), gdot(r.guild)),
-        h("td", {}, mode === "party" ? h("span", { class: "rank-party" }, `${r.members.length}명`, h("small", {}, r.members.filter(m => !m.leader).map(m => m.codename).join(", "))) : `${r.grade}급 · Lv.${r.level}`),
+        h("td", {}, mode === "party" ? h("span", { class: "rank-party" }, `${r.members.length}명${r.avg_level != null ? ` · 평균 Lv.${Math.round(r.avg_level)}` : ""}`, h("small", {}, r.members.filter(m => !m.leader).map(m => m.codename).join(", ")))
+          : h("span", {}, `${r.grade}급 · Lv.${r.level}`, band && r.rec_level && r.rec_level !== r.level ? h("small", { class: "rank-all" }, `기록 당시 Lv.${r.rec_level}`) : null)),
         h("td", { style: "text-align:right;font-weight:700" }, `${r.best_station}역`))))));
   maybeTour("union-rank");
 }
@@ -9366,7 +9387,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-22-1830";
+const BUILD = "2026-11-24-2200";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
