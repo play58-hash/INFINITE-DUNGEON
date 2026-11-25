@@ -394,6 +394,44 @@ dialog.guide-dlg { width: min(920px, calc(100vw - 24px)); }
 .guide-body h3 { font-size: 15px; margin: 14px 0 6px; }
 .lic-card { border-radius: 16px; padding: 14px 16px 12px; background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 16%, var(--surface)), color-mix(in srgb, var(--secondary) 10%, var(--surface)));
   border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--border)); box-shadow: var(--shadow); }
+/* 헌터 ID 카드 배경: 배경마다 글씨색 · 흐린 글씨 · 강조색 · 테두리를 함께 바꾼다 (기본은 사이트 테마를 따른다) */
+.lic-card.cbg { --lt:#17132A; --ld:#5E5878; --la:#3300FF; --lb: rgba(23,19,42,.18); color: var(--lt); border: 1.5px solid var(--lb); }
+.lic-card.cbg.dark { --lt:#F8F6FF; --ld:rgba(248,246,255,.74); --la:#D9CCFF; --lb: rgba(255,255,255,.28); text-shadow: 0 1px 2px rgba(0,0,0,.35); }
+.lic-card.cbg .lic-top, .lic-card.cbg .grade-line, .lic-card.cbg .lic-meta, .lic-card.cbg .lic-credit, .lic-card.cbg .hint { color: var(--ld); }
+.lic-card.cbg .title-line .tt { color: var(--la); }
+.lic-card.cbg .lic-foot { border-top-color: var(--lb); }
+.lic-card.cbg .lic-barcode { fill: var(--lt); }
+.lic-card.cbg .lic-main .avatar { box-shadow: 0 0 0 2px var(--lb); }
+.lic-card.cbg .badge { background: color-mix(in srgb, var(--lt) 14%, transparent); color: var(--lt); }
+.cbg-dawn { background: linear-gradient(160deg, #1B1740 0%, #3B2A7A 55%, #7B4FC9 100%); }
+.cbg-sunset { background: linear-gradient(135deg, #FFD7A8 0%, #FFB2B9 50%, #E7B6F0 100%); --la:#B02A5B !important; }
+.cbg-stars { background: radial-gradient(1.2px 1.2px at 12% 22%, #fff 99%, transparent), radial-gradient(1px 1px at 33% 68%, #fff 99%, transparent),
+  radial-gradient(1.6px 1.6px at 58% 18%, #fff 99%, transparent), radial-gradient(1px 1px at 77% 52%, #fff 99%, transparent),
+  radial-gradient(1.3px 1.3px at 88% 14%, #fff 99%, transparent), radial-gradient(1px 1px at 46% 88%, #fff 99%, transparent),
+  radial-gradient(1px 1px at 22% 80%, #fff 99%, transparent), radial-gradient(1.4px 1.4px at 66% 78%, #fff 99%, transparent),
+  radial-gradient(1px 1px at 95% 84%, #fff 99%, transparent), radial-gradient(1px 1px at 5% 50%, #fff 99%, transparent), linear-gradient(180deg, #0B1030, #182253); }
+.cbg-nebula { background: radial-gradient(60% 80% at 80% 20%, rgba(255,92,190,.55), transparent 60%), radial-gradient(70% 90% at 10% 90%, rgba(40,200,220,.5), transparent 60%), linear-gradient(135deg, #1A0F33, #2A1450); --la:#FFC4EA !important; }
+.cbg-holo { background: linear-gradient(120deg, rgba(255,255,255,.55), rgba(255,255,255,0) 40%), conic-gradient(from 210deg at 70% 40%, #C9F3FF, #E8D2FF, #FFD6EC, #FFF3C4, #CFFFE2, #C9F3FF); --la:#5A2BD6 !important; }
+.cbg-paper { background: repeating-linear-gradient(0deg, rgba(120,90,40,.05) 0 1px, transparent 1px 4px), radial-gradient(120% 90% at 50% 40%, #FBF3DF, #EAD9B4); --la:#8A4B12 !important; --ld:#6E5F44 !important; }
+.cbg-silver { background: repeating-linear-gradient(90deg, rgba(255,255,255,.35) 0 1px, rgba(0,0,0,.025) 1px 3px), linear-gradient(135deg, #E9ECF1, #C3C9D3 50%, #EEF1F5); --la:#33457A !important; }
+.cbg-gold { background: repeating-linear-gradient(90deg, rgba(255,255,255,.18) 0 1px, transparent 1px 3px), linear-gradient(135deg, #F7E3A1, #D9AE48 50%, #F3D987); --la:#7A4A00 !important; --ld:#5E4A1E !important; }
+.cbg-abyss { background: linear-gradient(rgba(140,110,255,.10) 1px, transparent 1px) 0 0/18px 18px, linear-gradient(90deg, rgba(140,110,255,.10) 1px, transparent 1px) 0 0/18px 18px, radial-gradient(90% 90% at 50% 100%, #24184A, #08060F); }
+.cbg-sakura { background: radial-gradient(6px 4px at 15% 25%, rgba(255,150,180,.55), transparent), radial-gradient(5px 3px at 80% 15%, rgba(255,150,180,.5), transparent), radial-gradient(6px 4px at 65% 70%, rgba(255,150,180,.5), transparent), radial-gradient(4px 3px at 30% 85%, rgba(255,150,180,.5), transparent), radial-gradient(5px 3px at 92% 60%, rgba(255,150,180,.45), transparent), linear-gradient(160deg, #FFF0F4, #FFD9E4); --la:#C2306A !important; }
+.cbg-forest { background: radial-gradient(80% 70% at 85% 10%, rgba(190,255,170,.22), transparent 60%), linear-gradient(160deg, #0E2A1F, #1F4A33 60%, #2F6343); --la:#C8F5B5 !important; }
+.cbg-rift { background: linear-gradient(118deg, transparent 84%, rgba(170,120,255,.42) 84.6%, rgba(255,255,255,.45) 84.9%, rgba(170,120,255,.42) 85.2%, transparent 86%),
+  linear-gradient(64deg, transparent 91%, rgba(170,120,255,.28) 91.4%, transparent 92%), radial-gradient(40% 70% at 92% 50%, rgba(120,70,230,.22), transparent 70%), linear-gradient(135deg, #120A22, #1D1035); --la:#E2D4FF !important; }
+.cbg-blueprint { background: linear-gradient(rgba(255,255,255,.14) 1px, transparent 1px) 0 0/16px 16px, linear-gradient(90deg, rgba(255,255,255,.14) 1px, transparent 1px) 0 0/16px 16px, linear-gradient(rgba(255,255,255,.07) 1px, transparent 1px) 0 0/4px 4px, linear-gradient(135deg, #1D4F9C, #2E6CC4); --la:#FFE9A8 !important; }
+.cbg-mint { background: linear-gradient(135deg, #D6FBEF, #C9EEFF); --la:#0B7A6A !important; }
+.cbg-mono { background: repeating-linear-gradient(45deg, rgba(0,0,0,.04) 0 6px, transparent 6px 12px), linear-gradient(135deg, #2B2B30, #45454D); --la:#E7E7EE !important; }
+.cbg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+.cbg-tile { display: grid; gap: 4px; padding: 0; border: 0; background: none; text-align: left; cursor: pointer; color: inherit; font: inherit; }
+.cbg-tile .lic-card { height: 58px; padding: 8px 10px; border-radius: 10px; display: flex; flex-direction: column; justify-content: space-between; font-size: 12px; font-weight: 700; box-shadow: none; }
+.cbg-tile .lic-card i { font-style: normal; font-size: 7px; letter-spacing: .05em; opacity: .8; }
+.cbg-tile.on .lic-card { outline: 3px solid var(--primary); outline-offset: 2px; }
+.cbg-tile small { font-size: 12px; color: var(--text-dim); line-height: 1.3; } .cbg-tile b { font-size: 13px; }
+.lic-no-label { font-size: 9px; letter-spacing: .08em; font-weight: 700; }
+.lic-no { font-size: 14px; font-weight: 700; letter-spacing: .04em; color: var(--text); }
+.lic-card.cbg .lic-no { color: var(--lt); }
 .lic-top { display: flex; justify-content: space-between; gap: 8px; font-size: 9px; letter-spacing: .06em; white-space: nowrap; overflow: hidden; color: var(--text-dim); font-weight: 700; margin-bottom: 10px; }
 .lic-main { display: flex; gap: 14px; align-items: flex-start; }
 .lic-main .avatar { width: 84px; height: 84px; flex: none; border-radius: 14px; font-size: 34px; }
@@ -465,6 +503,8 @@ dialog.guide-dlg { width: min(920px, calc(100vw - 24px)); }
 @media (max-width: 520px) { .bt { grid-template-columns: 1fr; } }
 .pt-box { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin: 0 0 14px; }
 .pt-box .fr-row { padding: 6px 0; }
+.beta-title { border: 1px dashed color-mix(in srgb, var(--primary) 45%, var(--border)); border-radius: 12px; padding: 12px; margin: 6px 0 12px; background: color-mix(in srgb, var(--primary) 6%, transparent); }
+.beta-title input { flex: 1 1 auto; min-width: 0; }
 .title-line { line-height: 1.35; overflow-wrap: anywhere; }
 .title-line .tt { font-weight: 600; color: var(--accent-text); }
 .title-line.stack > span { display: block; }
@@ -1521,6 +1561,7 @@ dialog::backdrop { background: rgba(10,8,20,.55); }
       </div>
     </div>
     <div class="field" id="e-titles"></div>
+    <div class="field" id="e-cardbg"></div>
     <div id="e-stats" style="margin-bottom:16px"></div>
     <div class="field">
       <label for="e-codename">코드네임</label>
@@ -2017,6 +2058,92 @@ function titleLine(t, codename, stack) {   // stack: 앞말 / 코드네임 / 뒷
     h("span", { class: "cn" }, codename),
     t?.back ? h("span", { class: "tt" }, " " + t.back) : null);
 }
+// 헌터 ID 카드 배경: 밝은 배경은 어두운 글씨, 어두운 배경은 밝은 글씨
+const CBG_DARK = new Set(["dawn", "stars", "nebula", "abyss", "forest", "rift", "blueprint", "mono"]);
+const cardBgClass = code => !code || code === "base" ? "lic-card" : `lic-card cbg cbg-${code}${CBG_DARK.has(code) ? " dark" : ""}`;
+async function paintCardBg(st) {
+  const box = $("#e-cardbg");
+  if (!box) return;
+  if (!st) {
+    box.replaceChildren(h("label", {}, "ID 카드 배경"), h("p", { class: "hint" }, "불러오는 중…"));
+    const { data, error } = await sb.rpc("card_bg_state");
+    if (error) return box.replaceChildren(h("label", {}, "ID 카드 배경"), h("p", { class: "error" }, koError(error)));
+    st = data;
+  }
+  const err = h("div", { class: "error", role: "alert" });
+  const done = (data, msg) => {
+    if (state.character && data.currency != null) state.character.currency = data.currency;
+    renderHunter(); toast(msg); paintCardBg(data);
+  };
+  const tile = b => {
+    const on = st.current === b.code;
+    const el = h("button", { type: "button", class: "cbg-tile" + (on ? " on" : ""), "aria-pressed": on ? "true" : "false",
+        "aria-label": `${b.name} 배경${b.owned ? "" : `, ${fmtMh(b.price)}`}` },
+      h("div", { class: cardBgClass(b.code) }, h("i", {}, "HUNTER LICENSE"), h("span", { class: "title-line" }, h("span", { class: "tt" }, "Aa "), state.profile.codename)),
+      h("b", {}, b.name), h("small", {}, on ? "사용 중" : b.owned ? "가지고 있음" : fmtMh(b.price)));
+    el.onclick = async () => {
+      err.textContent = "";
+      if (on) return;
+      if (!b.owned) {
+        if ((st.currency || 0) < b.price) return (err.textContent = `메헨이 부족합니다. (${fmtMh(b.price)} 필요 · 가진 메헨 ${fmtMh(st.currency)})`);
+        if (!confirm(`'${b.name}' 배경을 ${fmtMh(b.price)}에 살까요? 사면 바로 ID 카드에 씌워집니다.`)) return;
+        el.disabled = true;
+        const { data, error } = await sb.rpc("card_bg_buy", { p_code: b.code });
+        el.disabled = false;
+        if (error) return (err.textContent = koError(error));
+        return done(data, `'${b.name}' 배경을 샀습니다.`);
+      }
+      el.disabled = true;
+      const { data, error } = await sb.rpc("card_bg_set", { p_code: b.code });
+      el.disabled = false;
+      if (error) return (err.textContent = koError(error));
+      done(data, `ID 카드 배경을 '${b.name}'(으)로 바꿨습니다.`);
+    };
+    return el;
+  };
+  const mine = h("button", { type: "button", class: "btn ghost small", onclick: () => openPublicHunter(state.profile.codename) }, "내 카드 보기");
+  box.replaceChildren(
+    h("div", { style: "display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px" }, h("label", { style: "margin:0" }, "ID 카드 배경"), mine),
+    h("p", { class: "hint", style: "margin:0 0 8px;font-size:13px" }, `헌터 정보 창의 ID 카드를 꾸밉니다. 다른 헌터에게도 같은 배경으로 보입니다. 가진 메헨 ${fmtMh(st.currency)}`),
+    h("div", { class: "cbg-grid" }, ...(st.list || []).map(tile)), err);
+}
+// 베타 테스트 특전: 나만의 타이틀 조각 1개를 직접 만든다 (앞말/뒷말, 공백 포함 10글자, 한 번 만들면 고정)
+function betaTitleBox() {
+  let part = "front";
+  const input = h("input", { class: "input", type: "text", maxlength: "10", placeholder: "공백 포함 10글자까지", "aria-label": "특전 타이틀 이름" });
+  const count = h("span", { class: "hint", style: "font-size:12px" }, "0 / 10");
+  const prev = h("div", { class: "hint", style: "margin-top:6px" });
+  const err = h("div", { class: "error", role: "alert" });
+  const nm = () => input.value.trim().replace(/\s+/g, " ");
+  const paint = () => {
+    count.textContent = `${[...input.value].length} / 10`;
+    prev.replaceChildren("미리 보기: ", titleLine(part === "front" ? { front: nm() || "○○○" } : { back: nm() || "○○○" }, state.profile.codename));
+    pick.querySelectorAll("button").forEach(x => x.classList.toggle("on", x.dataset.p === part));
+  };
+  const pick = h("div", { class: "cat-row", role: "radiogroup", "aria-label": "타이틀 조각 위치" },
+    ...[["front", "앞말"], ["back", "뒷말"]].map(([p, n]) => h("button", { type: "button", class: "cat-chip", "data-p": p, onclick: () => { part = p; paint(); } }, n)));
+  input.oninput = paint;
+  const make = h("button", { class: "btn small", type: "button" }, "만들기");
+  make.onclick = async () => {
+    err.textContent = "";
+    const name = nm();
+    if (!name) return (err.textContent = "타이틀 이름을 적어 주세요.");
+    if ([...name].length > 10) return (err.textContent = "타이틀 이름은 공백 포함 10글자까지 쓸 수 있습니다.");
+    if (!confirm(`${part === "front" ? "앞말" : "뒷말"} '${name}'(으)로 만들까요?\n한 번 만들면 바꿀 수 없습니다.`)) return;
+    busy(make, true, "…");
+    const { data, error } = await sb.rpc("beta_title_create", { p_part: part, p_name: name });
+    busy(make, false);
+    if (error) return (err.textContent = koError(error));
+    state.titles = data;
+    toast("특전 타이틀 조각을 만들었습니다. 아래에서 장착할 수 있습니다.");
+    paintTitlePicker();
+  };
+  paint();
+  return h("div", { class: "beta-title" },
+    h("p", { class: "panel-title", style: "margin:0 0 4px" }, "✦ 베타 테스트 특전"),
+    h("p", { class: "hint", style: "margin:0 0 10px;font-size:13px" }, "INFINITE DUNGEON 베타 테스트에 참여해 주셔서 감사합니다. 나만의 타이틀 조각을 하나 만들 수 있습니다. 위치를 고르고 이름을 적어 주세요. 한 번 만들면 바꿀 수 없습니다."),
+    pick, h("div", { style: "display:flex;gap:8px;align-items:center;margin-top:8px" }, input, make), count, prev, err);
+}
 // 헌터 정보 창: 타이틀 바꾸기 (가진 조각만)
 function paintTitlePicker() {
   const box = $("#e-titles"), t = state.titles;
@@ -2046,6 +2173,7 @@ function paintTitlePicker() {
   };
   box.replaceChildren(
     h("label", {}, `타이틀 (가진 조각 ${owned.length} / ${t.total})`),
+    t.beta && !t.beta.made ? betaTitleBox() : null,
     h("div", { class: "title-pick" }, f, b, save), preview,
     h("p", { class: "hint", style: "margin:6px 0 0;font-size:13px" }, "가진 조각과 얻은 조건은 국제헌터연합 → 도감 → 타이틀에서 볼 수 있습니다."));
   paintPreview();
@@ -3589,7 +3717,7 @@ async function openPublicHunter(codename) {
   avatarEl(av, { url: null, color: p.avatar_color, name: p.codename });
   if (p.avatar_url) avatarUrlOf(p.avatar_url).then(u => u && avatarEl(av, { url: u, color: p.avatar_color, name: p.codename }));
   // 헌터 자격증 카드: 처음 보이는 것 (사진 · 타이틀과 코드네임 · 등급 · 레벨 · 길드 · 구역 · 포지션 · 사진 출처 · 바코드 · 등록일)
-  const card = h("div", { class: "lic-card" },
+  const card = h("div", { class: cardBgClass(p.card_bg) },
     h("div", { class: "lic-top" }, h("span", { class: "lic-org" }, "INTERNATIONAL HUNTER UNION"), h("span", { class: "lic-kind" }, "HUNTER LICENSE")),
     h("div", { class: "lic-main" }, av, h("div", { class: "lic-info" },
       titleLine(p.title, p.codename),
@@ -3600,7 +3728,7 @@ async function openPublicHunter(codename) {
       p.friend ? h("span", { class: "badge", style: "margin-top:4px;display:inline-block" }, "친구") : null)),
     p.avatar_credit ? h("p", { class: "lic-credit" }, `프로필 사진 출처: ${p.avatar_credit}`) : null,
     h("div", { class: "lic-foot" }, licBarcode(p.card_no || p.codename), h("div", { class: "lic-meta" },
-      h("span", {}, `No. ${(p.card_no || "").replace(/(.{4})(?=.)/g, "$1-")}`), p.since ? h("span", {}, `등록 ${fmtKDate(p.since)}`) : null)));
+      h("span", { class: "lic-no-label" }, "HUNTER NO."), h("span", { class: "lic-no" }, (p.card_no || "").replace(/(.{4})(?=.)/g, "$1-")))));
   // 특징은 펼쳐 보기
   const bioPart = (label, t) => t ? h("div", { class: "lic-bio-part" }, label ? h("span", { class: "lic-bio-tag" }, label) : null, h("p", { style: "margin:4px 0 0;white-space:pre-wrap" }, t)) : null;
   const tagged = p.bio_friends || p.bio_private;
@@ -7810,6 +7938,7 @@ function openHunter() {
   $("#e-bio-p").value = p.bio_private || "";
   paintHunterGrade();
   paintTitlePicker();
+  paintCardBg();
   const pos = POSITIONS[c.main_position];
   $("#e-position").textContent = `메인 포지션: ${posLabel(c.main_position, c.main_option)} · 선호 ${prefText(c.main_position)}`
     + (c.sub_position ? ` / 서브: ${posLabel(c.sub_position, c.sub_option)}` : c.level >= 25 ? " / 서브 포지션 선택 가능" : " / 서브 포지션은 25레벨부터")
@@ -9387,7 +9516,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-24-2200";
+const BUILD = "2026-11-25-2340";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
