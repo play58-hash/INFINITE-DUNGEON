@@ -432,6 +432,8 @@ dialog.guide-dlg { width: min(920px, calc(100vw - 24px)); }
 .lic-no-label { font-size: 9px; letter-spacing: .08em; font-weight: 700; }
 .lic-no { font-size: 14px; font-weight: 700; letter-spacing: .04em; color: var(--text); }
 .lic-card.cbg .lic-no { color: var(--lt); }
+.dlg-sell { max-width: 440px; } .dlg-sell .sell-sum { margin: 14px 0 0; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--primary) 8%, transparent); }
+.dlg-sell .dlg-foot { display: flex; justify-content: flex-end; gap: 8px; }
 .lic-top { display: flex; justify-content: space-between; gap: 8px; font-size: 9px; letter-spacing: .06em; white-space: nowrap; overflow: hidden; color: var(--text-dim); font-weight: 700; margin-bottom: 10px; }
 .lic-main { display: flex; gap: 14px; align-items: flex-start; }
 .lic-main .avatar { width: 84px; height: 84px; flex: none; border-radius: 14px; font-size: 34px; }
@@ -1017,6 +1019,9 @@ button.cat-chip { cursor: pointer; font-family: inherit; }
 .mk-filter { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 14px 0 10px; }
 .mk-filter .input { flex: 1 1 160px; min-height: 38px; }
 .mk-sell { display: grid; gap: 10px; }
+.mk-sec { display: grid; gap: 6px; }
+.mk-price { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: grid; gap: 4px; }
+.mk-price-row { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 14px; }
 .mk-sell-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .mk-sell-row .input { width: 130px; min-height: 38px; }
 .mk-sell .craft-pick button.on { outline: 2px solid var(--primary); }
@@ -2346,7 +2351,7 @@ function paintSocialBadge() {
   const s = social.summary || {};
   // 친구 신청·선물·파티/길드 초대가 새로 늘면 알림음
   // (새 친구 신청·선물·초대 소리는 알림 창이 낸다)
-  const n = (s.friend_requests || 0) + (s.gifts || 0) + (s.unread || 0) + (s.party_invites || 0) + (s.guild_unread || 0);
+  const n = (s.friend_requests || 0) + (s.gifts || 0) + (s.unread || 0) + (s.party_invites || 0) + (s.guild_unread || 0) + (s.party_unread || 0);
   const gn = (s.guild_invites || 0) + (s.guild_apps || 0);   // 길드 초대·가입 신청은 국제헌터연합 메뉴에
   document.querySelectorAll('[data-menu="union"]').forEach(a => {
     a.querySelector(".nbadge")?.remove();
@@ -2414,7 +2419,7 @@ async function notifPull() {
   notif.ready = true;
   if (data.next_at) notifSchedule(Date.parse(data.next_at));
   paintNotifBadge();
-  if ($("#dlg-notif").open && notif.view === "list") paintNotif();
+  if ($("#dlg-notif").open && notif.view === "list") { paintNotif(); notifReadAll(); }
 }
 function notifAnnounce(list) {
   sfx("notice");
@@ -2457,27 +2462,32 @@ async function notifOpen(r) {
   if (!r.read) { r.read = true; notif.unread = Math.max(0, notif.unread - 1); paintNotifBadge(); sb.rpc("notif_read", { p_ids: [r.id] }); }
   notifGo(r.link);
 }
-function openNotif() {
+// 알림 창을 열면 배지가 사라진다: 모두 읽음으로 처리하되, 이번에 연 창 안에서는 새 알림 표시를 남겨 둔다
+async function openNotif() {
   notif.view = "list";
+  notif.fresh = null;
   paintNotif();
   $("#dlg-notif").showModal();
-  notifPull();
+  await notifPull();
+  notifReadAll();
+}
+async function notifReadAll() {
+  if (!notif.unread) return;
+  notif.fresh = new Set(notif.rows.filter(r => !r.read).map(r => r.id));
+  notif.rows.forEach(r => (r.read = true)); notif.unread = 0;
+  paintNotifBadge();
+  if ($("#dlg-notif").open && notif.view === "list") paintNotif();
+  await sb.rpc("notif_read", { p_ids: null });
 }
 function paintNotif() {
   const box = $("#notif-body");
   if (notif.view === "settings") return paintNotifSettings(box);
-  const allRead = h("button", { class: "btn ghost small", type: "button", disabled: !notif.unread }, "모두 읽음");
-  allRead.onclick = async () => {
-    busy(allRead, true, "…");
-    await sb.rpc("notif_read", { p_ids: null });
-    notif.rows.forEach(r => (r.read = true)); notif.unread = 0;
-    paintNotifBadge(); paintNotif();
-  };
   const setBtn = h("button", { class: "btn ghost small", type: "button", onclick: () => { notif.view = "settings"; paintNotif(); } }, "알림 설정");
   // 카테고리 칩: 알림이 있는 카테고리만, 읽지 않은 개수 표시
   const cats = NOTIF_CATS.filter(c => notif.rows.some(r => c[2].includes(r.kind)));
   if (notif.cat !== "all" && !cats.some(c => c[0] === notif.cat)) notif.cat = "all";
-  const unreadIn = kinds => notif.rows.filter(r => !r.read && (!kinds || kinds.includes(r.kind))).length;
+  const isNew = r => !r.read || notif.fresh?.has(r.id);
+  const unreadIn = kinds => notif.rows.filter(r => isNew(r) && (!kinds || kinds.includes(r.kind))).length;
   const chip = (k, label, kinds) => {
     const n = unreadIn(kinds), on = notif.cat === k;
     return h("button", { type: "button", role: "tab", class: `cat-chip big${on ? " on" : ""}`, "aria-selected": on ? "true" : "false",
@@ -2486,14 +2496,14 @@ function paintNotif() {
   const curKinds = notif.cat === "all" ? null : (NOTIF_CATS.find(c => c[0] === notif.cat) || [])[2];
   const rows = curKinds ? notif.rows.filter(r => curKinds.includes(r.kind)) : notif.rows;
   box.replaceChildren(
-    h("div", { class: "notif-tools" }, h("span", { class: "hint" }, notif.unread ? `읽지 않은 알림 ${notif.unread}개` : "모두 읽었습니다."), h("div", { style: "display:flex;gap:6px" }, allRead, setBtn)),
+    h("div", { class: "notif-tools" }, h("span", { class: "hint" }, unreadIn(null) ? `새 알림 ${unreadIn(null)}개` : "새 알림이 없습니다."), h("div", { style: "display:flex;gap:6px" }, setBtn)),
     cats.length > 1 ? h("div", { class: "cat-row notif-cats", role: "tablist", "aria-label": "알림 종류" }, chip("all", "전체", null), ...cats.map(c => chip(c[0], c[1], c[2]))) : null,
     rows.length
       ? h("ul", { class: "notif-list" }, ...rows.map(r => {
-          const li = h("li", { class: r.read ? null : "unread", tabindex: "0", role: "button" },
+          const li = h("li", { class: isNew(r) ? "unread" : null, tabindex: "0", role: "button" },
             h("span", { class: "notif-kind" }, NOTIF_TAG[r.kind] || "알림"),
             h("div", { class: "notif-text" }, r.body, h("time", {}, fmtWhen(r.at))),
-            r.read ? null : h("span", { class: "notif-dot", "aria-label": "읽지 않음" }));
+            isNew(r) ? h("span", { class: "notif-dot", "aria-label": "새 알림" }) : null);
           li.onclick = () => notifOpen(r);
           li.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); notifOpen(r); } };
           return li;
@@ -2787,6 +2797,7 @@ async function socialTick(force) {
   const stale = Date.now() - (social.snsAt || 0) > 5 * 60e3;   // 좋아요 · 글 수정은 요약에 안 잡히니 5분에 한 번은 다시 받는다
   if (!pk || pk.notif !== social.peekNotif) { social.peekNotif = pk?.notif; notifPull(); }
   if (!pk || pk.sns !== social.peekSns || stale) { social.peekSns = pk?.sns; social.snsAt = Date.now(); refreshSideSns(); }
+  if (pk && pk.pchat !== social.peekPchat) { const first = social.peekPchat === undefined; social.peekPchat = pk.pchat; if (!first) refreshSocial(); }
 }
 document.addEventListener("visibilitychange", () => { if (!document.hidden && social.poll) socialTick(true); });
 function startSocial() {
@@ -3191,10 +3202,10 @@ async function renderSocial(pane, tab) {
     label, n > 0 ? h("span", { class: "nbadge" }, String(n)) : null);
   pane.replaceChildren(
     paneHead("교류", { sns: "soc-sns", friends: "soc-friends", party: "soc-party", gifts: "soc-gifts", chron: "soc-chron" }[socialTab]),
-    h("p", { class: "hint", style: "margin:0 0 16px" }, "SNS에서 다른 헌터들과 이야기를 나누고, 친구와 메시지·선물을 주고받고, 파티를 꾸려 함께 던전에 들어갑니다."),
+    h("p", { class: "hint", style: "margin:0 0 16px" }, "SNS에서 다른 헌터들과 이야기를 나누고 친구 · 파티와 메시지를 주고받습니다. 친구와 선물을 주고받고, 파티를 꾸려 함께 던전에 들어갑니다."),
     h("div", { class: "tabs soc-tabs", style: "max-width:540px", "data-tour": "soc-tabs" },
-      tabBtn("sns", "SNS", s.guild_unread || 0),
-      tabBtn("friends", h("span", {}, "친구", h("span", { class: "wide" }, " · 메시지")), (s.friend_requests || 0) + (s.unread || 0)),
+      tabBtn("sns", "SNS", (s.guild_unread || 0) + (s.unread || 0) + (s.party_unread || 0)),
+      tabBtn("friends", "친구", s.friend_requests || 0),
       tabBtn("party", "파티", s.party_invites || 0),
       tabBtn("gifts", "선물함", s.gifts || 0),
       patched() ? tabBtn("chron", "연대기", 0) : null),
@@ -3250,10 +3261,13 @@ function noticeBox(pane) {
   });
   return box;
 }
-async function renderFriends(body, pane) {
+async function renderFriends(body, pane, mode = "friends") {
+  const dm = mode === "dm";
   const { data: fl, error } = await sb.rpc("friend_list");
   if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
-  const reload = () => { refreshSocial(); renderSocial(pane, "friends"); };
+  const reload = () => { refreshSocial(); dm ? renderSocial(pane, "sns") : renderSocial(pane, "friends"); };
+  const onlineDot = f => f.online ? h("span", { class: "online-dot on", style: "font-size:12px" }, "접속 중") : null;
+  const goDm = codename => { chatWith = codename; snsView = "dm"; renderSocial(pane, "sns"); };
   async function run(name, args, okMsg) {
     const { data, error } = await sb.rpc(name, args);
     if (error) { toast(koError(error)); return null; }
@@ -3276,8 +3290,17 @@ async function renderFriends(body, pane) {
   const friendCount = fl.friends.length + fl.outgoing.length;
   const row = (card, ...right) => h("div", { class: "fr-row" }, miniAvatar(card), h("div", { class: "fr-main" }, hunterLink(card), h("div", { class: "hint" }, hunterSub(card))), ...right);
 
-  const list = h("div", { class: "fr-list" },
-    h("p", { class: "panel-title" }, `친구 ${fl.friends.length} / ${fl.cap}`, fl.outgoing.length ? h("span", { class: "hint", style: "font-weight:500" }, ` (보낸 신청 ${fl.outgoing.length} 포함 ${friendCount})`) : null),
+  const list = dm
+    ? h("div", { class: "fr-list" },
+        h("p", { class: "panel-title" }, `친구와 메시지`, h("span", { class: "hint", style: "font-weight:500" }, ` · 접속 중 ${fl.friends.filter(f => f.online).length}명`)),
+        h("div", { class: "fr-sec" },
+          fl.friends.length ? null : h("p", { class: "hint", style: "margin:0" }, "아직 친구가 없습니다. [친구] 탭에서 코드네임으로 친구 신청을 보내 보세요."),
+          ...fl.friends.map(f => h("button", { type: "button", class: `fr-row fr-pick${chatWith === f.codename ? " on" : ""}`, onclick: () => openChat(f.codename) },
+            miniAvatar(f), h("div", { class: "fr-main" }, h("b", {}, f.codename), h("div", { class: "hint" }, f.last_at ? `${hunterSub(f)} · ${fmtWhen(f.last_at)}` : hunterSub(f))),
+            onlineDot(f), f.unread > 0 ? h("span", { class: "nbadge" }, String(f.unread)) : null))))
+    : h("div", { class: "fr-list" },
+    h("p", { class: "panel-title" }, `친구 ${fl.friends.length} / ${fl.cap}`, fl.outgoing.length ? h("span", { class: "hint", style: "font-weight:500" }, ` (보낸 신청 ${fl.outgoing.length} 포함 ${friendCount})`) : null,
+      h("span", { class: "hint", style: "font-weight:500" }, ` · 접속 중 ${fl.friends.filter(f => f.online).length}명`)),
     addForm,
     fl.incoming.length ? h("div", { class: "fr-sec" }, h("p", { class: "panel-title" }, `받은 친구 신청 ${fl.incoming.length}`),
       ...fl.incoming.map(r => row(r,
@@ -3285,12 +3308,10 @@ async function renderFriends(body, pane) {
         h("button", { class: "btn ghost small", type: "button", onclick: async () => { if (await run("friend_respond", { p_id: r.id, p_accept: false })) reload(); } }, "거절")))) : null,
     h("div", { class: "fr-sec", "data-tour": "fr-list" },
       fl.friends.length ? null : h("p", { class: "hint", style: "margin:0" }, "아직 친구가 없습니다. 코드네임으로 친구 신청을 보내 보세요."),
-      ...fl.friends.map(f => {
-        const r = h("button", { type: "button", class: `fr-row fr-pick${chatWith === f.codename ? " on" : ""}`, onclick: () => openChat(f.codename) },
-          miniAvatar(f), h("div", { class: "fr-main" }, h("b", {}, f.codename), h("div", { class: "hint" }, f.last_at ? `${hunterSub(f)} · ${fmtWhen(f.last_at)}` : hunterSub(f))),
-          f.unread > 0 ? h("span", { class: "nbadge" }, String(f.unread)) : null);
-        return r;
-      })),
+      ...fl.friends.map(f => h("div", { class: "fr-row" },
+          miniAvatar(f), h("div", { class: "fr-main" }, hunterLink(f), h("div", { class: "hint" }, hunterSub(f))),
+          onlineDot(f),
+          h("button", { class: "btn ghost small", type: "button", onclick: () => goDm(f.codename) }, "메시지", f.unread > 0 ? h("span", { class: "nbadge" }, String(f.unread)) : null)))),
     fl.outgoing.length ? h("div", { class: "fr-sec" }, h("p", { class: "panel-title" }, "보낸 신청"),
       ...fl.outgoing.map(o => row(o, h("button", { class: "btn ghost small", type: "button",
         onclick: async () => { if (await run("friend_remove", { p_codename: o.codename }, "신청을 취소했습니다.")) reload(); } }, "취소")))) : null,
@@ -3299,11 +3320,11 @@ async function renderFriends(body, pane) {
         onclick: async () => { if (await run("block_user", { p_codename: b.codename, p_block: false }, "차단을 풀었습니다.")) reload(); } }, "차단 해제")))) : null);
 
   const chat = h("div", { class: "chat" });
+  if (!dm) { body.replaceChildren(list); maybeTour("soc-friends"); return; }
   const grid = h("div", { class: `soc-grid${chatWith ? " chatting" : ""}` }, list, chat);
   body.replaceChildren(grid);
   if (chatWith && fl.friends.some(f => f.codename === chatWith)) openChat(chatWith);
   else { chatWith = null; grid.classList.remove("chatting"); chat.replaceChildren(h("div", { class: "chat-empty hint" }, "왼쪽에서 친구를 고르면 대화가 열립니다.")); }
-  maybeTour("soc-friends");
 
   async function openChat(codename) {
     chatWith = codename;
@@ -3495,7 +3516,10 @@ function renderSnsWrap(body, pane) {
   const gN = s.guild_unread || 0;
   const btn = (id, label, n) => h("button", { type: "button", class: `cat-chip big${snsView === id ? " on" : ""}`, "aria-pressed": snsView === id ? "true" : "false",
     onclick: () => { snsView = id; renderSnsWrap(body, pane); } }, label, n > 0 ? h("span", { class: "nbadge" }, String(n)) : null);
-  body.replaceChildren(h("div", { class: "cat-row", style: "margin-bottom:14px", "data-tour": "sns-view" }, btn("all", "전체 SNS", 0), btn("guild", "길드", gN), btn("mine", "내 글", 0)), sub);
+  body.replaceChildren(h("div", { class: "cat-row", style: "margin-bottom:14px", "data-tour": "sns-view" },
+    btn("all", "전체 SNS", 0), btn("dm", "메시지", s.unread || 0), btn("party", "파티 채팅", s.party_unread || 0), btn("guild", "길드", gN), btn("mine", "내 글", 0)), sub);
+  if (snsView === "dm") return renderFriends(sub, pane, "dm");
+  if (snsView === "party") return renderPartyChat(sub);
   if (snsView === "mine") {   // 내가 쓴 글 모아 보기 (누르면 전체 SNS의 그 글로)
     const box = hunterPostsBox(state.profile.codename);
     sub.replaceChildren(h("div", { class: "card", style: "padding:14px" }, box));
@@ -3505,6 +3529,55 @@ function renderSnsWrap(body, pane) {
   return snsView === "guild" ? renderGuild(sub, () => renderSnsWrap(body, pane)) : renderSns(sub);
 }
 
+/* SNS › 파티 채팅: 같은 파티원끼리. 보고 있는 동안 5초마다 새 메시지를 받는다 */
+let pchatTimer = null;
+async function renderPartyChat(body) {
+  clearTimeout(pchatTimer);
+  body.replaceChildren(h("p", { class: "hint" }, "불러오는 중…"));
+  const { data: d, error } = await sb.rpc("party_chat", { p_after: null });
+  if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
+  if (social.summary) { social.summary.party_unread = 0; paintSocialBadge(); }
+  if (!d.party_id) return body.replaceChildren(h("div", { class: "soon" }, "파티에 들어가면 파티원끼리 채팅할 수 있습니다. [파티] 탭에서 파티를 만들거나 초대를 받아 보세요."));
+  let msgs = d.messages;
+  const log = h("ol", { class: "chat-log", "aria-live": "polite", style: "min-height:260px" });
+  const paint = (scroll = true) => {
+    const near = log.scrollTop + log.clientHeight >= log.scrollHeight - 40;
+    log.replaceChildren(...(msgs.length ? msgs.map(m => m.system ? h("li", { class: "hint", style: "text-align:center;list-style:none;font-size:13px" }, m.body)
+      : h("li", { class: `msg${m.mine ? " mine" : ""}` },
+          m.mine ? null : h("div", { class: "meta", style: "gap:6px" }, miniAvatar(m.author, 20), hunterLink(m.author)),
+          h("div", { class: "bubble" }, m.body), h("div", { class: "meta" }, h("time", {}, fmtWhen(m.at)))))
+      : [h("li", { class: "hint", style: "text-align:center;list-style:none" }, "아직 메시지가 없습니다. 파티원에게 첫 메시지를 보내 보세요.")]));
+    if (scroll || near) log.scrollTop = log.scrollHeight;
+  };
+  const ta = h("textarea", { class: "input", rows: "2", maxlength: "300", placeholder: "파티원에게 보낼 메시지 (Enter로 보내기, Shift+Enter 줄바꿈)", "aria-label": "파티 메시지" });
+  const send = h("button", { class: "btn", type: "submit" }, "보내기");
+  const form = h("form", { class: "chat-form" }, ta, send);
+  form.onsubmit = async e => {
+    e.preventDefault();
+    const v = ta.value.trim();
+    if (!v) return;
+    busy(send, true, "…");
+    const { data, error } = await sb.rpc("party_chat_send", { p_body: v });
+    busy(send, false);
+    if (error) return toast(koError(error));
+    ta.value = ""; msgs = data.messages; paint(); ta.focus();
+  };
+  ta.onkeydown = e => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); form.requestSubmit(); } };
+  body.replaceChildren(h("div", { class: "chat", style: "display:flex" },
+    h("div", { class: "chat-head" }, h("div", { class: "fr-main" }, h("b", {}, "파티 채팅"), h("div", { class: "hint" }, "파티원에게만 보입니다. 7일이 지난 메시지는 사라집니다."))),
+    log, form));
+  paint();
+  const tick = async () => {
+    if (!document.body.contains(log) || snsView !== "party") return;
+    if (!document.hidden) {
+      const { data } = await sb.rpc("party_chat", { p_after: msgs.at(-1)?.id ?? null });
+      if (data?.party_id && data.messages.length) { msgs = [...msgs, ...data.messages].slice(-200); paint(false); }
+      else if (data && !data.party_id) return renderPartyChat(body);
+    }
+    pchatTimer = setTimeout(tick, 5000);
+  };
+  pchatTimer = setTimeout(tick, 5000);
+}
 async function guildRun(name, args, okMsg) {
   const { data, error } = await sb.rpc(name, args);
   if (error) { toast(koError(error)); return null; }
@@ -3702,7 +3775,7 @@ async function openPublicHunter(codename) {
   // 국제헌터연합(운영자) 계정은 친구·파티·길드를 맺지 않는다
   const sep = p.admin || state.profile?.is_admin;
   if (!p.me && !sep) {
-    if (p.friend) btns.push(h("button", { class: "btn small", type: "button", onclick: () => { $("#dlg-info").close(); chatWith = p.codename; nextSocialTab = "friends"; route() === "friends" ? renderSocial($("#main-pane"), "friends") : (location.hash = "#/friends"); } }, "메시지"),
+    if (p.friend) btns.push(h("button", { class: "btn small", type: "button", onclick: () => { $("#dlg-info").close(); chatWith = p.codename; snsView = "dm"; nextSocialTab = "sns"; route() === "friends" ? renderSocial($("#main-pane"), "sns") : (location.hash = "#/friends"); } }, "메시지"),
       h("button", { class: "btn ghost small", type: "button", onclick: () => { $("#dlg-info").close(); openGift(p.codename); } }, "선물"));
     else if (p.pending) btns.push(h("span", { class: "badge" }, "친구 신청 중"));
     else if (!p.blocked) btns.push(h("button", { class: "btn small", type: "button", onclick: () => run("friend_request", { p_codename: p.codename }, d => d?.result === "accepted" ? "친구가 되었습니다." : "친구 신청을 보냈습니다.") }, "친구 신청"));
@@ -3858,7 +3931,7 @@ async function renderRep(body, st) {
     if (error) { regSel.disabled = false; regSel.value = st.region; regErr.textContent = koError(error); return; }
     if (state.profile) state.profile.region = regSel.value;
     toast(`${REGIONS[regSel.value]} 구역으로 옮겼습니다.`);
-    rgGrade = null;
+    rgSelected = null;
     renderHunter(); renderRep(body);
   };
   body.replaceChildren(
@@ -4712,7 +4785,8 @@ const leftUntil = (iso, offset) => fmtDur(Date.parse(iso) - (Date.now() + offset
 
 /* ===== 지역 안정화 ===== */
 const RG_GRADES = ["E", "D", "C", "B", "A"];
-let rgGrade = null;
+let rgGrade = lsGet("id-rg-grade") || null;
+let rgSelected = null;   // 고른 던전 (보급품을 바꾸거나 판이 새로 고쳐져도 유지)
 
 let nextRgTab = null;
 async function renderRegional(pane, tab) {
@@ -4763,7 +4837,7 @@ async function renderRegionalBoard(body, act) {
   }
   if (!rgGrade || !rg.grades.find(g => g.grade === rgGrade)?.eligible)
     rgGrade = rg.grades.find(g => g.grade === rg.top_grade && g.eligible)?.grade || [...rg.grades].reverse().find(g => g.eligible)?.grade || "E";
-  let speed = 1, selected = null;
+  let speed = 1, selected = rg.dungeons.some(d => d.id === rgSelected && d.grade === rgGrade && d.state === "open") ? rgSelected : null;
   const [{ data: ex }, { data: st }] = await Promise.all([sb.rpc("explore_state"), sb.rpc("star_state")]);
   const exploring = ex?.status === "running", starring = st?.status === "running";
   const busyElsewhere = (act && act.kind !== "regional") || exploring || starring || ptMember || (pt && !pt.gap_ok);
@@ -4780,7 +4854,7 @@ async function renderRegionalBoard(body, act) {
     tabs.replaceChildren(...rg.grades.map(g => h("button", {
       type: "button", class: g.grade === rgGrade ? "on" : null, disabled: !g.eligible,
       title: g.eligible ? null : `${g.entry}레벨부터 입장`,
-      onclick: () => { rgGrade = g.grade; selected = null; paintAll(); },
+      onclick: () => { rgGrade = g.grade; lsSet("id-rg-grade", g.grade); selected = rgSelected = null; paintAll(); },
     }, `${g.grade}급`, h("small", {}, g.eligible ? `${Math.round(g.success * 100)}%` : `Lv.${g.entry}`))));
   }
   function paintInfo() {
@@ -4804,7 +4878,7 @@ async function renderRegionalBoard(body, act) {
       return h("button", {
         type: "button", class: `rg-cell ${d.state}${d.mine ? " mine" : ""}${selected === d.id ? " sel" : ""}`,
         disabled: d.state !== "open" || busyElsewhere, "aria-pressed": selected === d.id ? "true" : "false",
-        onclick: () => { selected = d.id; paintBoard(); paintBtn(); },
+        onclick: () => { selected = rgSelected = d.id; paintBoard(); paintBtn(); },
       }, h("b", {}, `${d.grade}-${d.slot}`), d.place ? h("span", { class: "rg-place" }, d.place) : null,
         d.theme ? h("span", { class: "rg-theme" }, d.theme) : null, h("small", {}, label));
     }));
@@ -4823,6 +4897,7 @@ async function renderRegionalBoard(body, act) {
     busy(btn, true, pt ? "진입 중…" : "입장 중…");
     const { error } = await sb.rpc(pt ? "start_party_regional" : "lobby_join", { p_dungeon_id: selected, p_speed: speed });
     busy(btn, false);
+    if (!error) rgSelected = null;
     if (error) {
       rgNotice = koError(error);   // 판을 새로 그린 뒤에도 안내가 남도록
       return renderRegionalBoard(body, act);   // 다른 헌터가 먼저 들어갔을 수 있으니 판을 새로 고침
@@ -4841,7 +4916,7 @@ async function renderRegionalBoard(body, act) {
     if (error) { regSel.disabled = false; regSel.value = myRegion; err.textContent = koError(error); return; }
     if (state.profile) state.profile.region = regSel.value;
     toast(`${REGIONS[regSel.value]} 구역으로 옮겼습니다.`);
-    rgGrade = null;
+    rgSelected = null;
     renderRegionalBoard(body, act);
   };
   const parts = [
@@ -5053,9 +5128,10 @@ function renderRegionalRun(body, first) {
     shown = cur.events.length;
     if (nearBottom) list.scrollTop = list.scrollHeight;
     paintStats();
-    actions.replaceChildren(cur.returned
-      ? h("button", { class: "btn", type: "button", onclick: claim }, "결과 받기")
-      : h("p", { class: "hint", style: "margin:0" }, "공략은 서버에서 진행됩니다. 창을 닫았다가 돌아와도 됩니다."));
+    actions.replaceChildren(...(cur.returned
+      ? [h("button", { class: "btn", type: "button", onclick: claim }, "결과 받기")]
+      : [h("p", { class: "hint", style: "margin:0" }, "공략은 서버에서 진행됩니다. 창을 닫았다가 돌아와도 됩니다."),
+         h("button", { class: "btn ghost small", type: "button", onclick: retreat, style: "margin-top:8px" }, "도중 퇴장")]));
   }
   function tick() {
     const now = Date.now() + offset;
@@ -5070,6 +5146,16 @@ function renderRegionalRun(body, first) {
     if (error) err.textContent = koError(error);
     else if (data) { const was = cur.returned; err.textContent = ""; cur = data; if (!was && cur.returned) sfx("notice"); paint(); tick(); }
     if (!cur.returned) dgPoll = setTimeout(poll, cur.speed > 1 ? 2000 : 15000);
+  }
+  // 도중 퇴장: 쓰러진 것처럼 지금까지 모은 보상만 받는다. 던전은 안정화되지 않고 남는다 (파티는 남은 파티원이 계속)
+  async function retreat() {
+    if (!confirm(`도중 퇴장할까요?\n쓰러진 것처럼 처리되어 지금까지 모은 보상(가능성 +${cur.pot || 0} · 메헨 +${cur.cur || 0} Mh)만 받습니다.\n던전은 안정화되지 않고 그대로 남습니다.${t.party ? "\n남은 파티원은 계속 공략합니다." : ""}`)) return;
+    err.textContent = "";
+    actions.querySelectorAll("button").forEach(b => (b.disabled = true));
+    const { error } = await sb.rpc("retreat_regional");
+    if (error) { err.textContent = koError(error); actions.querySelectorAll("button").forEach(b => (b.disabled = false)); return; }
+    toast("도중 퇴장했습니다. 결과를 받아 주세요.");
+    renderRegional($("#main-pane"));
   }
   async function claim() {
     err.textContent = "";
@@ -6036,7 +6122,7 @@ async function renderRaid(body) {
 function raidChallengeBox(r, refresh) {
   const c = r.challenge || {}, lv = r.level || 0;
   const err = h("div", { class: "error", role: "alert" });
-  const why = lv < 5 ? "5레벨부터 참여할 수 있습니다" : c.done_today ? "오늘은 이미 도전했습니다" : r.busy ? "다른 활동이 끝난 뒤에 도전할 수 있습니다" : null;
+  const why = lv < 5 ? "5레벨부터 참여할 수 있습니다" : c.done_today ? "오늘은 이미 도전했습니다" : r.busy ? "참여 중인 레이드가 끝난 뒤에 도전할 수 있습니다" : null;
   const btn = h("button", { class: "btn block", type: "button", disabled: !c.can, "data-tour": "rd-go" }, why || "개인 도전 시작 (15~20분)");
   btn.onclick = async () => {
     err.textContent = "";
@@ -6094,7 +6180,7 @@ function raidSlotBox(r, off, refresh) {
     return h("div", { class: "home-box rd-box", "data-tour": "rd-slots" }, ...kids);
   }
   const lv = r.level || 0;
-  const why = lv < 5 ? "5레벨부터 참여할 수 있습니다" : g ? "이번 회차에는 이미 참여했습니다" : r.busy ? "다른 활동이 끝난 뒤에 참여할 수 있습니다" : null;
+  const why = lv < 5 ? "5레벨부터 참여할 수 있습니다" : g ? "이번 회차에는 이미 참여했습니다" : r.busy ? "참여 중인 레이드가 끝난 뒤에 참여할 수 있습니다" : null;
   const btn = h("button", { class: "btn block", type: "button", disabled: !!why }, why || "토벌 참여");
   btn.onclick = async () => {
     err.textContent = "";
@@ -6501,6 +6587,34 @@ function invSorted(arr, word) {
   else if (invSort === "qty") a.sort((x, y) => (y.qty || 1) - (x.qty || 1));
   return a;
 }
+// 판매 개수 고르기 + 확인 창. 고른 개수(취소하면 null)를 돌려준다
+function askSellQty(x) {
+  return new Promise(resolve => {
+    const max = x.qty || 1;
+    const inp = h("input", { class: "input", type: "number", min: "1", max: String(max), value: "1", style: "width:96px", "aria-label": `${x.name} 판매 개수` });
+    const sum = h("p", { class: "sell-sum" });
+    const get = () => Math.max(1, Math.min(max, Math.floor(Number(inp.value) || 1)));
+    const paint = () => { sum.replaceChildren(h("b", {}, `${x.name} ${get().toLocaleString()}개`), ` → ${fmtMh(get() * (x.sell_price || 0))}`); };
+    const quick = (label, v) => h("button", { type: "button", class: "cat-chip", onclick: () => { inp.value = String(v); paint(); } }, label);
+    inp.oninput = paint;
+    const dlg = h("dialog", { class: "dlg-sell" },
+      h("form", { method: "dialog", class: "dlg-head" }, h("h3", {}, "판매하시겠습니까?"), h("button", { class: "x", "aria-label": "닫기", value: "" }, "×")),
+      h("div", { class: "dlg-body" },
+        h("p", { class: "hint", style: "margin:0 0 10px" }, `가진 개수 ${max.toLocaleString()}개 · 개당 ${fmtMh(x.sell_price || 0)}`),
+        h("div", { style: "display:flex;gap:8px;align-items:center;flex-wrap:wrap" }, h("label", { style: "font-weight:600" }, "판매 개수"), inp,
+          quick("1개", 1), max >= 10 ? quick("10개", 10) : null, max >= 100 ? quick("100개", 100) : null, max > 2 ? quick("절반", Math.floor(max / 2)) : null,
+          max > 1 ? quick("1개만 남기기", max - 1) : null, quick("모두", max)),
+        sum),
+      h("div", { class: "dlg-foot" },
+        h("button", { class: "btn ghost", type: "button", onclick: () => dlg.close("") }, "취소"),
+        h("button", { class: "btn", type: "button", onclick: () => dlg.close(String(get())) }, "판매")));
+    dlg.onclose = () => { dlg.remove(); resolve(Number(dlg.returnValue) || null); };
+    document.body.append(dlg);
+    paint();
+    dlg.showModal();
+    inp.select();
+  });
+}
 function renderOwned(body, inv, act, refresh) {
   const equipped = Object.fromEntries(inv.gear.filter(g => g.equipped).map(g => [g.slot, g]));
   // 장착 칸: 마우스를 올리거나 누르면 세부 정보, 강화 · 해제 버튼
@@ -6545,17 +6659,19 @@ function renderOwned(body, inv, act, refresh) {
       g.equipped ? null : h("button", { class: "btn ghost small", type: "button", "data-sfx": "own",
         onclick: () => confirm(`${josa(gearName(g), "을", "를")} ${g.sell_price} Mh에 팔까요?`)
           && act(() => sb.rpc("sell_gear", { p_gear_id: g.id }), "판매했습니다.", "sell") }, "판매")));
+  // 판매: 개수를 고르고 한 번 더 확인한다 (사용 · 강화하려다 잘못 파는 일을 막는다)
+  const sellBtn = x => h("button", { class: "btn ghost small", type: "button", "data-sfx": "own",
+    onclick: async () => {
+      const n = await askSellQty(x);
+      if (n) act(() => sb.rpc("shop_sell", { p_code: x.code, p_qty: n }), `${josa(x.name, "을", "를")} ${n}개 팔았습니다.`, "sell");
+    } }, "판매");
   const stackRow = x => h("div", { class: "item-row" },
     h("div", { class: "item-main" },
       h("strong", {}, `${x.name} × ${x.qty}`),
       h("div", { class: "hint" }, (x.kind === "consumable" ? (RARITY[x.rarity] ? `${RARITY[x.rarity]} · ` : "") + fmtEffect(x.effect) : matInfo(x)) + ` · 개당 ${x.sell_price}`),
       h("div", { class: "hint item-desc" }, x.description)),
     h("div", { class: "item-actions" },
-      h("button", { class: "btn ghost small", type: "button", "data-sfx": "own",
-        onclick: () => act(() => sb.rpc("shop_sell", { p_code: x.code, p_qty: 1 }), "1개 팔았습니다.", "sell") }, "1개 판매"),
-      x.qty > 1 ? h("button", { class: "btn ghost small", type: "button", "data-sfx": "own",
-        onclick: () => confirm(`${x.name} ${x.qty}개를 ${(x.qty * x.sell_price).toLocaleString()} Mh에 모두 팔까요?`)
-          && act(() => sb.rpc("shop_sell", { p_code: x.code, p_qty: x.qty }), "모두 팔았습니다.", "sell") }, "모두 판매") : null));
+      sellBtn(x)));
 
   // 버프 아이템: 쓰면 정해진 시간 동안 효과가 이어진다 (같은 종류는 하나만)
   const BUFF_CAT = { pot: "가능성", cur: "메헨", stat: "능력치", util: "아이템 드롭", rest: "휴식 시간", analysis: "전력 분석" };
@@ -6566,8 +6682,7 @@ function renderOwned(body, inv, act, refresh) {
       h("div", { class: "hint item-desc" }, x.description)),
     h("div", { class: "item-actions" },
       h("button", { class: "btn small", type: "button", onclick: () => useBuff(x) }, "사용"),
-      h("button", { class: "btn ghost small", type: "button", "data-sfx": "own",
-        onclick: () => act(() => sb.rpc("shop_sell", { p_code: x.code, p_qty: 1 }), "1개 팔았습니다.", "sell") }, "1개 판매")));
+      sellBtn(x)));
   async function useBuff(x) {
     const cur = (myBuffs || []).find(b => b.cat === x.effect?.cat);
     if (cur && cur.code !== x.code && !confirm(`지금 켜진 ${cur.name}의 효과가 끝나고 ${x.name}의 효과로 바뀝니다. 쓸까요?`)) return;
@@ -6671,16 +6786,24 @@ function renderShop(body, inv, act) {
 /* ===== 거래소 =====
    판매자가 정한 가격(개당)에 올리고 누구나 바로 사는 고정가 방식. 성사되면 판매 금액의 5%는 수수료로 사라진다.
    올릴 수 있는 것: 상점에서 팔지 않는 장비·재료, 강화된 장비. 올린 물건은 7일 뒤 돌아온다. */
-let tradeKind = "all", tradeQ = "";
+let tradeKind = "all", tradeQ = "", tradeMode = "buy";
+// 거래소 · 상점 등에서 아이템 효과 한 줄: 장비는 능력치, 소비는 회복 효과, 버프는 버프 설명, 재료는 희귀도
+const MK_KIND = { equip: "장비", consumable: "소비", buff: "소비", material: "재료" };
+const mkGroup = x => x.kind === "buff" ? "consumable" : x.kind;
+function itemEffectLine(x) {
+  if (x.kind === "equip") return `${SLOT_NAME[x.slot] || ""} · ${TIER_NAME[x.tier] || ""} · Lv.${x.req_level || 1}부터 · ${fmtStats(x.enhance != null ? gearStats(x) : x.stats)}`;
+  if (x.kind === "consumable") return `소비 · ${RARITY[x.rarity] ? `${RARITY[x.rarity]} · ` : ""}${fmtEffect(x.effect || {}) || "-"}`;
+  if (x.kind === "buff") return `버프 · ${x.description || "-"}`;
+  return `재료 · ${matInfo(x)}`;
+}
 async function renderTrade(body, inv, refresh) {
   const { data: m, error } = await sb.rpc("market_state");
   if (error) return body.replaceChildren(h("p", { class: "error" }, koError(error)));
-  const KIND = { equip: "장비", material: "재료" };
   const nameOf = x => `${x.name}${x.enhance ? ` +${x.enhance}` : ""}`;
   const listBox = h("div", {});
   function paintList() {
     const q = tradeQ.trim();
-    const rows = m.listings.filter(l => (tradeKind === "all" || l.kind === tradeKind) && (!q || l.name.includes(q)));
+    const rows = m.listings.filter(l => (tradeKind === "all" || mkGroup(l) === tradeKind) && (!q || l.name.includes(q)) && !l.mine);
     listBox.replaceChildren(...(rows.length ? rows.map(l => {
       const qty = h("input", { class: "input qty-input", type: "number", min: "1", max: String(l.qty), value: "1", "aria-label": `${l.name} 살 수량` });
       const buy = h("button", { class: "btn small", type: "button", "data-sfx": "own" }, "구매");
@@ -6707,21 +6830,39 @@ async function renderTrade(body, inv, refresh) {
       return h("div", { class: "item-row" },
         h("div", { class: "item-main" },
           h("strong", { class: l.tier ? `tier${l.tier}` : null }, nameOf(l), l.qty > 1 ? ` × ${l.qty}` : ""),
-          h("div", { class: "hint" }, l.kind === "equip"
-            ? `${SLOT_NAME[l.slot] || ""} · ${TIER_NAME[l.tier] || ""} · Lv.${l.req_level}부터 · ${fmtStats(gearStats(l))}`
-            : (KIND[l.kind] || "")),
+          h("div", { class: "hint" }, itemEffectLine(l)),
+          l.kind !== "buff" && l.kind !== "equip" && l.description ? h("div", { class: "hint item-desc" }, l.description) : null,
           h("div", { class: "hint", style: "margin-top:2px" }, l.mine ? "내가 올린 물건" : h("span", {}, "판매 ", hunterLink(l.seller)), ` · ${(ms => ms >= 864e5 ? `${Math.floor(ms / 864e5)}일 ${Math.floor(ms % 864e5 / 36e5)}시간` : fmtDur(ms))(Date.parse(l.expires_at) - Date.now())} 남음`)),
         h("div", { class: "item-actions", style: "align-items:center" },
           h("strong", {}, `${l.price.toLocaleString()} Mh`, l.kind !== "equip" ? h("small", { class: "hint" }, " /개") : null),
           l.mine ? down : [l.kind !== "equip" && l.qty > 1 ? qty : null, buy]));
-    }) : [h("p", { class: "hint", style: "margin:0" }, m.listings.length ? "조건에 맞는 물건이 없습니다." : "아직 올라온 물건이 없습니다.")]));
+    }) : [h("p", { class: "hint", style: "margin:0" }, m.listings.some(l => !l.mine) ? "조건에 맞는 물건이 없습니다." : "아직 올라온 물건이 없습니다.")]));
+    // 팔기: 내가 올린 물건
+    const mine = m.listings.filter(l => l.mine);
+    mineBox.replaceChildren(...(mine.length ? mine.map(l => {
+      const down = h("button", { class: "btn ghost small", type: "button" }, "내리기");
+      down.onclick = async () => {
+        if (!confirm(`${josa(`${nameOf(l)}${l.qty > 1 ? ` ${l.qty}개` : ""}`, "을", "를")} 거래소에서 내릴까요? 인벤토리로 돌아옵니다.`)) return;
+        busy(down, true, "…");
+        const { error } = await sb.rpc("market_cancel", { p_id: l.id });
+        busy(down, false);
+        if (error) return toast(koError(error));
+        toast("거래소에서 내렸습니다."); refresh();
+      };
+      return h("div", { class: "item-row" },
+        h("div", { class: "item-main" }, h("strong", { class: l.tier ? `tier${l.tier}` : null }, nameOf(l), l.qty > 1 ? ` × ${l.qty}` : ""),
+          h("div", { class: "hint" }, itemEffectLine(l)),
+          h("div", { class: "hint", style: "margin-top:2px" }, `${(ms => ms >= 864e5 ? `${Math.floor(ms / 864e5)}일 ${Math.floor(ms % 864e5 / 36e5)}시간` : fmtDur(ms))(Date.parse(l.expires_at) - Date.now())} 남음`)),
+        h("div", { class: "item-actions", style: "align-items:center" }, h("strong", {}, `${l.price.toLocaleString()} Mh`, l.kind !== "equip" ? h("small", { class: "hint" }, " /개") : null), down));
+    }) : [h("p", { class: "hint", style: "margin:0" }, "올린 물건이 없습니다.")]));
   }
+  const mineBox = h("div", {});
   // 찾기
   const search = h("input", { class: "input", type: "search", placeholder: "이름으로 찾기", "aria-label": "거래소 검색", value: tradeQ });
   search.oninput = () => { tradeQ = search.value; paintList(); };
   const chips = h("div", { class: "cat-row", style: "margin:0" });
-  const paintChips = () => chips.replaceChildren(...[["all", "전체"], ["equip", "장비"], ["material", "재료"]].map(([k, n]) =>
-    h("button", { type: "button", class: `cat-chip big${tradeKind === k ? " on" : ""}`, "aria-pressed": tradeKind === k ? "true" : "false", onclick: () => { tradeKind = k; paintChips(); paintList(); } }, n)));
+  const paintChips = () => chips.replaceChildren(...[["all", "전체"], ["equip", "장비"], ["consumable", "소비"], ["material", "재료"]].map(([k, n]) =>
+    h("button", { type: "button", class: `cat-chip big${tradeKind === k ? " on" : ""}`, "aria-pressed": tradeKind === k ? "true" : "false", onclick: () => { tradeKind = k; paintChips(); paintList(); paintSell(); } }, n)));
   paintChips();
 
   // 판매 등록
@@ -6732,13 +6873,31 @@ async function renderTrade(body, inv, refresh) {
   const sNote = h("p", { class: "hint", style: "margin:0" });
   const sBtn = h("button", { class: "btn small", type: "button", "data-sfx": "own" }, "거래소에 올리기");
   const full = m.mine_open >= m.max_listings;
+  const consBox = h("div", { class: "craft-pick" }), priceBox = h("div", { class: "mk-price" });
   function paintSell() {
-    pickBox.replaceChildren(...(m.sellable.stacks.length ? m.sellable.stacks.map(x => h("button", { type: "button", class: pick?.code === x.code && pick.kind === "stack" ? "on" : null,
-      onclick: () => { pick = { kind: "stack", ...x }; sQty.max = String(x.qty); if (Number(sQty.value) > x.qty) sQty.value = String(x.qty); paintSell(); } }, `${x.name} ${x.qty}`))
-      : [h("span", { class: "hint" }, "올릴 수 있는 재료가 없습니다.")]));
+    const stackBtn = x => h("button", { type: "button", class: pick?.code === x.code && pick.kind === "stack" ? "on" : null,
+      onclick: () => { pick = { kind: "stack", ...x }; sQty.max = String(x.qty); if (Number(sQty.value) > x.qty) sQty.value = String(x.qty); paintSell(); } }, `${x.name} ${x.qty}`);
+    const mats = m.sellable.stacks.filter(x => mkGroup(x) !== "consumable"), cons = m.sellable.stacks.filter(x => mkGroup(x) === "consumable");
+    pickBox.replaceChildren(...(mats.length ? mats.map(stackBtn) : [h("span", { class: "hint" }, "올릴 수 있는 재료가 없습니다.")]));
+    consBox.replaceChildren(...(cons.length ? cons.map(stackBtn) : [h("span", { class: "hint" }, "올릴 수 있는 소비 아이템이 없습니다.")]));
     gearBox.replaceChildren(...(m.sellable.gear.length ? m.sellable.gear.map(g => h("button", { type: "button", class: `tier${g.tier}${pick?.id === g.id ? " on" : ""}`,
       onclick: () => { pick = { kind: "gear", ...g }; paintSell(); } }, nameOf(g)))
       : [h("span", { class: "hint" }, "올릴 수 있는 장비가 없습니다.")]));
+    for (const [el, k] of [[gearSec, "equip"], [consSec, "consumable"], [matSec, "material"]]) el.hidden = tradeKind !== "all" && tradeKind !== k;
+    // 고른 물건: 효과 · 상점 판매가 · 지금 거래소의 최저 · 최고 가격
+    if (pick) {
+      const same = m.listings.filter(l => l.code === pick.code && (pick.kind !== "gear" || (l.enhance || 0) === (pick.enhance || 0)));
+      const ps = same.map(l => l.price);
+      priceBox.replaceChildren(
+        h("b", { class: pick.tier ? `tier${pick.tier}` : null }, nameOf(pick)),
+        h("div", { class: "hint" }, itemEffectLine(pick.kind === "gear" ? { ...pick, kind: "equip" } : pick)),
+        h("div", { class: "mk-price-row" },
+          h("span", {}, "상점 판매가 ", h("b", {}, pick.sell_price != null ? `${fmtN(pick.sell_price)} Mh` : "-")),
+          ps.length ? h("span", {}, "거래소 최저 ", h("b", {}, `${fmtN(Math.min(...ps))} Mh`)) : null,
+          ps.length ? h("span", {}, "최고 ", h("b", {}, `${fmtN(Math.max(...ps))} Mh`)) : null,
+          h("span", { class: "hint" }, ps.length ? `지금 올라온 ${ps.length}건 · 개당` : "지금 거래소에 올라온 같은 물건이 없습니다.")));
+    } else priceBox.replaceChildren();
+    priceBox.hidden = !pick;
     sQty.hidden = !pick || pick.kind === "gear";
     const n = pick?.kind === "stack" ? Math.max(1, Math.floor(Number(sQty.value) || 1)) : 1;
     const price = Math.floor(Number(sPrice.value) || 0);
@@ -6758,7 +6917,6 @@ async function renderTrade(body, inv, refresh) {
     if (error) return toast(koError(error));
     sfx("sell"); toast("거래소에 올렸습니다."); refresh();
   };
-  paintSell();
 
   const hist = m.history.length ? h("table", { class: "list" },
     h("thead", {}, h("tr", {}, h("th", {}, "날짜"), h("th", {}, "구분"), h("th", {}, "물건"), h("th", { style: "text-align:right" }, "금액"))),
@@ -6771,17 +6929,26 @@ async function renderTrade(body, inv, refresh) {
   const expired = m.closed.length ? h("p", { class: "hint", style: "margin:8px 0 0" },
     `기한이 지나 돌아온 물건: ${m.closed.map(x => `${nameOf(x)}${x.qty > 1 ? ` ${x.qty}개` : ""}`).join(", ")}`) : null;
 
+  const gearSec = h("div", { class: "mk-sec" }, h("small", { class: "hint" }, "장비 (장착하지 않은 것)"), gearBox);
+  const consSec = h("div", { class: "mk-sec" }, h("small", { class: "hint" }, "소비"), consBox);
+  const matSec = h("div", { class: "mk-sec" }, h("small", { class: "hint" }, "재료"), pickBox);
+  paintSell();
+  const others = m.listings.filter(l => !l.mine).length;
+  const modeBtn = (k, label) => h("button", { type: "button", class: tradeMode === k ? "on" : null, "aria-pressed": tradeMode === k ? "true" : "false",
+    onclick: () => { tradeMode = k; renderTrade(body, inv, refresh); } }, label);
   body.replaceChildren(
     h("p", { class: "hint", style: "margin:16px 0 0" }, `판매자가 정한 가격에 누구나 바로 사는 고정가 거래소입니다. 거래가 성사되면 판매 금액의 5%가 수수료로 사라집니다. 상점에서 팔지 않는 장비·재료, 강화한 장비, 소비 아이템을 올릴 수 있고, 한 번에 ${m.max_listings}개까지, 올린 물건은 ${m.days}일 뒤 팔리지 않으면 돌아옵니다.`),
-    h("div", { class: "mk-filter" }, chips, search),
-    h("div", { class: "item-group", style: "margin-top:0", "data-tour": "mk-list" }, h("p", { class: "panel-title" }, `올라온 물건 (${m.listings.length})`), listBox),
-    h("div", { class: "item-group", "data-tour": "mk-sell" }, h("p", { class: "panel-title" }, `판매 등록 (올린 물건 ${m.mine_open} / ${m.max_listings})`),
-      full ? h("p", { class: "error", style: "margin:0 0 8px" }, "올릴 수 있는 수를 다 채웠습니다. 팔리거나 내린 뒤에 올려 주세요.") : null,
-      h("div", { class: "mk-sell" },
-        h("small", { class: "hint" }, "재료"), pickBox,
-        h("small", { class: "hint" }, "장비 (장착하지 않은 것)"), gearBox,
-        h("div", { class: "mk-sell-row" }, sQty, sPrice, h("span", { class: "hint" }, "Mh"), sBtn), sNote)),
-    h("div", { class: "item-group", "data-tour": "mk-hist" }, h("p", { class: "panel-title" }, "거래 기록 (최근 30일)"), hist, expired));
+    h("div", { class: "tabs", role: "group", "aria-label": "사기 · 팔기", style: "margin-top:12px;max-width:320px", "data-tour": "mk-mode" }, modeBtn("buy", `사기 (${others})`), modeBtn("sell", `팔기 (${m.mine_open})`)),
+    h("div", { class: "mk-filter" }, chips, tradeMode === "buy" ? search : null),
+    tradeMode === "buy"
+      ? h("div", { class: "item-group", style: "margin-top:0", "data-tour": "mk-list" }, h("p", { class: "panel-title" }, `올라온 물건 (${others})`), listBox)
+      : h("div", {},
+          h("div", { class: "item-group", style: "margin-top:0", "data-tour": "mk-sell" }, h("p", { class: "panel-title" }, `판매 등록 (올린 물건 ${m.mine_open} / ${m.max_listings})`),
+            full ? h("p", { class: "error", style: "margin:0 0 8px" }, "올릴 수 있는 수를 다 채웠습니다. 팔리거나 내린 뒤에 올려 주세요.") : null,
+            h("div", { class: "mk-sell" }, gearSec, consSec, matSec, priceBox,
+              h("div", { class: "mk-sell-row" }, sQty, sPrice, h("span", { class: "hint" }, "Mh"), sBtn), sNote)),
+          h("div", { class: "item-group" }, h("p", { class: "panel-title" }, `내가 올린 물건 (${m.mine_open})`), mineBox),
+          h("div", { class: "item-group", "data-tour": "mk-hist" }, h("p", { class: "panel-title" }, "거래 기록 (최근 30일)"), hist, expired)));
   paintList();
   maybeTour("inv-trade");
 }
@@ -9275,11 +9442,12 @@ const TOURS = {
   ],
   "inv-trade": [
     { text: "거래소는 헌터끼리 물건을 사고파는 곳입니다. 판매자가 정한 가격에 누구나 바로 구매할 수 있습니다." },
-    { sel: ".mk-filter", text: "장비와 재료를 나눠 보거나 이름으로 찾을 수 있습니다." },
+    { sel: '[data-tour="mk-mode"]', text: "[사기]에서는 다른 헌터가 올린 물건을 사고, [팔기]에서는 내 물건을 올리거나 내리고 거래 기록을 확인합니다." },
+    { sel: ".mk-filter", text: "장비 · 소비 · 재료로 나눠 보거나 이름으로 찾을 수 있습니다. 소비 아이템과 버프 아이템은 효과도 함께 보입니다." },
     { sel: '[data-tour="mk-list"]', text: "재료는 원하는 수량만큼, 장비는 강화 단계 그대로 구매할 수 있습니다. 판매자 이름을 누르면 헌터 정보를 확인할 수 있습니다." },
-    { sel: '[data-tour="mk-sell"]', text: "상점에서 팔지 않는 장비·재료, 강화한 장비, 소비 아이템을 올릴 수 있습니다. 물건을 고르고 개당 가격을 정하면 됩니다. 한 번에 10건까지, 7일 안에 팔리지 않으면 인벤토리로 돌아옵니다." },
+    { text: "[팔기]에서는 상점에서 팔지 않는 장비·재료, 강화한 장비, 소비 아이템을 올릴 수 있습니다. 물건을 고르면 상점 판매가와 지금 거래소의 최저 · 최고 가격이 함께 보입니다. 한 번에 10건까지, 7일 안에 팔리지 않으면 인벤토리로 돌아옵니다." },
     { text: "거래가 성사되면 판매 금액의 5%는 수수료로 차감되고, 나머지는 바로 판매자에게 지급됩니다. 팔리면 교류 메뉴에 알림이 뜹니다." },
-    { sel: '[data-tour="mk-hist"]', text: "최근 30일간 사고판 기록과 기한이 지나 돌아온 물건을 이곳에서 확인할 수 있습니다." },
+    { text: "최근 30일간 사고판 기록과 기한이 지나 돌아온 물건은 [팔기] 아래에서 확인할 수 있습니다." },
   ],
   "union-rank": [
     { sel: '[data-tour="un-tabs"]', text: "국제헌터연합에서는 주간 랭킹, 도감, 헌터 명단과 길드를 확인하실 수 있습니다." },
@@ -9323,9 +9491,9 @@ const TOURS = {
     { sel: '[data-tour="craft-known"]', text: "처음 성공한 조합식은 이곳에 기록됩니다. 전체 · 장비 · 소비로 나누어 보거나 아이템 이름으로 찾을 수 있으며, 재료에 들어간 아이템으로도 찾아집니다.\n횟수를 정하고 '칸 채우기'를 누르면 그 횟수만큼 한꺼번에 조합할 수 있습니다." },
   ],
   "soc-friends": [
-    { sel: '[data-tour="soc-tabs"]', text: "교류에서는 친구 · 메시지, 파티, 선물함, SNS를 이용하실 수 있습니다." },
+    { sel: '[data-tour="soc-tabs"]', text: "교류에서는 SNS, 친구, 파티, 선물함을 이용하실 수 있습니다. 1:1 메시지와 파티 채팅은 [SNS]에 있습니다." },
     { sel: '[data-tour="fr-add"]', text: "코드네임으로 친구 신청을 보내고, 상대가 수락하면 친구로 등록할 수 있습니다.\n친구는 현재 최대 30명까지 가능합니다." },
-    { sel: '[data-tour="fr-list"]', text: "[친구]를 누르면 1:1 메시지를 주고받을 수 있습니다.\n메시지는 30일 동안 보관되고, ☆를 누르면 계속 보관하실 수 있습니다." },
+    { sel: '[data-tour="fr-list"]', text: "지금 접속 중인 친구는 초록 점으로 표시됩니다. [메시지]를 누르면 SNS의 메시지 화면에서 1:1 메시지를 주고받을 수 있습니다.\n메시지는 30일 동안 보관되고, ☆를 누르면 계속 보관하실 수 있습니다." },
     { text: "불편한 헌터는 차단하거나 신고할 수 있습니다.\n신고는 연합 운영 직원이 확인하여 처리합니다." },
   ],
   "soc-party": [
@@ -9352,7 +9520,7 @@ const TOURS = {
   "soc-sns": [
     { sel: '[data-tour="sns-cats"]', text: "SNS에는 잡담 · 공략 · 질문 · 모집 · 거래 해시태그로 분류합니다. 태그를 골라 볼 수 있습니다." },
     { sel: '[data-tour="sns-write"]', text: "태그를 고르고 글을 남길 수 있으며, 다른 헌터의 글에는 댓글을 달 수 있습니다." },
-    { sel: '[data-tour="sns-view"]', text: "길드에 들어가 있다면 [길드]에서 길드원끼리 길드 채팅으로 대화할 수 있습니다. 채팅은 30일 뒤 삭제됩니다.\n길드 가입과 개설은 국제헌터연합 → 길드에서 할 수 있습니다." },
+    { sel: '[data-tour="sns-view"]', text: "[메시지]에서는 친구와 1:1 메시지를, [파티 채팅]에서는 파티원끼리 대화를 나눌 수 있습니다. 파티 채팅은 7일 뒤 삭제됩니다.\n길드에 들어가 있다면 [길드]에서 길드원끼리 길드 채팅으로 대화할 수 있습니다. 채팅은 30일 뒤 삭제됩니다.\n길드 가입과 개설은 국제헌터연합 → 길드에서 할 수 있습니다." },
   ],
   hunter: [
     { sel: "#e-titles", text: "모은 타이틀 조각으로 코드네임의 앞과 뒤를 꾸밀 수 있습니다. 가진 조각은 도감에서 확인 가능합니다." },
@@ -9516,7 +9684,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-25-2340";
+const BUILD = "2026-11-26-1830";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
