@@ -455,6 +455,37 @@ dialog.guide-dlg { width: min(920px, calc(100vw - 24px)); }
 .side-feed li.side-post { cursor: pointer; border-radius: 8px; transition: background .15s; }
 .side-feed li.side-post:hover, .side-feed li.side-post:focus-visible { background: color-mix(in srgb, var(--primary) 7%, transparent); outline: none; }
 .sns-post.focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 55%, transparent); transition: box-shadow .3s; }
+/* 오른쪽 SNS: 한 줄 탭 + 목록/대화 스크롤 */
+.side-tabs { position: relative; display: flex; align-items: stretch; border-bottom: 1.5px solid var(--text); margin: 0 0 8px; }
+.side-tabs-strip { display: flex; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; }
+.side-tabs-strip::-webkit-scrollbar { display: none; }
+.side-tabs-strip button { flex: none; border: 0; border-right: 1px solid var(--border); background: transparent; color: var(--text); padding: 7px 11px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
+.side-tabs-strip button:last-child { border-right: 0; }
+.side-tabs-strip button.on { background: var(--primary); color: var(--on-primary); }
+.side-tabs-strip .nbadge { font-size: 10px; min-width: 16px; height: 16px; }
+.side-tabs-arrow { position: absolute; top: 0; bottom: 0; width: 30px; border: 0; padding: 0; cursor: pointer; font-size: 11px; color: var(--text); z-index: 1; }
+.side-tabs-arrow.l { left: 0; text-align: left; padding-left: 4px; background: linear-gradient(90deg, var(--surface, #fff) 55%, transparent); }
+.side-tabs-arrow.r { right: 0; text-align: right; padding-right: 4px; background: linear-gradient(270deg, var(--surface, #fff) 55%, transparent); }
+.side-scroll { max-height: 460px; overflow-y: auto; padding-right: 4px; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--primary) 55%, transparent) transparent; }
+.side-cat { font-size: 11px; font-weight: 700; color: var(--primary); background: color-mix(in srgb, var(--primary) 10%, transparent); border-radius: 4px; padding: 1px 6px; }
+.side-cmt { font-size: 12px; display: block; margin-top: 4px; }
+.side-empty { margin: 8px 0 10px; }
+.side-chat-head { display: flex; align-items: center; gap: 6px; padding: 2px 0 6px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+.side-chat-log { list-style: none; margin: 0; padding: 4px 4px 4px 0; height: 360px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--primary) 55%, transparent) transparent; }
+.side-chat-log li.msg { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.side-chat-log li.msg.mine { align-items: flex-end; }
+.side-chat-log .who { display: flex; align-items: center; gap: 4px; font-size: 12px; }
+.side-chat-log .bubble { background: color-mix(in srgb, var(--primary) 9%, var(--surface, #fff)); border-radius: 10px; padding: 6px 10px; font-size: 14px; width: fit-content; max-width: 92%; overflow-wrap: break-word; word-break: keep-all; white-space: pre-wrap; }
+.side-chat-log .mine .bubble { background: var(--primary); color: var(--on-primary); }
+.side-chat-log li.msg { max-width: 92%; }
+.side-chat-log li.msg .bubble { overflow-wrap: break-word; max-width: 100%; }
+.side-chat-log time { font-size: 11px; color: var(--text-dim); }
+.side-chat-log li.sys { font-size: 12px; color: var(--text-dim); text-align: center; }
+.side-friends { gap: 2px; }
+.side-friends .fr-row { width: 100%; }
+.side-chat-form { display: flex; gap: 6px; margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px; }
+.side-chat-form textarea { flex: 1; min-height: 38px; font-size: 14px; resize: none; }
+.side-chat-form .btn { flex: none; }
 .side-sns-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .side-sns-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 8px; }
 .side-sns-tabs button { border: 1px solid var(--border); background: transparent; color: var(--text-dim); border-radius: 999px; padding: 2px 9px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
@@ -1019,6 +1050,7 @@ button.cat-chip { cursor: pointer; font-family: inherit; }
 .mk-filter { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 14px 0 10px; }
 .mk-filter .input { flex: 1 1 160px; min-height: 38px; }
 .mk-sell { display: grid; gap: 10px; }
+.mk-filter .mk-sort { width: auto; flex: 0 0 auto; }
 .mk-sec { display: grid; gap: 6px; }
 .mk-price { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: grid; gap: 4px; }
 .mk-price-row { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 14px; }
@@ -2797,7 +2829,7 @@ async function socialTick(force) {
   const stale = Date.now() - (social.snsAt || 0) > 5 * 60e3;   // 좋아요 · 글 수정은 요약에 안 잡히니 5분에 한 번은 다시 받는다
   if (!pk || pk.notif !== social.peekNotif) { social.peekNotif = pk?.notif; notifPull(); }
   if (!pk || pk.sns !== social.peekSns || stale) { social.peekSns = pk?.sns; social.snsAt = Date.now(); refreshSideSns(); }
-  if (pk && pk.pchat !== social.peekPchat) { const first = social.peekPchat === undefined; social.peekPchat = pk.pchat; if (!first) refreshSocial(); }
+  if (pk && pk.pchat !== social.peekPchat) { const first = social.peekPchat === undefined; social.peekPchat = pk.pchat; if (!first) { refreshSocial(); if (sideSnsCat === SIDE_PARTY) refreshSideSns(); } }
 }
 document.addEventListener("visibilitychange", () => { if (!document.hidden && social.poll) socialTick(true); });
 function startSocial() {
@@ -2808,6 +2840,7 @@ function startSocial() {
   // 새 메시지는 실시간으로 받는다
   social.chan = sb.channel("dm-" + state.user.id)
     .on("postgres_changes", { event: "INSERT", schema: "public", table: "dm_messages", filter: `recipient=eq.${state.user.id}` }, payload => {
+      if (sideDmOpen()) refreshSideSns();   // 오른쪽 1:1 대화도 새로 받는다
       if (social.onDm && social.onDm(payload.new)) return;   // 지금 열린 대화면 그 자리에서 보여 준다
       social.summary.unread = (social.summary.unread || 0) + 1;
       paintSocialBadge();
@@ -2826,82 +2859,160 @@ function stopSocial() {
 }
 
 /* 오른쪽 SNS 칸 (PC) */
-const SIDE_GUILD = "__guild";   // 길드에 들어 있으면 생기는 '길드' 분류 (길드 채팅)
+const SIDE_GUILD = "__guild";   // 길드에 들어 있으면 생기는 '길드' 탭 (길드 채팅)
+const SIDE_PARTY = "__party", SIDE_DM = "__dm";   // 파티 채팅 · 1:1 메시지
 let sideSnsCat = null, sideSnsDraft = "", sideSnsWcat = "잡담", sideSnsOpen = false;
+let sideDmWith = null, sideDmList = false, sideChatDraft = "", sideChatTimer = null, sideTabsX = 0;
+const fmtMDT = iso => { const d = new Date(iso); return `${d.toLocaleDateString("ko-KR", { month: "numeric", day: "numeric", timeZone: "Asia/Seoul" }).replace(/\. ?/g, "/").replace(/\/$/, "")} ${d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Seoul" })}`; };
 async function refreshSideSns() {
   const box = $("#side-sns");
   if (!box || !state.character) return;
-  // 글을 쓰는 중이면 다시 그리지 않는다 (60초마다 새로 고침)
+  // 글이나 메시지를 쓰는 중이면 다시 그리지 않는다 (60초마다 새로 고침)
   if (box.contains(document.activeElement) && document.activeElement?.tagName === "TEXTAREA") return;
+  clearTimeout(sideChatTimer);
   const inGuild = !!social.gid;
   if (sideSnsCat === SIDE_GUILD && !inGuild) sideSnsCat = null;
-  const isGuild = sideSnsCat === SIDE_GUILD;
-  let posts = [], gmsgs = [];
+  const isGuild = sideSnsCat === SIDE_GUILD, isParty = sideSnsCat === SIDE_PARTY, isDm = sideSnsCat === SIDE_DM;
+  const sm = social.summary || {};
+  // 탭: 전체 · 공지 · 잡담 · 파티 · 1:1 · 길드 · 공략 · 질문 · 모집 · 거래 (한 줄, 옆으로 넘겨 본다)
+  const order = [null, "공지", "잡담", SIDE_PARTY, SIDE_DM, ...(inGuild ? [SIDE_GUILD] : []), ...SNS_CATS.filter(c => c !== "공지" && c !== "잡담")];
+  const label = { [SIDE_PARTY]: "파티", [SIDE_DM]: "1:1", [SIDE_GUILD]: "길드" };
+  const badge = { [SIDE_PARTY]: sm.party_unread || 0, [SIDE_DM]: sm.unread || 0, [SIDE_GUILD]: sm.guild_unread || 0 };
+  const strip = h("div", { class: "side-tabs-strip", role: "tablist", "aria-label": "SNS 분류" },
+    ...order.map(c => h("button", { type: "button", role: "tab", class: sideSnsCat === c ? "on" : null, "aria-selected": sideSnsCat === c ? "true" : "false",
+      onclick: () => { sideTabsX = strip.scrollLeft; sideSnsCat = c; sideDmList = false; refreshSideSns(); } },
+      label[c] || c || "전체", badge[c] > 0 && sideSnsCat !== c ? h("span", { class: "nbadge" }, String(badge[c])) : null)));
+  // ◀ ▶: 그쪽에 가려진 탭이 있을 때만, 탭 위 양 끝에 겹쳐 보인다
+  const left = h("button", { type: "button", class: "side-tabs-arrow l", "aria-label": "앞쪽 탭 보기", onclick: () => strip.scrollBy({ left: -120, behavior: "smooth" }) }, "◀");
+  const right = h("button", { type: "button", class: "side-tabs-arrow r", "aria-label": "뒤쪽 탭 보기", onclick: () => strip.scrollBy({ left: 120, behavior: "smooth" }) }, "▶");
+  const tabs = h("div", { class: "side-tabs" }, left, strip, right);
+  const paintMore = () => { left.hidden = strip.scrollLeft <= 2; right.hidden = strip.scrollLeft + strip.clientWidth >= strip.scrollWidth - 2; };
+  strip.onscroll = paintMore;
+  const head = (...right) => h("div", { class: "side-sns-head" }, h("p", { class: "panel-title", style: "margin:0" }, "SNS"), ...right);
+  const place = (...rest) => { box.replaceChildren(...rest); strip.scrollLeft = sideTabsX; paintMore(); const on = strip.querySelector(".on"); if (on && (on.offsetLeft < strip.scrollLeft || on.offsetLeft + on.offsetWidth > strip.scrollLeft + strip.clientWidth)) on.scrollIntoView({ block: "nearest", inline: "nearest" }); paintMore(); };
+
+  // ── 대화 창 (파티 · 1:1 · 길드 공통 모양)
+  const chatBox = (msgs, { sendFn, max, placeholder, empty, top }) => {
+    const log = h("ol", { class: "side-chat-log", "aria-live": "polite" },
+      ...(msgs.length ? msgs.map(m => m.system ? h("li", { class: "sys" }, m.body)
+        : h("li", { class: `msg${m.mine ? " mine" : ""}` },
+            !m.mine && m.author && top !== "dm" ? h("div", { class: "who" }, miniAvatar(m.author, 18), hunterLink(m.author)) : null,
+            h("div", { class: "bubble" }, m.body), h("time", {}, fmtWhen(m.at))))
+        : [h("li", { class: "sys" }, empty)]));
+    const ta = h("textarea", { class: "input", rows: "1", maxlength: String(max), placeholder, "aria-label": placeholder });
+    ta.value = sideChatDraft.slice(0, max);
+    ta.oninput = () => { sideChatDraft = ta.value; };
+    const send = h("button", { class: "btn small", type: "submit" }, "보내기");
+    const form = h("form", { class: "side-chat-form" }, ta, send);
+    form.onsubmit = async e => {
+      e.preventDefault();
+      const v = ta.value.trim();
+      if (!v) return;
+      busy(send, true, "…");
+      const { error } = await sendFn(v);
+      busy(send, false);
+      if (error) return toast(koError(error));
+      sideChatDraft = ""; ta.value = ""; ta.blur(); refreshSideSns();
+    };
+    ta.onkeydown = e => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); form.requestSubmit(); } };
+    requestAnimationFrame(() => { log.scrollTop = log.scrollHeight; });
+    return [log, form];
+  };
+  // 보고 있는 동안 5초마다 새로 받는다 (화면이 가려지면 쉼)
+  const live = () => { sideChatTimer = setTimeout(() => { if (!document.hidden && sideSnsCat === (isDm ? SIDE_DM : SIDE_PARTY)) refreshSideSns(); else live(); }, 5000); };
+
+  if (isParty) {
+    const { data, error } = await sb.rpc("party_chat", { p_after: null });
+    if (sm) { sm.party_unread = 0; paintSocialBadge(); }
+    if (error || !data?.party_id) return place(head(), tabs, h("p", { class: "hint side-empty" }, error ? koError(error) : "파티에 들어가면 파티원끼리 채팅할 수 있습니다."),
+      h("a", { class: "btn ghost small block", href: "#/friends", onclick: () => { nextSocialTab = "party"; } }, "파티 열기"));
+    place(head(h("span", { class: "hint", style: "font-size:12px" }, "파티원에게만 보입니다")), tabs,
+      ...chatBox(data.messages, { sendFn: v => sb.rpc("party_chat_send", { p_body: v }), max: 300, placeholder: "파티원에게 보낼 메시지", empty: "아직 메시지가 없습니다." }));
+    return live();
+  }
+  if (isDm) {
+    const { data: fl } = await sb.rpc("friend_list");
+    const friends = fl?.friends || [];
+    if (sideDmWith && !friends.some(f => f.codename === sideDmWith)) sideDmWith = null;
+    if (!sideDmWith) sideDmWith = friends.find(f => f.unread > 0)?.codename || null;
+    if (sideDmList || !sideDmWith) {
+      // 친구 목록 (접속 중 · 읽지 않은 메시지)
+      return place(head(sideDmWith ? h("button", { type: "button", class: "btn ghost small", onclick: () => { sideDmList = false; refreshSideSns(); } }, "대화로") : null), tabs,
+        friends.length ? h("div", { class: "side-chat-log side-friends" }, ...friends.map(f => h("button", { type: "button", class: `fr-row fr-pick${sideDmWith === f.codename ? " on" : ""}`,
+            onclick: () => { sideDmWith = f.codename; sideDmList = false; sideChatDraft = ""; refreshSideSns(); } },
+          miniAvatar(f, 28), h("div", { class: "fr-main" }, h("b", {}, f.codename), h("div", { class: "hint" }, hunterSub(f))),
+          f.online ? h("span", { class: "online-dot on", style: "font-size:11px" }, "접속 중") : null,
+          f.unread > 0 ? h("span", { class: "nbadge" }, String(f.unread)) : null)))
+          : h("p", { class: "hint side-empty" }, "아직 친구가 없습니다. 교류 › 친구에서 친구 신청을 보내 보세요."));
+    }
+    const { data: d, error } = await sb.rpc("dm_list", { p_codename: sideDmWith, p_before: null });
+    if (error) return place(head(), tabs, h("p", { class: "error" }, koError(error)));
+    refreshSocial();
+    const f = friends.find(x => x.codename === sideDmWith) || d.other;
+    place(head(), tabs,
+      h("div", { class: "side-chat-head" }, miniAvatar(d.other, 26), hunterLink(d.other), f?.online ? h("span", { class: "online-dot on", style: "font-size:11px" }, "") : null,
+        h("button", { type: "button", class: "btn ghost small", style: "margin-left:auto", onclick: () => { sideDmList = true; refreshSideSns(); } }, "목록")),
+      ...chatBox(d.messages.slice(-30), { sendFn: v => sb.rpc("dm_send", { p_codename: sideDmWith, p_body: v }), max: 500, top: "dm",
+        placeholder: d.friend && !d.blocked ? `${sideDmWith}님에게 메시지` : "메시지를 보낼 수 없습니다.", empty: "첫 메시지를 보내 보세요." }));
+    if (!d.friend || d.blocked) box.querySelectorAll(".side-chat-form textarea, .side-chat-form button").forEach(x => (x.disabled = true));
+    return live();
+  }
   if (isGuild) {
     const { data } = await sb.rpc("guild_chat", { p_before: null });
-    gmsgs = (data?.messages || []).filter(m => !m.system).slice(-5).reverse();
     if (social.summary) { social.summary.guild_unread = 0; paintSocialBadge(); }
-  } else {
-    const { data } = await sb.rpc("sns_feed", { p_category: sideSnsCat, p_before: null });
-    posts = (data?.posts || []).slice(0, 5);
+    const msgs = (data?.messages || []).slice(-40).map(m => ({ ...m, mine: m.author?.codename === state.profile?.codename }));
+    place(head(h("span", { class: "hint", style: "font-size:12px" }, "길드원에게만 보입니다")), tabs,
+      ...chatBox(msgs, { sendFn: v => sb.rpc("guild_send", { p_body: v }), max: 300, placeholder: "길드원에게 보낼 메시지", empty: "길드 채팅이 아직 없습니다." }),
+      h("a", { class: "btn ghost small block", style: "margin-top:8px", href: "#/friends", onclick: () => { nextSocialTab = "sns"; snsView = "guild"; } }, "길드 열기"));
+    return;
   }
+
+  // ── 글 목록 (전체 · 분류)
+  const { data } = await sb.rpc("sns_feed", { p_category: sideSnsCat, p_before: null });
+  const posts = (data?.posts || []).slice(0, 20);
   if (!sideSnsCat) {
     const top = posts.find(p => p.author?.codename !== state.profile?.codename);
     if (top) { if (social.lastPost && top.at > social.lastPost) sfx("notice"); if (!social.lastPost || top.at > social.lastPost) social.lastPost = top.at; }
   }
-  const gN = social.summary?.guild_unread || 0;
-  const tabs = h("div", { class: "side-sns-tabs", role: "tablist", "aria-label": "SNS 분류" },
-    ...[null, ...SNS_CATS, ...(inGuild ? [SIDE_GUILD] : [])].map(c => h("button", { type: "button", role: "tab", class: sideSnsCat === c ? "on" : null, "aria-selected": sideSnsCat === c ? "true" : "false",
-      onclick: () => { sideSnsCat = c; refreshSideSns(); } }, c === SIDE_GUILD ? "길드" : (c || "전체"),
-      c === SIDE_GUILD && gN > 0 && !isGuild ? h("span", { class: "nbadge" }, String(gN)) : null)));
-  // 글쓰기 (접었다 펴기) — 길드 분류에서는 길드 채팅으로 보낸다
-  const max = isGuild ? 300 : 1000;
-  const ta = h("textarea", { class: "input", rows: "3", maxlength: String(max), placeholder: isGuild ? "길드원에게 보낼 메시지" : "무슨 일이 있었나요?", "aria-label": isGuild ? "길드 메시지" : "새 글" });
+  const max = 1000;
+  const ta = h("textarea", { class: "input", rows: "3", maxlength: String(max), placeholder: "무슨 일이 있었나요?", "aria-label": "새 글" });
   ta.value = sideSnsDraft.slice(0, max);
-  ta.oninput = () => { sideSnsDraft = ta.value; cnt.textContent = `${ta.value.length}/${max}`; };
   const cnt = h("span", { class: "hint", style: "font-size:12px" }, `${ta.value.length}/${max}`);
+  ta.oninput = () => { sideSnsDraft = ta.value; cnt.textContent = `${ta.value.length}/${max}`; };
   const wcats = snsWriteCats();
-  const sel = h("select", { class: "input side-sns-cat", "aria-label": "분류", hidden: isGuild }, ...wcats.map(c => h("option", { value: c }, c)));
+  const sel = h("select", { class: "input side-sns-cat", "aria-label": "분류" }, ...wcats.map(c => h("option", { value: c }, c)));
   sel.value = wcats.includes(sideSnsCat) ? sideSnsCat : sideSnsWcat;
   sel.onchange = () => { sideSnsWcat = sel.value; };
-  const send = h("button", { class: "btn small", type: "submit" }, isGuild ? "보내기" : "올리기");
+  const send = h("button", { class: "btn small", type: "submit" }, "올리기");
   const werr = h("div", { class: "error", role: "alert", style: "font-size:13px;min-height:0" });
-  const form = h("form", { class: "side-sns-write", hidden: !sideSnsOpen }, ta, h("div", { class: "side-sns-foot" }, isGuild ? h("span", { class: "hint", style: "font-size:12px;margin-right:auto" }, "길드 채팅") : sel, cnt, send), werr);
+  const form = h("form", { class: "side-sns-write", hidden: !sideSnsOpen }, ta, h("div", { class: "side-sns-foot" }, sel, cnt, send), werr);
   form.onsubmit = async e => {
     e.preventDefault(); werr.textContent = "";
     if (!ta.value.trim()) return;
     busy(send, true, "…");
-    const { error } = isGuild ? await sb.rpc("guild_send", { p_body: ta.value.trim() })
-                              : await sb.rpc("sns_post", { p_category: sel.value, p_body: ta.value });
+    const { error } = await sb.rpc("sns_post", { p_category: sel.value, p_body: ta.value });
     busy(send, false);
     if (error) return (werr.textContent = koError(error));
-    sideSnsDraft = ""; sideSnsOpen = false; toast(isGuild ? "길드 채팅에 보냈습니다." : "SNS에 올렸습니다.");
+    sideSnsDraft = ""; sideSnsOpen = false; toast("SNS에 올렸습니다.");
     refreshSideSns();
   };
-  const toggle = h("button", { type: "button", class: "btn ghost small", onclick: () => { sideSnsOpen = !sideSnsOpen; form.hidden = !sideSnsOpen; toggle.textContent = sideSnsOpen ? "닫기" : "글쓰기"; if (sideSnsOpen) ta.focus(); } }, sideSnsOpen ? "닫기" : "글쓰기");
-  const list = isGuild
-    ? (gmsgs.length ? h("ul", { class: "side-feed" }, ...gmsgs.map(m => h("li", {},
-        h("div", { class: "side-feed-head" }, m.author ? miniAvatar(m.author, 22) : null, m.author ? hunterLink(m.author) : h("b", {}, "(떠난 헌터)"), h("span", { class: "hint" }, fmtWhen(m.at))),
-        h("p", {}, m.body.length > 70 ? m.body.slice(0, 70) + "…" : m.body))))
-      : h("p", { class: "hint", style: "margin:0 0 10px" }, "길드 채팅이 아직 없습니다."))
-    : (posts.length ? h("ul", { class: "side-feed" }, ...posts.map(p => {
-        const li = h("li", { class: "side-post", tabindex: "0", role: "link", "aria-label": `${p.author?.codename || ""}님의 글 열기` },
-          h("div", { class: "side-feed-head" }, miniAvatar(p.author, 22), hunterLink(p.author), catChip(p.category), h("span", { class: "hint" }, fmtWhen(p.at))),
-          h("p", {}, p.body.length > 70 ? p.body.slice(0, 70) + "…" : p.body),
-          p.comments ? h("span", { class: "hint", style: "font-size:12px" }, `댓글 ${p.comments}`) : null);
-        const open = e => { if (e.target.closest("button, a")) return; openSnsPost(p.id, sideSnsCat); };
-        li.onclick = open;
-        li.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); open(e); } };
-        return li;
-      }))
-      : h("p", { class: "hint", style: "margin:0 0 10px" }, sideSnsCat ? `'${sideSnsCat}' 글이 아직 없습니다.` : "아직 글이 없습니다."));
-  box.replaceChildren(
-    h("div", { class: "side-sns-head" }, h("p", { class: "panel-title", style: "margin:0" }, "SNS"), toggle),
-    form, tabs, list,
-    isGuild
-      ? h("a", { class: "btn ghost small block", href: "#/friends", onclick: () => { nextSocialTab = "sns"; snsView = "guild"; } }, "길드 열기")
-      : h("a", { class: "btn ghost small block", href: "#/friends", onclick: () => { nextSocialTab = "sns"; snsView = "all"; snsCat = sideSnsCat; } }, "SNS 열기"));
+  const toggle = h("button", { type: "button", class: "btn small" + (sideSnsOpen ? " ghost" : ""), onclick: () => { sideSnsOpen = !sideSnsOpen; form.hidden = !sideSnsOpen; toggle.textContent = sideSnsOpen ? "닫기" : "글쓰기"; toggle.classList.toggle("ghost", sideSnsOpen); if (sideSnsOpen) ta.focus(); } }, sideSnsOpen ? "닫기" : "글쓰기");
+  const list = posts.length ? h("ul", { class: "side-feed side-scroll" }, ...posts.map(p => {
+      const li = h("li", { class: "side-post", tabindex: "0", role: "link", "aria-label": `${p.author?.codename || ""}님의 글 열기` },
+        h("div", { class: "side-feed-head" }, miniAvatar(p.author, 22), hunterLink(p.author), h("span", { class: "side-cat" }, `#${p.category}`), h("span", { class: "hint" }, fmtMDT(p.at))),
+        h("p", {}, p.body.length > 90 ? p.body.slice(0, 90) + "…" : p.body),
+        h("span", { class: "hint side-cmt" }, `댓글 ${p.comments || 0}`));
+      const open = e => { if (e.target.closest("button, a")) return; openSnsPost(p.id, sideSnsCat); };
+      li.onclick = open;
+      li.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); open(e); } };
+      return li;
+    }))
+    : h("p", { class: "hint side-empty" }, sideSnsCat ? `'${sideSnsCat}' 글이 아직 없습니다.` : "아직 글이 없습니다.");
+  place(head(toggle), tabs, form, list,
+    h("a", { class: "btn ghost small block", style: "margin-top:8px", href: "#/friends", onclick: () => { nextSocialTab = "sns"; snsView = "all"; snsCat = sideSnsCat; } }, "SNS 열기"));
 }
+// 1:1 탭에서 대화 중인 친구에게 새 메시지가 오면 바로 보여 준다
+function sideDmOpen() { return sideSnsCat === SIDE_DM && !sideDmList && !!sideDmWith && !!$("#side-sns .side-chat-form"); }
 
 /* ===== 파티 ===== */
 async function getParty() {
@@ -3549,7 +3660,7 @@ async function renderPartyChat(body) {
       : [h("li", { class: "hint", style: "text-align:center;list-style:none" }, "아직 메시지가 없습니다. 파티원에게 첫 메시지를 보내 보세요.")]));
     if (scroll || near) log.scrollTop = log.scrollHeight;
   };
-  const ta = h("textarea", { class: "input", rows: "2", maxlength: "300", placeholder: "파티원에게 보낼 메시지 (Enter로 보내기, Shift+Enter 줄바꿈)", "aria-label": "파티 메시지" });
+  const ta = h("textarea", { class: "input", rows: "2", maxlength: "300", placeholder: "파티원에게 보낼 메시지", "aria-label": "파티 메시지" });
   const send = h("button", { class: "btn", type: "submit" }, "보내기");
   const form = h("form", { class: "chat-form" }, ta, send);
   form.onsubmit = async e => {
@@ -3563,8 +3674,8 @@ async function renderPartyChat(body) {
     ta.value = ""; msgs = data.messages; paint(); ta.focus();
   };
   ta.onkeydown = e => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); form.requestSubmit(); } };
-  body.replaceChildren(h("div", { class: "chat", style: "display:flex" },
-    h("div", { class: "chat-head" }, h("div", { class: "fr-main" }, h("b", {}, "파티 채팅"), h("div", { class: "hint" }, "파티원에게만 보입니다. 7일이 지난 메시지는 사라집니다."))),
+  body.replaceChildren(h("div", { class: "chat pchat", style: "display:flex;min-width:0" },
+    h("div", { class: "chat-head" }, h("div", { class: "fr-main", style: "min-width:0" }, h("b", {}, "파티 채팅"), h("div", { class: "hint", style: "white-space:normal" }, "파티원에게만 보입니다. 7일이 지난 메시지는 사라집니다."))),
     log, form));
   paint();
   const tick = async () => {
@@ -6786,7 +6897,7 @@ function renderShop(body, inv, act) {
 /* ===== 거래소 =====
    판매자가 정한 가격(개당)에 올리고 누구나 바로 사는 고정가 방식. 성사되면 판매 금액의 5%는 수수료로 사라진다.
    올릴 수 있는 것: 상점에서 팔지 않는 장비·재료, 강화된 장비. 올린 물건은 7일 뒤 돌아온다. */
-let tradeKind = "all", tradeQ = "", tradeMode = "buy";
+let tradeKind = "all", tradeQ = "", tradeMode = "buy", tradeSort = "new";
 // 거래소 · 상점 등에서 아이템 효과 한 줄: 장비는 능력치, 소비는 회복 효과, 버프는 버프 설명, 재료는 희귀도
 const MK_KIND = { equip: "장비", consumable: "소비", buff: "소비", material: "재료" };
 const mkGroup = x => x.kind === "buff" ? "consumable" : x.kind;
@@ -6803,7 +6914,9 @@ async function renderTrade(body, inv, refresh) {
   const listBox = h("div", {});
   function paintList() {
     const q = tradeQ.trim();
-    const rows = m.listings.filter(l => (tradeKind === "all" || mkGroup(l) === tradeKind) && (!q || l.name.includes(q)) && !l.mine);
+    // 종류 · 이름 검색으로 거른 뒤 정렬한다 (가격은 개당 가격 기준, 같으면 최근에 올린 것 먼저)
+    const rows = m.listings.filter(l => (tradeKind === "all" || mkGroup(l) === tradeKind) && (!q || l.name.includes(q)) && !l.mine)
+      .sort((a, b) => tradeSort === "low" ? a.price - b.price || b.id - a.id : tradeSort === "high" ? b.price - a.price || b.id - a.id : b.id - a.id);
     listBox.replaceChildren(...(rows.length ? rows.map(l => {
       const qty = h("input", { class: "input qty-input", type: "number", min: "1", max: String(l.qty), value: "1", "aria-label": `${l.name} 살 수량` });
       const buy = h("button", { class: "btn small", type: "button", "data-sfx": "own" }, "구매");
@@ -6860,6 +6973,10 @@ async function renderTrade(body, inv, refresh) {
   // 찾기
   const search = h("input", { class: "input", type: "search", placeholder: "이름으로 찾기", "aria-label": "거래소 검색", value: tradeQ });
   search.oninput = () => { tradeQ = search.value; paintList(); };
+  const sortSel = h("select", { class: "input mk-sort", "aria-label": "정렬" },
+    ...[["new", "최근 올린 순"], ["low", "가격 낮은 순"], ["high", "가격 높은 순"]].map(([v, n]) => h("option", { value: v }, n)));
+  sortSel.value = tradeSort;
+  sortSel.onchange = () => { tradeSort = sortSel.value; paintList(); };
   const chips = h("div", { class: "cat-row", style: "margin:0" });
   const paintChips = () => chips.replaceChildren(...[["all", "전체"], ["equip", "장비"], ["consumable", "소비"], ["material", "재료"]].map(([k, n]) =>
     h("button", { type: "button", class: `cat-chip big${tradeKind === k ? " on" : ""}`, "aria-pressed": tradeKind === k ? "true" : "false", onclick: () => { tradeKind = k; paintChips(); paintList(); paintSell(); } }, n)));
@@ -6939,7 +7056,7 @@ async function renderTrade(body, inv, refresh) {
   body.replaceChildren(
     h("p", { class: "hint", style: "margin:16px 0 0" }, `판매자가 정한 가격에 누구나 바로 사는 고정가 거래소입니다. 거래가 성사되면 판매 금액의 5%가 수수료로 사라집니다. 상점에서 팔지 않는 장비·재료, 강화한 장비, 소비 아이템을 올릴 수 있고, 한 번에 ${m.max_listings}개까지, 올린 물건은 ${m.days}일 뒤 팔리지 않으면 돌아옵니다.`),
     h("div", { class: "tabs", role: "group", "aria-label": "사기 · 팔기", style: "margin-top:12px;max-width:320px", "data-tour": "mk-mode" }, modeBtn("buy", `사기 (${others})`), modeBtn("sell", `팔기 (${m.mine_open})`)),
-    h("div", { class: "mk-filter" }, chips, tradeMode === "buy" ? search : null),
+    h("div", { class: "mk-filter" }, chips, tradeMode === "buy" ? search : null, tradeMode === "buy" ? sortSel : null),
     tradeMode === "buy"
       ? h("div", { class: "item-group", style: "margin-top:0", "data-tour": "mk-list" }, h("p", { class: "panel-title" }, `올라온 물건 (${others})`), listBox)
       : h("div", {},
@@ -8587,7 +8704,7 @@ const DOCS = {
 <section class="card prose g-cat" id="g-rg" data-cat="rg">
 <h2 class="g-cat-title">지역 안정화</h2>
 <p>2024년부터 지금까지 세계 도시 곳곳에서 발생하는 게이트를 통해 진입 가능한 이공간, 던전을 주기적으로 공략하여 안정화를 시키는 것이 헌터의 기본 활동입니다.</p>
-<ul><li>던전은 국제헌터연합에서 측정한 등급에 따라 현재 헌터 등급과 비슷한 등급의 던전만 진입이 가능합니다. 고등급 헌터가 저등급 던전에 진입하는 것은 가능하나 보상이 감소합니다.</li><li><b>같은 활동 구역을 공유하는 헌터가 1~5명이 모여 공략</b>할 수 있습니다. 던전의 난이도는 입장 헌터 수에 비례하오니 솔로 플레이를 즐기시는 헌터라면 혼자 진입하셔도 무방합니다.</li><li>활동 구역은 지역 안정화 화면 위쪽에서 언제든 옮길 수 있으며, 옮긴 구역에 나타난 던전이 안내됩니다. 단, 대기실에 들어가 있는 동안에는 옮길 수 없고, 파티로 공략할 때는 파티장의 활동 구역 던전에 진입합니다.</li><li>이미 공략 중인 던전은 안정화가 된 후 국제헌터연합에서 재관측 후 새로 입장할 수 있는 던전으로 안내드리오니 참고 부탁드립니다.</li><li>던전 진입 전, 선택 후 헌터님의 전력으로 예상 성공률, 공략 시간, 획득 가능성, 획득 재화를 확인할 수 있습니다.</li><li>도중에 쓰러진 경우, 그때까지 정리한 구역의 보상을 수령하고 던전은 그대로 잔존합니다.</li></ul>
+<ul><li>던전은 국제헌터연합에서 측정한 등급에 따라 현재 헌터 등급과 비슷한 등급의 던전만 진입이 가능합니다. 고등급 헌터가 저등급 던전에 진입하는 것은 가능하나 보상이 감소합니다.</li><li><b>같은 활동 구역을 공유하는 헌터가 1~5명이 모여 공략</b>할 수 있습니다. 던전의 난이도는 입장 헌터 수에 비례하오니 솔로 플레이를 즐기시는 헌터라면 혼자 진입하셔도 무방합니다.</li><li>활동 구역은 지역 안정화 화면 위쪽에서 언제든 옮길 수 있으며, 옮긴 구역에 나타난 던전이 안내됩니다. 단, 대기실에 들어가 있는 동안에는 옮길 수 없고, 파티로 공략할 때는 파티장의 활동 구역 던전에 진입합니다.</li><li>이미 공략 중인 던전은 안정화가 된 후 국제헌터연합에서 재관측 후 새로 입장할 수 있는 던전으로 안내드리오니 참고 부탁드립니다.</li><li>던전 진입 전, 선택 후 헌터님의 전력으로 예상 성공률, 공략 시간, 획득 가능성, 획득 재화를 확인할 수 있습니다.</li><li>도중에 쓰러진 경우, 그때까지 정리한 구역의 보상을 수령하고 던전은 그대로 잔존합니다.</li><li>공략 중 [<b>도중 퇴장</b>]을 누르면 쓰러진 것처럼 처리되어, 그때까지 정리한 구역의 보상만 받고 바로 돌아옵니다. 쓰지 않은 보급품은 돌려받습니다. 혼자 공략 중이었다면 던전은 안정화되지 않은 채 그대로 잔존하고, 파티 · 대기실로 공략 중이었다면 남은 헌터가 계속 공략합니다.</li><li>고른 등급과 던전은 보급품을 바꾸거나 활동 구역을 옮겨도 유지됩니다.</li></ul>
 <details class="g-sub"><summary>전투</summary><div class="g-sub-body"><ul><li>몬스터는 턴마다 공격하므로, <b>적을 빠르게 처치할수록 받는 피해가 줄어듭니다.</b> 전투가 길어질수록 더 많이 공격받습니다.</li><li>카탈리스트의 아군 지원, 아티피스의 적군 약화, 시타델의 추가 피해 감소는 <b>구역이 바뀌면 끝나며, 다음 구역에서 MP 5를 써서 다시 겁니다.</b> MP가 부족하면 그 구역에서는 효과가 없으므로, 다시 걸 MP는 공격보다 먼저 남겨 둡니다.</li></ul></div></details>
 <details class="g-sub"><summary>보급품</summary><div class="g-sub-body"><ul><li>지역 안정화 화면에서 <b>HP를 회복하는 소비 아이템(안정 앰플·별조각 사탕·은하수 이슬)을 최대 3개까지 보급품으로 정해 둘 수 있습니다.</b> 출발할 때 가진 만큼 챙기며, <b>HP가 50% 이하가 되면 자동으로 사용</b>합니다(안정 앰플 → 별조각 사탕 → 은하수 이슬 순).</li><li>대기실·파티로 여럿이 공략할 때는 정해 둔 것 중 <b>1개만</b> 각자 챙깁니다. 쓰지 않은 보급품은 결과를 받을 때 돌려받습니다. 예상 성공률은 챙길 보급품까지 넣어 계산합니다.</li></ul></div></details>
 <details class="g-sub"><summary>대기실</summary><div class="g-sub-body"><ul><li>던전을 고르고 [대기실 입장]을 누르면 그 던전의 대기실로 이동합니다. 대기실에는 최대 5명까지 들어올 수 있고, 입장한 헌터의 코드네임, 등급, 레벨, 포지션을 확인할 수 있습니다. 누군가 대기실에 들어간 던전은 지역 안정화 화면에 대기 인원이 표시됩니다.</li><li><b>[준비 완료]를 누르면 30초 동안 다른 헌터의 준비를 기다립니다. </b>모두 준비 완료를 누르면 바로 출발하고, 30초가 지나면 그때 대기실에 있는 헌터와 함께 무조건 출발합니다. <b>누군가 준비 완료를 눌렀다면 30초가 지나기 전에 [바로 출발]로 먼저 출발</b>할 수 있습니다. 혼자 있을 때 준비 완료를 누르면 바로 출발합니다.</li><li>[나가기]로 언제든 대기실에서 퇴장할 수 있습니다. </li><li>대기실 채팅은 대기실에 있는 헌터에게만 보이며, 출발하면 사라집니다. </li><li>파티에 있는 경우에는 대기실 대신 파티장이 파티로 출발합니다.</li></ul></div></details>
@@ -8599,7 +8716,7 @@ const DOCS = {
 <p><i>*주말 토벌에 나설 때 더해지며, 회복할 수 있는 한도는 그대로입니다.</i></p>
 <p>혼자 싸우는 개인 도전에서는 딜러가 아닌 포지션도 주는 피해 보정을 받습니다. 탱커 · 힐러 +20%, 아티피스 +5%입니다(카탈리스트는 혼자일 때의 주는 피해 +10%만 받습니다). 서브 포지션으로 딜러 능력을 가지면 그만큼 줄어듭니다.</p>
 <h3>토벌</h3>
-<ul><li><b>주말(토·일)에는</b> <b>오후 2시와 오후 10시, 모두 4번 토벌이 열립니다.</b> 회차가 열리면 1시간 동안 참여할 수 있고, 회차마다 한 번씩 참여할 수 있습니다. 한 토벌대는 최대 10명이며, 10명이 모이면 바로, 회차가 열리고 10분이 지나면 5명 이상일 때 출발합니다. 토벌대가 만들어지고 15분이 지나도 5명이 모이지 않으면, 모인 인원으로 출발합니다.</li><li>개인 도전과 토벌을 하는 동안에는 무한 던전·지역 안정화·탐색·별의 무덤·별의 제단에 들어갈 수 없습니다. 토벌을 기다리는 동안도 마찬가지이며, 대기를 그만두면 바로 들어갈 수 있습니다.</li><li>기여도는 포지션과 상관없이 <b>헌터님 자신의 능력으로 보스에게 준 피해</b>로 매깁니다. 아군을 돕는 효과는 함께 싸우는 헌터의 기여도를 깎지 않고 토벌 전체를 돕습니다. 같은 능력이라면 어떤 포지션이든 비슷한 기여도를 얻습니다.</li><li><b>보스 체력을 0까지 깎으면 그 주 레이드는 성공</b>으로 확정되고, 알림으로 알려 드립니다. 남은 기간에도 개인 도전과 주말 토벌을 계속할 수 있지만(추가 토벌), 체력이 다한 뒤에 준 피해는 기여도에 일부만 반영됩니다. 성공하면 참여 보상과 함께 기여도에 따른 성공 보상을, 실패하면 참여 보상만 받습니다. 보스의 위력은 지난 레이드의 결과에 맞춰 매주 달라집니다.</li></ul></div></details>
+<ul><li><b>주말(토·일)에는</b> <b>오후 2시와 오후 10시, 모두 4번 토벌이 열립니다.</b> 회차가 열리면 1시간 동안 참여할 수 있고, 회차마다 한 번씩 참여할 수 있습니다. 한 토벌대는 최대 10명이며, 10명이 모이면 바로, 회차가 열리고 10분이 지나면 5명 이상일 때 출발합니다. 토벌대가 만들어지고 15분이 지나도 5명이 모이지 않으면, 모인 인원으로 출발합니다.</li><li>개인 도전과 토벌은 <b>무한 던전 · 지역 안정화 · 탐색 · 별의 무덤 · 별의 제단과 동시에 진행할 수 있습니다.</b> 다른 활동 중에도 토벌을 기다리거나 출발할 수 있습니다.</li><li>기여도는 포지션과 상관없이 <b>헌터님 자신의 능력으로 보스에게 준 피해</b>로 매깁니다. 아군을 돕는 효과는 함께 싸우는 헌터의 기여도를 깎지 않고 토벌 전체를 돕습니다. 같은 능력이라면 어떤 포지션이든 비슷한 기여도를 얻습니다.</li><li><b>보스 체력을 0까지 깎으면 그 주 레이드는 성공</b>으로 확정되고, 알림으로 알려 드립니다. 남은 기간에도 개인 도전과 주말 토벌을 계속할 수 있지만(추가 토벌), 체력이 다한 뒤에 준 피해는 기여도에 일부만 반영됩니다. 성공하면 참여 보상과 함께 기여도에 따른 성공 보상을, 실패하면 참여 보상만 받습니다. 보스의 위력은 지난 레이드의 결과에 맞춰 매주 달라집니다.</li></ul></div></details>
 <details class="g-sub" data-patch><summary>평판</summary><div class="g-sub-body"><ul><li>아시아, 유럽, 아프리카, 아메리카, 오세아니아, 국제헌터연합 구역마다 특정 활동을 수행할 경우 구역 평판 점수가 오릅니다.</li><li>캐릭터를 생성할 때, 또는 기존 유저는 지역 안정화 - 평판 메뉴에서 시작 구역을 한 곳 선택할 수 있습니다. 시작 구역의 평판은 10점부터 시작하고, 10점 이하로 떨어지지 않습니다.</li></ul>
 <div class="table-scroll"><table><thead><tr><th style="text-align:center"><b>점수</b></th><th style="text-align:center"><b>단계</b></th><th style="text-align:center"><b>효과(해당 구역 지역 던전만, 국제헌터연합의 경우 무한 던전)</b></th></tr></thead><tbody><tr><td style="text-align:center">0~9</td><td style="text-align:center">낯선 이방인</td><td>없음</td></tr><tr><td style="text-align:center">10~40</td><td style="text-align:center">익숙한 헌터</td><td>메헨 +2%</td></tr><tr><td style="text-align:center">41~60</td><td style="text-align:center">믿음직한 헌터</td><td>메헨 +5%</td></tr><tr><td style="text-align:center">61~75</td><td style="text-align:center">○○의 수호자</td><td>메헨 +5%, 아이템 획득 확률 +2%</td></tr><tr><td style="text-align:center">76~90</td><td style="text-align:center">○○의 영웅</td><td>메헨 +5%, 아이템 획득 확률 +5%</td></tr><tr><td style="text-align:center">91~100</td><td style="text-align:center">살아있는 전설</td><td>메헨 +10%, 아이템 획득 확률 +10%, 보스 아이템 획득 확률 +5%</td></tr></tbody></table></div>
 <div class="table-scroll"><table><thead><tr><th style="text-align:center"><b>활동</b></th><th style="text-align:center"><b>구역 평판</b></th><th style="text-align:center"><b>국제헌터연합 평판</b></th></tr></thead><tbody><tr><td>지역 안정화 성공</td><td style="text-align:center">+2</td><td style="text-align:center">(구역 무관) +1</td></tr><tr><td>무한 던전 공략</td><td style="text-align:center">-</td><td style="text-align:center">+5</td></tr><tr><td>구역 퀘스트</td><td style="text-align:center">+5</td><td style="text-align:center">+3</td></tr><tr><td>복원 사업 기부</td><td style="text-align:center">5,000 Mh마다 +5</td><td style="text-align:center">10,000 Mh마다 +5</td></tr></tbody></table></div>
@@ -8609,7 +8726,8 @@ const DOCS = {
 <h2 class="g-cat-title">국제헌터연합</h2>
 <p>국제헌터연합에서는 주간 무한 던전 랭킹 발표와 도감 기록, 헌터 명단, 길드 명단을 제공하고 있습니다.</p>
 <details class="g-sub"><summary>랭킹</summary><div class="g-sub-body"><p>무한 던전 랭킹은 형평성을 위해 개인 공략과 파티 공략으로 나누어 발표하며, 같은 수의 역을 공략한 경우, 먼저 도달한 헌터님이 높은 순위가 됩니다.</p>
-<p>한국 기준 매주 월요일 0시에 새로 시작되며, 그 이전 주 랭킹은 확정된 순위로 참고하여 주세요.</p></div></details>
+<p>한국 기준 매주 월요일 0시에 새로 시작되며, 그 이전 주 랭킹은 확정된 순위로 참고하여 주세요.</p>
+<p>랭킹은 전체 순위 외에 <b>레벨 구간별</b>로도 볼 수 있습니다(12월 1일 업데이트 예정). 혼자 세운 기록은 기록 당시 레벨, 파티 기록은 파티원 평균 레벨로 구간을 나눕니다.</p></div></details>
 <details class="g-sub"><summary>도감</summary><div class="g-sub-body"><p>던전, 몬스터, 조합식, 아이템, 타이틀, 스토리를 확인할 때마다 자동으로 기록하고 있습니다.</p>
 <ul><li>몬스터의 경우 10번 쓰러뜨리면 강한 정도와 드롭 정보를 제공합니다(보스는 1번).</li><li>도감 달성률은 다른 헌터가 확인할 수 있으며, 달성률에 따라 획득 가능한 타이틀도 존재합니다.</li></ul></div></details>
 <details class="g-sub"><summary>헌터</summary><div class="g-sub-body"><p><b>등록된 헌터의 코드네임, 등급, 레벨, 포지션과 접속 여부를 확인</b>할 수 있으며, 코드네임으로 특정 헌터를 검색할 수 있습니다.</p>
@@ -8623,23 +8741,25 @@ const DOCS = {
 <section class="card prose g-cat" id="g-inv" data-cat="inv">
 <h2 class="g-cat-title">인벤토리</h2>
 <p>인벤토리 메뉴에서는 현재 가지고 있는 아이템, 상점, 조합, 거래소를 이용할 수 있습니다.</p>
-<details class="g-sub"><summary>보유</summary><div class="g-sub-body"><ul><li>현재 가지고 있는 장비, 소비, 재료 아이템을 확인 및 판매할 수 있습니다. </li><li>장비의 경우 D급 1개부터 차례로 장비 등급이 오를 때마다 1개씩 더해지는 별가루와 재화를 소모하여 강화가 가능합니다. 6강부터는 동일한 장비를 추가 재료로 요구합니다.</li><li data-patch><b>강화 전승</b>: 장비 강화 창에서, <b>같은 부위의 더 낮은 등급 장비</b>에 쌓은 강화를 새 장비로 옮길 수 있습니다. 이전 장비 단계보다 <b>1단계 낮게(최대 +5)</b> 옮겨지며, 새 장비로 그 단계까지 강화할 때 드는 메헨의 절반만 듭니다. 별가루와 같은 장비 재료는 들지 않습니다. 이<b>전 장비는 사라지고 숙련은 옮겨지지 않으며,</b> 이전 장비를 장착하고 있었다면 새 장비가 그 자리에 바로 장착됩니다.</li><li>조합으로 만드는 버프 아이템을 쓰면 정해진 시간 동안 가능성이나 메헨을 더 얻거나, 능력치가 오르는 등의 효과가 이어집니다. 인벤토리의 [버프] 분류에서 [사용]을 누르면 바로 켜지고, 켜진 버프와 남은 시간은 헌터 정보와 인벤토리 위쪽에 보입니다.</li><li><b>버프는 가능성 획득 증가 </b><b>· 메헨 획득 증가 </b><b>· 스탯 상승 · 무한 던전 휴식 시간 감소</b><b> · 아이템 드롭 확률 증가·가 </b><b>전력 분석 시간 감소 </b><b>종류가 있으며, 종류</b><b>마다 하나만 적용됩니다</b><b>. </b><br>(예: 가능성 획득 +10% 아이템과 메헨 획득 5% 획득 아이템 모두 사용할 경우, 각 버프가 모두 적용)<br>같은 아이템을 또 쓰면 남은 시간이 늘어나고, 같은 종류의 다른 아이템을 쓰면 그 효과로 바뀝니다.<br>(예: ATK +5% 버프 상태에서 DEF +5% 버프 아이템 사용 시, DEF +5%만 적용)</li><li><b>지역 안정화와 무한 던전은 공략을 시작할 때 켜져 있던 버프가 그 공략 전체에 적용</b>됩니다. 공략 중에 버프 시간이 끝나도 결과에는 그대로 반영됩니다.</li><li>무한 던전을 파티로 공략할 때, 파티 전체가 함께 쉬는 <b>휴식 시간 감소 버프 아이템은 파티장의 버프만 적용</b>됩니다.</li></ul></div></details>
-<details class="g-sub"><summary>조합</summary><div class="g-sub-body"><ul><li>2~3개의 재료 아이템을 합쳐 새로운 아이템을 획득할 수 있습니다. 처음 성공한 조합식은 도감 및 조합 메뉴에 기록되어 계속 참고할 수 있습니다.</li><li>조합식이 틀려도 아이템이 사라지진 않으나, <b>조합 중 1% 확률로 아이템이 대실패하여 재료 아이템이 모두 파괴</b>되는 경우가 존재합니다. 반대로, <b>조합 성공 시 5% 확률로 아이템을 2개 획득할 수 있는 대성공</b> 현상도 관측되고 있습니다.</li><li>공략 기록이나 탐색 중에 <b>벽에 새겨진 낙서</b>를 발견할 때가 있습니다. 아직 모르는 조합식을 빗대어 적은 것이 많으며, 발견한 낙서는 도감의 조합식 설명에 남습니다.</li><li>알게 된 조합식은 [칸 채우기] 기능을 통해 자동으로 재료 아이템을 채울 수 있습니다.</li><li>알게 된 조합식은 전체 · 장비 · 소비로 나누어 볼 수 있고, 아이템 이름으로 검색하면 결과뿐 아니라 재료에 그 아이템이 들어간 조합식도 찾아 줍니다.</li><li>[칸 채우기] 옆 칸에 횟수를 정하면 가진 재료만큼 여러 번을 한꺼번에 조합할 수 있습니다. 한꺼번에 조합해도 대실패와 대성공은 한 번마다 따로 정해집니다. 장비가 재료로 들어가는 조합식은 강화 단계가 낮은 장비부터 사용합니다.</li></ul></div></details>
+<details class="g-sub"><summary>보유</summary><div class="g-sub-body"><ul><li>현재 가지고 있는 장비, 소비, 재료 아이템을 확인 및 판매할 수 있습니다. <b>[판매]를 누르면 팔 개수를 정하고 받을 메헨을 확인한 뒤 판매합니다.</b> 일부만 남기고 팔 수도 있습니다.</li><li>장비의 경우 D급 1개부터 차례로 장비 등급이 오를 때마다 1개씩 더해지는 별가루와 재화를 소모하여 강화가 가능합니다. 6강부터는 동일한 장비를 추가 재료로 요구합니다.</li><li data-patch><b>강화 전승</b>: 장비 강화 창에서, <b>같은 부위의 더 낮은 등급 장비</b>에 쌓은 강화를 새 장비로 옮길 수 있습니다. 이전 장비 단계보다 <b>1단계 낮게(최대 +5)</b> 옮겨지며, 새 장비로 그 단계까지 강화할 때 드는 메헨의 절반만 듭니다. 별가루와 같은 장비 재료는 들지 않습니다. 이<b>전 장비는 사라지고 숙련은 옮겨지지 않으며,</b> 이전 장비를 장착하고 있었다면 새 장비가 그 자리에 바로 장착됩니다.</li><li>조합으로 만드는 버프 아이템을 쓰면 정해진 시간 동안 가능성이나 메헨을 더 얻거나, 능력치가 오르는 등의 효과가 이어집니다. 인벤토리의 [버프] 분류에서 [사용]을 누르면 바로 켜지고, 켜진 버프와 남은 시간은 헌터 정보와 인벤토리 위쪽에 보입니다.</li><li><b>버프는 가능성 획득 증가 </b><b>· 메헨 획득 증가 </b><b>· 스탯 상승 · 무한 던전 휴식 시간 감소</b><b> · 아이템 드롭 확률 증가·가 </b><b>전력 분석 시간 감소 </b><b>종류가 있으며, 종류</b><b>마다 하나만 적용됩니다</b><b>. </b><br>(예: 가능성 획득 +10% 아이템과 메헨 획득 5% 획득 아이템 모두 사용할 경우, 각 버프가 모두 적용)<br>같은 아이템을 또 쓰면 남은 시간이 늘어나고, 같은 종류의 다른 아이템을 쓰면 그 효과로 바뀝니다.<br>(예: ATK +5% 버프 상태에서 DEF +5% 버프 아이템 사용 시, DEF +5%만 적용)</li><li><b>지역 안정화와 무한 던전은 공략을 시작할 때 켜져 있던 버프가 그 공략 전체에 적용</b>됩니다. 공략 중에 버프 시간이 끝나도 결과에는 그대로 반영됩니다.</li><li>무한 던전을 파티로 공략할 때, 파티 전체가 함께 쉬는 <b>휴식 시간 감소 버프 아이템은 파티장의 버프만 적용</b>됩니다.</li></ul></div></details>
+<details class="g-sub"><summary>조합</summary><div class="g-sub-body"><ul><li>2~3개의 재료 아이템을 합쳐 새로운 아이템을 획득할 수 있습니다. 처음 성공한 조합식은 도감 및 조합 메뉴에 기록되어 계속 참고할 수 있습니다.</li><li>조합식이 틀려도 아이템이 사라지진 않으나, <b>조합 중 1% 확률로 아이템이 대실패하여 재료 아이템이 모두 파괴</b>되는 경우가 존재합니다. 반대로, <b>조합 성공 시 5% 확률로 아이템을 2개 획득할 수 있는 대성공</b> 현상도 관측되고 있습니다.</li><li>공략 기록이나 탐색 중에 <b>벽에 새겨진 낙서</b>를 발견할 때가 있습니다. 아직 모르는 조합식을 빗대어 적은 것이 많으며, 발견한 낙서는 도감의 조합식 설명에 남습니다.</li><li>알게 된 조합식은 [칸 채우기] 기능을 통해 자동으로 재료 아이템을 채울 수 있습니다.</li><li>알게 된 조합식은 전체 · 장비 · 소비로 나누어 볼 수 있고, 아이템 이름으로 검색하면 결과뿐 아니라 재료에 그 아이템이 들어간 조합식도 찾아 줍니다.</li><li>[칸 채우기] 옆 칸에 횟수를 정하면 가진 재료만큼 여러 번을 한꺼번에 조합할 수 있습니다. 한꺼번에 조합해도 대실패와 대성공은 한 번마다 따로 정해집니다. 장비가 재료로 들어가는 조합식은 강화 단계가 낮은 장비부터 사용합니다.</li><li>알게 된 조합식에서 아이템 이름을 누르거나 마우스를 올리면 <b>보유 개수와 효과</b>를 확인할 수 있습니다.</li></ul></div></details>
 <details class="g-sub"><summary>분해</summary><div class="g-sub-body"><ul><li>조합식을 알고 있는 아이템을 분해할 수 있습니다. <b>하나를 분해할 때마다 그 조합식에 들어간 재료 중 1개를 무작위로 돌려받습니다. </b></li><li>장착 중인 장비는 분해할 수 없으며, 강화된 장비를 분해하면 강화 단계는 사라지지만, 강화에 쓴 별가루를 1개부터 전부까지 무작위로 돌려받습니다.</li></ul></div></details>
 <details class="g-sub" data-patch><summary>장비 숙련도</summary><div class="g-sub-body"><ul><li>장비를 장착한 채로 지역 안정화나 무한 던전 결과를 받을 때마다 그 장비의 숙련이 쌓입니다. </li><li>오래 함께한 장비에는 이름 옆에 ★이 붙고, 별은 최대 5개까지 늘어납니다. 장비가 다른 헌터에게 넘어가면 숙련은 처음부터 다시 쌓입니다.</li><li>숙련은 공략을 출발할 때 <b>장착하고 있던 장비에만</b> 쌓입니다. 공략 중에 장비를 바꿔도 출발할 때의 장비에 쌓입니다. </li><li>혼자든 파티든, 성공과 실패에 관계없이 결과를 받을 때마다 1씩 오릅니다. </li><li>레이드·탐색·별의 무덤·별의 제단에서는 쌓이지 않습니다.</li><li>별은 숙련 <b>10 · 30 · 60 · 100 · 150</b>에 달하면 하나씩 붙습니다.</li><li>별 하나마다 그 장비의 능력치(강화 포함)가 <b>2%씩</b>, 별 5개면 <b>10%</b> 오릅니다. 인벤토리의 장비 수치에는 별까지 반영된 값이 표시됩니다.</li><li>강화와 숙련은 따로 쌓입니다. 강화에 실패해도 숙련은 줄어들지 않지만, 장비를 분해하거나 강화 재료로 쓰면 숙련도 함께 사라집니다.</li><li>숙련 60(★★★)과 150(★★★★★)에 달하면 헌터 연대기에 기록됩니다.</li></ul></div></details>
-<details class="g-sub"><summary>거래소</summary><div class="g-sub-body"><ul><li>헌터들끼리 아이템을 사고 팔 수 있습니다. 상점에 팔지 않는 아이템을 등록할 수 있으며, 한 번에 10건, 7일 동안 팔리지 않으면 인벤토리에 회수됩니다.</li><li>거래소 운영을 위해 판매가의 5%를 수수료로 국제헌터연합이 가져가고 있으니 양해 부탁드립니다.</li><li>거래 기록을 통해 최근 30일간의 거래 기록을 확인할 수 있습니다.</li></ul></div></details>
+<details class="g-sub"><summary>거래소</summary><div class="g-sub-body"><ul><li>헌터들끼리 아이템을 사고팔 수 있습니다. [<b>사기</b>]에서는 다른 헌터가 올린 물건을, [<b>팔기</b>]에서는 내 물건을 올리거나 내릴 수 있으며, 둘 다 장비 · 소비 · 재료로 나누어 볼 수 있습니다.</li><li>소비 아이템과 버프 아이템은 이름 아래에 효과가 함께 표시됩니다.</li><li>상점에 팔지 않는 아이템을 등록할 수 있으며, 한 번에 10건, 7일 동안 팔리지 않으면 인벤토리에 회수됩니다. 팔 물건을 고르면 <b>상점 판매가와 지금 거래소에 올라온 같은 물건의 최저 · 최고 가격</b>을 함께 확인할 수 있습니다.</li><li>거래소 운영을 위해 판매가의 5%를 수수료로 국제헌터연합이 가져가고 있으니 양해 부탁드립니다.</li><li>[팔기]의 거래 기록에서 최근 30일간의 거래 기록을 확인할 수 있습니다.</li></ul></div></details>
 </section>
 <section class="card prose g-cat" id="g-social" data-cat="social">
 <h2 class="g-cat-title">교류</h2>
-<p>헌터 간 교류를 활성화하기 위해서 SNS·길드 채팅, 친구·메시지, 파티, 선물함 기능을 지원하고 있습니다.</p>
+<p>헌터 간 교류를 활성화하기 위해서 SNS(1:1 메시지 · 파티 채팅 · 길드 채팅), 친구, 파티, 선물함 기능을 지원하고 있습니다.</p>
 <details class="g-sub"><summary>SNS</summary><div class="g-sub-body"><p>헌터 소셜네트워크서비스를 이용하여 실시간으로 게시글을 올리고, 댓글로 대화할 수 있습니다. 게시글 주제에 맞는 태그를 이용하여 주세요.</p></div></details>
 <details class="g-sub"><summary>길드 채팅</summary><div class="g-sub-body"><p>SNS의 [길드]에서 길드원끼리만 보이는 전용 채팅을 할 수 있습니다. 채팅은 30일 뒤 삭제됩니다. 길드 가입과 개설, 길드 관리는 국제헌터연합의 [길드]에서 할 수 있습니다.</p></div></details>
-<details class="g-sub"><summary>친구·메시지</summary><div class="g-sub-body"><p>공략 중 친해진 헌터가 있다면 친구로 추가하여 1:1 메시지를 주고 받을 수 있습니다. </p>
+<details class="g-sub"><summary>친구</summary><div class="g-sub-body"><p>공략 중 친해진 헌터가 있다면 친구로 추가할 수 있습니다.</p>
 <p>친구 신청은 코드네임을 검색하여 가능하고, 상대가 수락하면 친구가 됩니다. 현재는 30명까지 친구를 추가할 수 있습니다.</p>
-<p>주고받은 메시지는 30일 뒤 삭제되지만, ☆를 눌러 계속 보관이 가능합니다. 1:1 메시지에서는 상호 조율 하에 오너 이입이 가능하오니 참고 부탁드립니다.</p>
+<p>친구 목록에서 지금 접속 중인 친구를 확인할 수 있으며, [메시지]를 누르면 SNS의 메시지 화면으로 이동합니다.</p>
 <p>불편한 헌터가 있다면 차단 및 신고가 가능합니다. 신고는 연합 운영 직원이 확인하여 처리합니다.</p></div></details>
+<details class="g-sub"><summary>메시지</summary><div class="g-sub-body"><p>SNS의 [메시지]에서 친구와 1:1 메시지를 주고받을 수 있습니다. 주고받은 메시지는 30일 뒤 삭제되지만, ☆를 눌러 계속 보관이 가능합니다. 1:1 메시지에서는 상호 조율 하에 오너 이입이 가능하오니 참고 부탁드립니다.</p></div></details>
+<details class="g-sub"><summary>파티 채팅</summary><div class="g-sub-body"><p>SNS의 [파티 채팅]에서 같은 파티원끼리만 보이는 채팅을 할 수 있습니다. 도중 퇴장이나 출발 시간을 정할 때 활용해 주세요. 채팅은 7일 뒤 삭제되며, 파티가 해산되면 함께 사라집니다.</p></div></details>
 <details class="g-sub"><summary>파티</summary><div class="g-sub-body"><p>함께 공략하고 싶은 헌터가 있다면 코드네임으로 초대하여 파티를 맺을 수 있습니다. 초대한 사람이 파티장으로 임명되며, 파티는 최대 5명이 참가할 수 있습니다.</p>
-<ul><li>공략은 파티장의 조작으로 전원이 함께 합니다. 단, 파티 구성원 중 1명이라도 다른 활동을 하고 있거나, 파티원 내 최고·최저 레벨 차이가 25레벨 이상이면 공략 활동을 할 수 없습니다.</li><li>공략 시간이 끝난 뒤에는 결과를 받지 않은 파티원이 있어도 파티를 나가거나 내보낼 수 있습니다. 받지 않은 결과는 파티를 떠나도 각자 나중에 받을 수 있습니다.</li><li>무한 던전 파티 랭킹은 파티장의 코드네임이 대표로 올라가며, 세부 정보로 파티원 코드네임까지 확인할 수 있습니다.</li></ul></div></details>
+<ul><li>공략은 파티장의 조작으로 전원이 함께 합니다. 단, 파티 구성원 중 1명이라도 다른 활동(레이드 제외)을 하고 있거나, 파티원 내 최고·최저 레벨 차이가 25레벨 이상이면 공략 활동을 할 수 없습니다.</li><li>공략 시간이 끝난 뒤에는 결과를 받지 않은 파티원이 있어도 파티를 나가거나 내보낼 수 있습니다. 받지 않은 결과는 파티를 떠나도 각자 나중에 받을 수 있습니다.</li><li>무한 던전 파티 랭킹은 파티장의 코드네임이 대표로 올라가며, 세부 정보로 파티원 코드네임까지 확인할 수 있습니다.</li></ul></div></details>
 <details class="g-sub"><summary>선물함</summary><div class="g-sub-body"><p>친구끼리는 재화·아이템을 주고 받을 수 있습니다. </p>
 <ul><li>하루 10번까지 가능하며, 상대가 받지 않거나 거절하면 되돌아옵니다.</li><li>선물을 수령한 메시지는 최근 50건까지 보관됩니다.</li></ul></div></details>
 <details class="g-sub" data-patch><summary>헌터 연대기</summary><div class="g-sub-body"><p>헌터님이 걸어온 길의 중요한 순간이 날짜와 함께 <b>헌터 연대기</b>에 자동으로 남습니다.</p>
@@ -8647,7 +8767,7 @@ const DOCS = {
 </section>
 <section class="card prose g-cat" id="g-notif" data-cat="notif">
 <h2 class="g-cat-title">알림</h2>
-<p>화면 위쪽의 [알림]에서 타이틀 획득, 친구 신청, 파티·길드 초대, 공지, SNS 댓글·답글, 거래소 판매, 선물 도착, 지역 안정화·무한 던전·전력 분석 완료 알림을 모아 볼 수 있습니다. 알림을 누르면 해당 화면으로 이동하며, 최근 30일 동안의 알림이 보관됩니다.</p>
+<p>화면 위쪽의 [알림]에서 타이틀 획득, 친구 신청, 파티·길드 초대, 공지, SNS 댓글·답글, 거래소 판매, 선물 도착, 지역 안정화·무한 던전·전력 분석 완료 알림을 모아 볼 수 있습니다. 알림을 누르면 해당 화면으로 이동하며, 최근 30일 동안의 알림이 보관됩니다. 알림 창을 열면 새 알림 표시가 사라지며, 따로 읽음 처리를 하지 않아도 됩니다.</p>
 <p>[알림 설정]에서 받을 알림을 종류별로 켜고 끌 수 있습니다. PC에서는 컴퓨터 알림 팝업을 켜면 게임 창이 다른 창 뒤에 있을 때도 알림을 받을 수 있습니다. 단, 게임 탭은 열려 있어야 합니다.</p>
 </section>
 <section class="card prose g-cat" id="g-notes" data-cat="notes">
@@ -9380,7 +9500,7 @@ const TOURS = {
     { sel: '[data-tour="hm-todo"]', text: "헌터님만 확인할 수 있는 메모장이에요. 할 일을 적어 두고 끝나면 체크하실 수 있습니다." },
     { sel: "#btn-settings", mo: true, text: "배경음악과 효과음은 위쪽 설정 › 소리에서 켜고 끄거나 크기를 바꿀 수 있어요. 듣고 싶은 음악이 있다면 유튜브 링크로 재생할 수 있습니다." },
     { sel: "#bgm", pc: true, text: "배경음악을 켜고 끄거나 크기를 바꿀 수 있어요. 듣고 싶은 음악이 있다면 유튜브 링크로 재생할 수 있습니다. 효과음은 위쪽 설정에서 바꿀 수 있습니다." },
-    { sel: "#side-party, #side-sns", all: true, pc: true, text: "다른 헌터와 파티를 맺은 경우, 파티 현황이 이곳에 나타납니다.\n이곳에서 헌터 전용 SNS 새 글을 확인할 수 있습니다. 카테고리 별로 다른 탭을 사용하고, 원하시면 게시글을 올릴 수 있습니다." },
+    { sel: "#side-party, #side-sns", all: true, pc: true, text: "다른 헌터와 파티를 맺은 경우, 파티 현황이 이곳에 나타납니다.\n이곳에서 헌터 전용 SNS 새 글을 확인하고 [글쓰기]로 글을 올릴 수 있습니다. [파티]에서는 파티 채팅을, [1:1]에서는 친구와 메시지를 바로 주고받을 수 있으며, ▶를 누르면 다른 탭이 나옵니다." },
     { text: "이용에 어려움이 생기시면 각 화면의 [도움말]과 그 옆의 [가이드]를 이용해주십시오.\n헌터님의 무한한 가능성을 기대하겠습니다." },
   ],
   "dungeon-battle": [
@@ -9684,7 +9804,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-26-1830";
+const BUILD = "2026-11-26-2245";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
