@@ -456,14 +456,14 @@ dialog.guide-dlg { width: min(920px, calc(100vw - 24px)); }
 .side-feed li.side-post:hover, .side-feed li.side-post:focus-visible { background: color-mix(in srgb, var(--primary) 7%, transparent); outline: none; }
 .sns-post.focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 55%, transparent); transition: box-shadow .3s; }
 /* 오른쪽 SNS: 한 줄 탭 + 목록/대화 스크롤 */
-.side-tabs { position: relative; display: flex; align-items: stretch; border-bottom: 1.5px solid var(--text); margin: 0 0 8px; }
+.side-tabs { position: relative; display: flex; align-items: stretch; border-bottom: 1.5px solid var(--primary); margin: 0 0 8px; }
 .side-tabs-strip { display: flex; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; }
 .side-tabs-strip::-webkit-scrollbar { display: none; }
-.side-tabs-strip button { flex: none; border: 0; border-right: 1px solid var(--border); background: transparent; color: var(--text); padding: 7px 11px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
+.side-tabs-strip button { flex: none; border: 0; border-right: 1px solid color-mix(in srgb, var(--primary) 35%, transparent); background: transparent; color: var(--text); padding: 7px 11px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
 .side-tabs-strip button:last-child { border-right: 0; }
 .side-tabs-strip button.on { background: var(--primary); color: var(--on-primary); }
 .side-tabs-strip .nbadge { font-size: 10px; min-width: 16px; height: 16px; }
-.side-tabs-arrow { position: absolute; top: 0; bottom: 0; width: 30px; border: 0; padding: 0; cursor: pointer; font-size: 11px; color: var(--text); z-index: 1; }
+.side-tabs-arrow { position: absolute; top: 0; bottom: 0; width: 30px; border: 0; padding: 0; cursor: pointer; font-size: 11px; color: var(--primary); z-index: 1; }
 .side-tabs-arrow.l { left: 0; text-align: left; padding-left: 4px; background: linear-gradient(90deg, var(--surface, #fff) 55%, transparent); }
 .side-tabs-arrow.r { right: 0; text-align: right; padding-right: 4px; background: linear-gradient(270deg, var(--surface, #fff) 55%, transparent); }
 .side-scroll { max-height: 460px; overflow-y: auto; padding-right: 4px; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--primary) 55%, transparent) transparent; }
@@ -9804,7 +9804,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-26-2245";
+const BUILD = "2026-11-26-2300";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
