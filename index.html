@@ -467,7 +467,7 @@ dialog.guide-dlg { width: min(920px, calc(100vw - 24px)); }
 .side-tabs-arrow.l { left: 0; text-align: left; padding-left: 4px; background: linear-gradient(90deg, var(--surface, #fff) 55%, transparent); }
 .side-tabs-arrow.r { right: 0; text-align: right; padding-right: 4px; background: linear-gradient(270deg, var(--surface, #fff) 55%, transparent); }
 .side-scroll { max-height: 460px; overflow-y: auto; padding-right: 4px; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--primary) 55%, transparent) transparent; }
-.side-cat { font-size: 11px; font-weight: 700; color: var(--primary); background: color-mix(in srgb, var(--primary) 10%, transparent); border-radius: 4px; padding: 1px 6px; }
+.side-cat { font-size: 11px; font-weight: 700; color: var(--accent-text); background: color-mix(in srgb, var(--accent-text) 14%, transparent); border-radius: 4px; padding: 1px 6px; }
 .side-cmt { font-size: 12px; display: block; margin-top: 4px; }
 .side-empty { margin: 8px 0 10px; }
 .side-chat-head { display: flex; align-items: center; gap: 6px; padding: 2px 0 6px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
@@ -9805,7 +9805,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-26-2310";
+const BUILD = "2026-11-26-2320";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
