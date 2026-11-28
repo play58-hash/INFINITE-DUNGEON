@@ -4488,7 +4488,7 @@ async function renderHome(pane) {
       if (error) return toast(koError(error));
       const parts = [];
       if (r.stat_gain > 0) parts.push(`${STAT_KO[r.stat]} +${r.stat_gain} (${r.stage_after}단계)`);
-      if (r.pot > 0) parts.push(`가능성 +${r.pot}`);
+      if (r.pot > 0) parts.push(`가능성 +${r.pot}${r.focus_pot > 0 ? ` (분석 집중 +${r.focus_pot} 포함)` : ""}`);
       toast(parts.length ? parts.join(" · ") : `${okMsg} (${r.credited}분 반영)`);
       await loadAll(); renderHunter(); paintAnalysis(); paintQuests(); paintStory();
     };
@@ -4507,7 +4507,7 @@ async function renderHome(pane) {
         }
       };
       btns.append(h("button", { class: "btn ghost small", type: "button", onclick: () =>
-        confirm("분석을 그만둘까요? 지금까지 지난 시간만큼(5분 단위로 내림)만 반영되고, 일일 퀘스트 '자기 계발'은 완료되지 않습니다.") && finish("analysis_cancel", "분석을 그만두었습니다") }, "그만두기"));
+        confirm(`분석을 그만둘까요? 지금까지 지난 시간만큼(5분 단위로 내림)만 반영되고, 일일 퀘스트 '자기 계발'은 완료되지 않습니다.${ru.focus?.status === "done" && ru.focus.result?.pot > 0 ? `\n분석 집중으로 받을 가능성 +${ru.focus.result.pot}도 사라집니다.` : ""}`) && finish("analysis_cancel", "분석을 그만두었습니다") }, "그만두기"));
       kids.push(h("div", { class: "home-act" },
         h("div", { class: "row" }, h("strong", {}, `${STAT_KO[ru.stat]} 분석 · ${ru.minutes}분`), ru.speed > 1 ? h("span", { class: "badge" }, `테스트 ${ru.speed}배`) : h("span", { class: "hint" }, `${fmtTime(ru.ends_at)} 완료`)),
         h("div", { class: "row", style: "margin-top:4px" }, h("span", { class: "hint" }, "남은 시간"), left),
@@ -4518,7 +4518,7 @@ async function renderHome(pane) {
       const fo = ru.focus;
       if (released() && fo?.status === "done")
         kids.push(h("div", { class: "an-focus" }, h("span", {}, "분석 집중 완료"),
-          h("span", { class: "hint" }, fo.result?.cut > 0 ? `${fo.result.cut}분 단축 · 가능성 +${fo.result.pot || 0}` : "단축 없음")));
+          h("span", { class: "hint" }, fo.result?.cut > 0 ? `${fo.result.cut}분 단축 · 분석을 마치면 가능성 +${fo.result.pot || 0}` : "단축 없음")));
       else if (released() && Date.now() + off < end)
         kids.push(h("div", { class: "an-focus", "data-tour": "hm-focus" }, h("span", {}, "분석 집중으로 남은 시간을 줄일 수 있습니다."),
           h("button", { class: "btn small", type: "button", style: "white-space:nowrap;flex:none", onclick: () => playFocus(paintAnalysis) }, "분석 집중")));
@@ -5979,7 +5979,8 @@ async function playFocus(after) {
       h("p", { style: "margin:0 0 8px;font-weight:700" }, res.cut > 0 ? "분석에 속도가 붙었습니다." : "집중이 흐트러졌습니다…"),
       h("div", { class: "kv" }, h("span", {}, "결과"), h("span", {}, `완벽 ${res.perfect} · 좋음 ${res.good} · 빗나감 ${miss}`)),
       h("div", { class: "kv" }, h("span", {}, "분석 시간"), h("span", {}, res.cut > 0 ? `${res.cut}분 단축` : "그대로")),
-      h("div", { class: "kv" }, h("span", {}, "가능성"), h("span", {}, `+${Number(res.pot || 0).toLocaleString()}`))),
+      h("div", { class: "kv" }, h("span", {}, "가능성"), h("span", {}, `+${Number(res.pot || 0).toLocaleString()}`)),
+      res.pot > 0 ? h("p", { class: "hint", style: "margin:6px 0 0;font-size:13px" }, "가능성은 분석을 끝까지 마치고 결과를 받을 때 함께 받습니다. 도중에 그만두면 받지 않습니다.") : null),
       h("div", { style: "display:flex;gap:8px;margin-top:12px" }, h("button", { class: "btn ghost", type: "button", onclick: () => $("#dlg-info").close() }, "닫기")));
     loadAll().then(renderHunter);
     after?.();
@@ -5987,7 +5988,7 @@ async function playFocus(after) {
   press.onclick = hit;
   bar.addEventListener("pointerdown", e => { e.preventDefault(); hit(); });
   info("분석 집중",
-    h("p", { class: "hint", style: "margin:0 0 12px" }, "좌우로 오가는 파형이 가운데 선과 겹칠 때 누르세요. 파형의 가장 높은 곳이 선에 닿을수록 '완벽'입니다. 5번 누르며 갈수록 구간이 좁아지고 빨라집니다. 잘 맞힐수록 남은 분석 시간이 줄고, 분석 시간에 걸맞은 가능성을 조금 얻습니다. 분석 한 번에 한 번만 할 수 있습니다."),
+    h("p", { class: "hint", style: "margin:0 0 12px" }, "좌우로 오가는 파형이 가운데 선과 겹칠 때 누르세요. 파형의 가장 높은 곳이 선에 닿을수록 '완벽'입니다. 5번 누르며 갈수록 구간이 좁아지고 빨라집니다. 잘 맞힐수록 남은 분석 시간이 줄고, 분석 시간에 걸맞은 가능성을 조금 얻습니다(분석을 끝까지 마치면 받습니다). 분석 한 번에 한 번만 할 수 있습니다."),
     roundEl, bar, marks, press, out);
   miniCleanup();
   press.hidden = true;
@@ -8748,7 +8749,7 @@ const DOCS = {
 <p>전력 분석은 <b>공략 활동(무한 던전·탐색·별의 무덤·별의 제단·지역 안정화·레이드)과 동시 진행이 가능</b>합니다.</p>
 <h3><b>분석 집중</b></h3>
 <p>전력 분석이 진행되는 동안 <b>분석 집중</b>을 할 수 있습니다. <b>좌우로 오가는 파형이 가운데 노란 </b><b>선과 겹칠 때 누르며</b>, 파형의 가장 높은 곳이 노란 선에 얼마나 가까운지에 따라 완벽 &gt; 좋음 &gt; 빗나감 판정을 받습니다. </p>
-<p>총 5번 누르며 갈수록 구간이 좁아지고 빨라집니다. 완벽 판정이 많을수록 남은 분석 시간이 줄어들고, 소량의 가능성을 지급 받습니다. <b>줄어든 시간도 분석한 시간으로 그대로 인정됩니다.</b></p></div></details>
+<p>총 5번 누르며 갈수록 구간이 좁아지고 빨라집니다. 완벽 판정이 많을수록 남은 분석 시간이 줄어들고, <b>분석을 끝까지 마치면</b> 소량의 가능성을 함께 지급 받습니다. <b>줄어든 시간도 분석한 시간으로 그대로 인정됩니다.</b> 도중에 그만두면 집중으로 줄인 시간과 가능성은 반영되지 않습니다.</p></div></details>
 <details class="g-sub"><summary>포지션</summary><div class="g-sub-body"><p>이능력과 전투 스타일에 따라 크게 4가지, 세부적으로 8가지의 포지션으로 나누어 구분하고 있습니다. </p>
 <p>등급 측정과 동시에 메인 포지션을 선택하며, <b>25레벨을 달성할 경우 서브 포지션을 선택</b>할 수 있습니다. <b>서브 포지션은 메인 포지션 효과의 0.5배</b>이며, 만일 <b>메인 포지션과 같은 포지션을 서브로 선택할 경우, 효과는 총 1.5배가 됩니다.</b></p>
 <h3>딜러</h3>
@@ -9896,7 +9897,7 @@ async function loadAll() {
 
 /* ===== 새 버전 알림 =====
    올린 index.html이 바뀌면(브라우저·GitHub Pages가 예전 파일을 들고 있어도) 새로고침을 권한다. 올릴 때마다 BUILD를 바꾼다. */
-const BUILD = "2026-11-28-0130";
+const BUILD = "2026-11-28-1640";
 let buildNoticed = false, buildTag = null;
 async function checkBuild() {
   if (buildNoticed || document.hidden) return;
